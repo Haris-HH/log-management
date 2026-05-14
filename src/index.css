@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+:root {
+  --main-bg-color: #000000;
+  --primary-color: #388087;
+  --primary-color-rgb: 56, 128, 135;
+  --secondary-color: #000000;
+  --secondary-color-rgb: 0, 0, 0;
+  --tertiary-color: #FFFFFF;
+  --tertiary-color-rgb: 255, 255, 255;
+  --danger-color: #DB2740;
+  --danger-color-hover: #AF1F33;
+  --text-color: #1A2E35;
+  --current-date-highlight-bg-color: #E9E9E9;
+  --hyper-text-color: #9799CD;
+  --has-filter-color: #FFF7ED;
+  --has-filter-bg-color: #F59E0B;
+  --percent-text-color: #4A4A4A;
+  --text-chart-table-color: #124692;
+  --total-bg-color: #F0F2F5;
+  --border-chart-color: #DBDCDE;
+
+  /* Chart Color */
+  --status-all: #93C3EB;
+  --status-device-disable: #9E9E9E;
+  --status-network-outage: #F68634;
+  --status-device-outage: #FFCA29;
+  --status-device-normal: #80B213;
+}
+
+* {
+  scrollbar-color: var(--primary-color) transparent;
+  font-family: "Noto Sans Thai", sans-serif !important;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
