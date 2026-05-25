@@ -4,6 +4,7 @@ import { Outlet, useLocation } from "react-router-dom";
 // Components
 import Navbar from "./Navbar";
 import DockDrawer from "../components/dock-drawer/DockDrawer";
+import Watermark from "../components/watermark/WaterMark";
 
 // Assets
 import backgroundVideo from "../assets/video/background_video.mp4";
@@ -18,6 +19,8 @@ const MainLayout = () => {
     <div className="relative min-h-screen overflow-hidden">
       <Navbar />
 
+      <Watermark text={"คู่สัญญา"} hashPid={"HASH PID"} />
+      
       <main
         style={{
           height: "calc(100vh - 64px)",

@@ -20,7 +20,7 @@ const MatrixRainingCode = ({ className = "" }: MatrixRainingCodeProps) => {
     let height = (canvas.height = window.innerHeight);
     let columns = Math.floor(width / 20);
 
-    const characters = "abcdefghijklmnopqrstuvwxyz0123456789";
+    const characters = "nsblogmanagement";
     const charArray = characters.split("");
     let drops: number[] = [];
 

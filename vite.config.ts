@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import pkg from './package.json';
@@ -7,7 +7,12 @@ import svgr from "vite-plugin-svgr";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss(), svgr()],
+  test: {
+    globals: true,
+    environment: "jsdom",
+    setupFiles: "./test-setup.js",
+  },
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
-  }
+  },
 })
