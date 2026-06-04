@@ -82,7 +82,9 @@
     "daily-report": "รายงานรายวัน",
     "weekly-report": "รายงานรายสัปดาห์",
     "monthly-report": "รายงานรายเดือน",
-    "login": "เข้าสู่ระบบ"
+    "login": "เข้าสู่ระบบ",
+    "loading": "กำลังโหลด...",
+    "confirm": "ยืนยัน"
   },
   "text": {
     "month": "เดือน",
@@ -265,5 +267,18 @@
   "helperText": {
     "please-input-pid": "กรุณากรอกหมายเลขบัตรประชาชน",
     "please-input-password": "กรุณากรอกรหัสผ่าน"
+  },
+  "popup": {
+    "login-failed-title": "เข้าสู่ระบบไม่สำเร็จ",
+    "login-failed-message": "กรุณตรวจสอบหมายเลขบัตรประชาชนและรหัสผ่านของคุณแล้วลองใหม่อีกครั้ง",
+    "logout-failed-title": "ออกจากระบบไม่สำเร็จ",
+    "logout-failed-message": "เกิดข้อผิดพลาดในการออกจากระบบ กรุณาลองใหม่อีกครั้ง",
+    "logout-title": "ยืนยันการออกจากระบบ",
+    "logout-message": "คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ?",
+    "fetch-error": "เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง",
+    "export-chunk-confirm-title": "ยืนยันการ Export ข้อมูลจำนวนมาก",
+    "export-chunk-confirm-message": "จำนวนข้อมูลทั้งหมด {{totalData}} รายการ\nอาจส่งผลให้การ Export ข้อมูลล่าช้า\nต้องการยืนยัน Export ข้อมูลหรือไม่",
+    "export-error-title": "เกิดข้อผิดพลาด",
+    "export-error-message": "เกิดข้อผิดพลาดในการ Export ข้อมูล กรุณาลองใหม่อีกครั้ง"
   }
 }

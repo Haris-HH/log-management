@@ -25,6 +25,12 @@ import { LANGUAGES } from "../constants/language";
 // i18n
 import { useTranslation } from 'react-i18next';
 
+// API
+import { logoutApi } from "../features/login/api/LoginApi";
+
+// Utils
+import { PopupMessage, PopupMessageWithCancel } from "../utils/popupMessage";
+
 dayjs.extend(buddhistEra);
 
 const Navbar = () => {
@@ -55,6 +61,27 @@ const Navbar = () => {
 
     return () => clearInterval(timer);
   }, [])
+
+  const handleLogout = async () => {
+    const isConfirmed = await PopupMessageWithCancel(
+      t("popup.logout-title"),
+      t("popup.logout-message"),
+      t("button.confirm"),
+      t("button.cancel"),
+      "warning"
+    );
+    if (!isConfirmed) return;
+    try {
+      await logoutApi();
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("hash_id");
+      localStorage.removeItem("nsbOu");
+      window.location.href = "/login";
+    } 
+    catch (error) {
+      await PopupMessage(t("popup.logout-failed-title"), t("popup.logout-failed-message"), "error");
+    }
+  }
 
   return (
     <AppBar 
@@ -193,6 +220,7 @@ const Navbar = () => {
                 color: "white",
               },
             }}
+            onClick={handleLogout}
           >
             {t("navbar.logout")}
           </Button>

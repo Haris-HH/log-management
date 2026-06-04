@@ -39,13 +39,15 @@ export const loadImageAsBase64 = async (url: string): Promise<string> => {
 }
 
 export const buildOptions = (
-  list: { name: string; code: string }[],
+  list: any[],
   defaultLabel: string,
+  label: string = "name",
+  value: string = "code",
   isAll: boolean = true
 ) => {
   const options = list.map((item) => ({
-    label: item.name,
-    value: item.code,
+    label: item[label],
+    value: item[value],
   }));
 
   return isAll

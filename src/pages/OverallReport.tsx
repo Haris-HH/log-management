@@ -110,7 +110,12 @@ const OverallReport = () => {
 
   useEffect(() => {
     setAreaOptions(buildOptions(area, t('dropdown.all-area')));
-    setProvinceOptions(buildOptions(province, t('dropdown.all-province')));
+    setProvinceOptions(
+      buildOptions(
+        province, t('dropdown.all-province'), 
+        i18n.language === "th" ? "name_th" : "name_en",
+        "province_code")
+      );
     setProjectOptions(buildOptions(project, t('dropdown.all-project')));
   }, [area, province, project, t, i18n, i18n.language, i18n.isInitialized]);
 

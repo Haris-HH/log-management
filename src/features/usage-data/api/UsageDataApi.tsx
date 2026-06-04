@@ -1,6 +1,6 @@
 // Types
 import type { 
-  AgencyUsageResponse,
+  AccessLogResponse,
   LogUsageResponse,
   PersonUsageResponse,
 } from "../../../types/response";
@@ -9,32 +9,31 @@ import type {
 import { fetchClient } from "../../../api/fetchClient";
 
 // Mocks
-import { mockAgencyUsage } from "../../../mocks/mockAgencyUsage";
+import { mockAccessLog } from "../../../mocks/mockAccessLog";
 import { mockLogUsage } from "../../../mocks/mockLogUsage"
 import { mockPersonUsage } from "../../../mocks/mockPersonUsage";
 
 // Env
 const isDev = import.meta.env.VITE_IS_DEV;
 
-export const getAgencyUsage = async (): Promise<AgencyUsageResponse> => {
+export const searchAccessLogs = async (param?: Record<string, string>, body?: Record<string, string>): Promise<AccessLogResponse> => {
   if (isDev) {
-    return {
-      data: mockAgencyUsage,
-    };
+    return mockAccessLog;
   }
 
-  const res = await fetchClient<AgencyUsageResponse>(
-    "/usage-stat/organization",
+  const res = await fetchClient<AccessLogResponse>(
+    "/log-management/access-logs/search",
     {
       method: "POST",
-      body: JSON.stringify({}),
+      body: JSON.stringify(body),
+      queryParams: param,
     },
   );
 
   return res;
 };
 
-export const getLogUsage = async (): Promise<LogUsageResponse> => {
+export const getLogUsage = async (param?: Record<string, string>, body?: Record<string, string>): Promise<LogUsageResponse> => {
   if (isDev) {
     return {
       data: mockLogUsage,
@@ -52,7 +51,7 @@ export const getLogUsage = async (): Promise<LogUsageResponse> => {
   return res;
 };
 
-export const getPersonUsage = async (): Promise<PersonUsageResponse> => {
+export const getPersonUsage = async (param?: Record<string, string>, body?: Record<string, string>): Promise<PersonUsageResponse> => {
   if (isDev) {
     return {
       data: mockPersonUsage,

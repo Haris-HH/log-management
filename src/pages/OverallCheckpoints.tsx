@@ -40,6 +40,7 @@ import type { OverallCheckpointsPdfData } from "../types/pdf";
 // Utils
 import { exportExcel } from "../utils/exportData";
 import { buildOptions } from "../utils/commonFunctions";
+import { PopupMessage } from '../utils/popupMessage';
 
 // Hooks
 import { useColumn } from "../hooks/useColumn";
@@ -126,7 +127,12 @@ const OverallCheckpoints = () => {
 
   useEffect(() => {
     setAreaOptions(buildOptions(area, t('dropdown.all-area')));
-    setProvinceOptions(buildOptions(province, t('dropdown.all-province')));
+    setProvinceOptions(
+      buildOptions(
+        province, t('dropdown.all-province'), 
+        i18n.language === "th" ? "name_th" : "name_en",
+        "province_code")
+      );
     setProjectOptions(buildOptions(project, t('dropdown.all-project')));
   }, [area, province, project, t, i18n.language, i18n.isInitialized]);
 
@@ -140,12 +146,21 @@ const OverallCheckpoints = () => {
 
   const fetchData = useCallback(
     async () => {
-      setIsLoading(true);
-      const res = await getOverallCheckpoint();
-      setRows(res.data);
-      setTimeout(() => {
+      try {
+        setIsLoading(true);
+        const res = await getOverallCheckpoint();
+        setRows(res.data);
+      }
+      catch (error) {
+        await PopupMessage(t("popup.fetch-error"), "", "error");
+        setRows([]);
+        setTotalUsage(0);
+        setTotalItems(0);
+        setTotalPages(1);
+      } 
+      finally {
         setIsLoading(false);
-      }, 500)
+      }
     },
     []
   );

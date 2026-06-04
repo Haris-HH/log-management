@@ -22,7 +22,7 @@
     "@tailwindcss/vite": "^4.2.4",
     "@types/pdfmake": "^0.2.12",
     "dayjs": "^1.11.20",
-    "exceljs": "^4.4.0",
+    "exceljs": "^3.4.0",
     "file-saver": "^2.0.5",
     "i18next-xhr-backend": "^3.2.2",
     "leaflet": "^1.9.4",
@@ -38,6 +38,7 @@
     "react-router-dom": "^7.15.0",
     "recharts": "^3.8.1",
     "redux-persist": "^6.0.0",
+    "sweetalert2": "^11.26.25",
     "tailwindcss": "^4.2.4",
     "vite-plugin-svgr": "^5.2.0"
   },

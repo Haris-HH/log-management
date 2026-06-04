@@ -1,69 +1,28 @@
 // Types
 import type { 
-  SearchAgencyUsageResponse,
-  SearchPersonUsageResponse,
-  SearchLogUsageResponse,
+  LprSearchLogResponse,
 } from "../../../types/response";
 
 // Api
 import { fetchClient } from "../../../api/fetchClient";
 
 // Mocks
-import { mockAgencyUsage } from "../../../mocks/mockAgencyUsage";
-import { mockSearchLog } from "../../../mocks/mockSearchLog";
-import { mockPersonUsage } from "../../../mocks/mockPersonUsage";
+import { mockLprSearchLog } from "../../../mocks/mockLprSearchLog";
 
 // Env
 const isDev = import.meta.env.VITE_IS_DEV;
 
-export const getSearchAgencyUsage = async (): Promise<SearchAgencyUsageResponse> => {
+export const searchLprSearchLogs = async (param?: Record<string, string>, body?: Record<string, string>): Promise<LprSearchLogResponse> => {
   if (isDev) {
-    return {
-      data: mockAgencyUsage,
-    };
+    return mockLprSearchLog;
   }
 
-  const res = await fetchClient<SearchAgencyUsageResponse>(
-    "/usage-stat/organization",
+  const res = await fetchClient<LprSearchLogResponse>(
+    "/log-management/lpr-search-logs/search",
     {
       method: "POST",
-      body: JSON.stringify({}),
-    },
-  );
-
-  return res;
-};
-
-export const getSearchLogUsage = async (): Promise<SearchLogUsageResponse> => {
-  if (isDev) {
-    return {
-      data: mockSearchLog,
-    };
-  }
-
-  const res = await fetchClient<SearchLogUsageResponse>(
-    "/usage-stat/person-logs",
-    {
-      method: "POST",
-      body: JSON.stringify({}),
-    },
-  );
-
-  return res;
-};
-
-export const getSearchPersonUsage = async (): Promise<SearchPersonUsageResponse> => {
-  if (isDev) {
-    return {
-      data: mockPersonUsage,
-    };
-  }
-
-  const res = await fetchClient<SearchPersonUsageResponse>(
-    "/usage-stat/person",
-    {
-      method: "POST",
-      body: JSON.stringify({}),
+      body: JSON.stringify(body),
+      queryParams: param,
     },
   );
 

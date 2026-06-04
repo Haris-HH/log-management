@@ -33,6 +33,7 @@ import {
   fetchProject,
   fetchProvince,
   fetchCheckpointType,
+  fetchTitle,
 } from "./features/dropdown/api/DropdownSlice";
 
 // i18n
@@ -77,6 +78,7 @@ function App() {
     dispatch(fetchProject());
     dispatch(fetchProvince());
     dispatch(fetchCheckpointType());
+    dispatch(fetchTitle());
   }, [dispatch]);
 
   return (

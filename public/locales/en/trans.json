@@ -82,7 +82,9 @@
     "daily-report": "Daily Report",
     "weekly-report": "Weekly Report",
     "monthly-report": "Monthly Report",
-    "login": "Login"
+    "login": "Login",
+    "loading": "Loading...",
+    "confirm": "Confirm"
   },
   "text": {
     "month": "Month",
@@ -265,5 +267,16 @@
   "helperText": {
     "please-input-pid": "Please input pid",
     "please-input-password": "Please input password"
+  },
+  "popup": {
+    "login-failed-title": "Login Failed",
+    "login-failed-message": "Please check your PID and password, then try again",
+    "logout-failed-title": "Logout Failed",
+    "logout-failed-message": "Logout failed, please try again",
+    "logout-title": "Confirm Logout",
+    "logout-message": "Are you sure you want to logout?",
+    "fetch-error": "Failed to fetch data, please try again",
+    "export-chunk-confirm-title": "Confirm Export Large Data",
+    "export-chunk-confirm-message": "Total data count {{totalData}} items\nMay cause delay in exporting data\nDo you want to confirm export data?"
   }
 }

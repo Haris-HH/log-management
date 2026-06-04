@@ -6,7 +6,6 @@ import type { AgencyUsagePdfData } from "../types/pdf";
 import buddhistEra from "dayjs/plugin/buddhistEra";
 
 // Utils
-import { formatNumber } from "../utils/commonFunctions";
 import { getConfiguredPdfMake } from "../utils/loadFontPdf";
 
 dayjs.extend(buddhistEra);
@@ -29,8 +28,8 @@ export const generateStatisticUsageAgencyPdfBlob = async (
     ],
     ...data.agencyUsage.map((item, index) => [
       { text: String(index + 1), alignment: "center" } as TableCell,
-      { text: formatNumber(item.usage_count), alignment: "center" } as TableCell,
-      { text: item.agency_name } as TableCell,
+      { text: (item.total || 0).toLocaleString(), alignment: "center" } as TableCell,
+      { text: item.ou_name } as TableCell,
       { text: item.bh_name } as TableCell,
       { text: item.bk_name } as TableCell,
       { text: item.org_name } as TableCell,
@@ -39,7 +38,7 @@ export const generateStatisticUsageAgencyPdfBlob = async (
 
   const docDefinition: TDocumentDefinitions = {
     pageSize: "A4",
-    pageMargins: [40, 40, 40, 40],
+    pageMargins: [20, 40, 20, 40],
     defaultStyle: {
       font: "Sarabun",
       fontSize: 10,
@@ -57,7 +56,7 @@ export const generateStatisticUsageAgencyPdfBlob = async (
           color: "#ACACAC",
         },
       ],
-      margin: [40, 10, 40, 20],
+      margin: [20, 10, 20, 20],
     }),
     content: [
       {
@@ -111,7 +110,7 @@ export const generateStatisticUsageAgencyPdfBlob = async (
       {
         table: {
           headerRows: 1,
-          widths: [40, 60, 80, "*", "*", "*"],
+          widths: [40, 60, 90, 100, 100, 100],
           body,
         },
         layout: {

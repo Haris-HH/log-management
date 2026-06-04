@@ -7,159 +7,253 @@ export interface FetchOptions extends RequestInit {
 }
 
 // Env
-const API = import.meta.env.VITE_API;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const SERVICE_CHANNEL = import.meta.env.VITE_API_SERVICE_CHANNEL;
+
+const ACCESS_TOKEN_KEY = "accessToken";
+const REFRESH_TOKEN_KEY = "refreshToken";
+const USER_UID_KEY = "userUid";
 
 let isRefreshing = false;
 
 let failedQueue: Array<{
   resolve: (token: string) => void;
-  reject: (error: any) => void;
+  reject: (error: unknown) => void;
 }> = [];
 
-const processQueue = (error: any, token?: string) => {
-  failedQueue.forEach(p => {
-    error ? p.reject(error) : p.resolve(token!);
+const clearAuthStorage = () => {
+  localStorage.removeItem(ACCESS_TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+  localStorage.removeItem(USER_UID_KEY);
+};
+
+const redirectToLogin = () => {
+  clearAuthStorage();
+
+  if (window.location.pathname !== "/login") {
+    window.location.href = "/login";
+  }
+};
+
+const processQueue = (error: unknown, token?: string) => {
+  failedQueue.forEach(({ resolve, reject }) => {
+    if (error) reject(error);
+    else resolve(token!);
   });
+
   failedQueue = [];
 };
 
-// Refresh Token
-const refreshTokenRequest = async () => {
-  const refreshToken = localStorage.getItem("token");
+const createHttpError = async (response: Response) => {
+  const text = await response.text();
 
-  if (!refreshToken) throw new Error("refresh token missing");
+  const error = new Error(text || response.statusText);
 
-  const res = await fetch(`${API}/users/refresh`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${refreshToken}`,
-    },
-    credentials: "include",
-  });
+  (error as Error & { status?: number }).status = response.status;
 
-  if (!res.ok) throw new Error("cannot refresh token");
-
-  return res.json();
+  return error;
 };
 
+// ==============================
+// Location Headers
+// ==============================
+
+const getLocationHeaders = async (): Promise<HeadersInit> => {
+  if (!navigator.geolocation) {
+    return {};
+  }
+
+  try {
+    const position = await new Promise<GeolocationPosition>(
+      (resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(
+          resolve,
+          reject,
+          {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0,
+          }
+        );
+      }
+    );
+
+    const latitude = position.coords.latitude.toString();
+    const longitude = position.coords.longitude.toString();
+
+    return {
+      "x-latitude": latitude,
+      "x-longitude": longitude,
+    };
+  } 
+  catch (error) {
+    console.error("Cannot get location:", error);
+
+    return {};
+  }
+};
+
+// ==============================
+// Refresh Token
+// ==============================
+
+const refreshTokenRequest = async (): Promise<{
+  accessToken: string;
+}> => {
+  const response = await fetch(`${API_BASE_URL}/user-management/users/refresh`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw await createHttpError(response);
+  }
+
+  return response.json();
+};
+
+// ==============================
 // Handle Refresh Queue
-const handleAuthError = async () => {
-  if (!isRefreshing) {
-    isRefreshing = true;
+// ==============================
 
-    try {
-      const result = await refreshTokenRequest();
-      const newToken = result.accessToken;
-
-      localStorage.setItem("token", newToken);
-
-      processQueue(null, newToken);
-      return newToken;
-    } catch (err) {
-      processQueue(err);
-      throw err;
-    } finally {
-      isRefreshing = false;
-    }
-  } else {
+const handleAuthError = async (): Promise<string> => {
+  if (isRefreshing) {
     return new Promise<string>((resolve, reject) => {
       failedQueue.push({ resolve, reject });
     });
   }
+
+  isRefreshing = true;
+
+  try {
+    const result = await refreshTokenRequest();
+
+    const newAccessToken = result.accessToken;
+
+    localStorage.setItem(ACCESS_TOKEN_KEY, newAccessToken);
+
+    processQueue(null, newAccessToken);
+
+    return newAccessToken;
+  } 
+  catch (error) {
+    processQueue(error);
+    throw error;
+  } 
+  finally {
+    isRefreshing = false;
+  }
 };
 
-// Main
+// ==============================
+// Main Fetch Client
+// ==============================
+
 export const fetchClient = async <T>(
   endpoint: string,
   options: FetchOptions = {}
 ): Promise<T> => {
-  const { queryParams, ...fetchOptions } = options;
+  const {
+    queryParams,
+    skipAuth = false,
+    isFormData = false,
+    isStream = false,
+    retryCount = 0,
+    headers: customHeaders,
+    ...fetchOptions
+  } = options;
 
-  const baseURL = API;
+  const queryString = queryParams
+    ? `?${new URLSearchParams(queryParams).toString()}`
+    : "";
 
   const makeRequest = async (token?: string): Promise<T> => {
-    const headers: HeadersInit = {
-      ...(options.isFormData ? {} : { "Content-Type": "application/json" }),
-      ...(token && !options.skipAuth ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
-    };
+    const locationHeaders = await getLocationHeaders();
 
-    const queryString = queryParams
-      ? "?" + new URLSearchParams(queryParams).toString()
-      : "";
+    const headers: HeadersInit = {
+      "x-service-channel": SERVICE_CHANNEL,
+      ...(isFormData
+        ? {}
+        : {
+            "Content-Type": "application/json",
+          }),
+      ...locationHeaders,
+      ...(token && !skipAuth
+        ? {
+            Authorization: `Bearer ${token}`,
+          }
+        : {}),
+      ...customHeaders,
+    };
 
     let response: Response;
 
     try {
-      response = await fetch(`${baseURL}${endpoint}${queryString}`, {
+      response = await fetch(`${API_BASE_URL}${endpoint}${queryString}`, {
         ...fetchOptions,
         credentials: "include",
         headers,
       });
-    } catch (err) {
-      console.error("Network error:", err);
+    } 
+    catch (error) {
+      console.error("Network error:", error);
 
-      if (!options.skipAuth && localStorage.getItem("token")) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("userUid");
-        window.location.href = "/login";
+      if (!skipAuth && localStorage.getItem(ACCESS_TOKEN_KEY)) {
+        redirectToLogin();
       }
 
-      throw err;
+      throw error;
     }
 
     // Unauthorized
-    if (response.status === 401 || response.status === 403) {
-      if (endpoint.includes("login")) {
-        const t = await response.text();
-        const err = new Error(t || response.statusText);
-        (err as any).status = response.status;
-        throw err;
-      }
-
-      if ((options.retryCount ?? 0) > 1) {
+    if ((response.status === 401 || response.status === 403) && !skipAuth) {
+      if (retryCount >= 1) {
+        redirectToLogin();
         throw new Error("Too many retries");
       }
 
       try {
-        const newToken = await handleAuthError();
+        const newAccessToken = await handleAuthError();
 
         return fetchClient<T>(endpoint, {
           ...options,
-          retryCount: (options.retryCount ?? 0) + 1,
+          retryCount: retryCount + 1,
           headers: {
-            ...options.headers,
-            Authorization: `Bearer ${newToken}`,
+            ...customHeaders,
+            Authorization: `Bearer ${newAccessToken}`,
           },
         });
-      } catch (err) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("userUid");
-
-        if (window.location.pathname !== "/login") {
-          window.location.href = "/login";
-        }
-
-        throw err;
+      } 
+      catch (error) {
+        redirectToLogin();
+        throw error;
       }
     }
 
     if (!response.ok) {
-      const t = await response.text();
-      const err = new Error(t || response.statusText);
-      (err as any).status = response.status;
-      throw err;
+      throw await createHttpError(response);
     }
 
-    if (options.isStream) return response as unknown as T;
+    if (isStream) {
+      return response as unknown as T;
+    }
+
+    if (response.status === 204) {
+      return undefined as T;
+    }
 
     return response.json();
   };
 
-  const token = localStorage.getItem("token") || undefined;
-  return makeRequest(token);
+  const accessToken =
+    localStorage.getItem(ACCESS_TOKEN_KEY) || undefined;
+
+  return makeRequest(accessToken);
 };
 
-export const combineURL = (url: string, endpoint: string) =>
-  `${url}${endpoint}`;
+export const combineURL = (url: string, endpoint: string) => {
+  return `${url}${endpoint}`;
+};

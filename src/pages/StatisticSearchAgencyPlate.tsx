@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import { useNavigate } from "react-router-dom";
 import { useSelector } from 'react-redux';
 
@@ -34,7 +34,7 @@ import {
 } from "../pdf/StatisticSearchAgencyPlatePdf";
 
 // Types
-import type { AgencyUsage } from "../types/common";
+import type { LprSearchLog } from "../types/common";
 import type { SearchAgencyPlatePdfData } from "../types/pdf";
 
 // i18n
@@ -49,6 +49,7 @@ import InformationIcon from "../assets/icons/information.png";
 // Utils
 import { buildOptions } from "../utils/commonFunctions";
 import { exportExcel } from "../utils/exportData";
+import { PopupMessage, PopupMessageWithCancel } from '../utils/popupMessage';
 
 // Hooks
 import usePageTitle from "../hooks/usePageTitle";
@@ -57,7 +58,7 @@ import usePageTitle from "../hooks/usePageTitle";
 import type { RootState } from "../store/store";
 
 // API
-import { getAgencyUsage } from "../features/usage-data/api/UsageDataApi";
+import { searchLprSearchLogs } from "../features/usage-search-data/api/UsageSearchDataApi";
 
 interface FormData {
   plate_group: string;
@@ -81,16 +82,20 @@ const StatisticSearchAgencyPlate = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   // Data
-  const [rows, setRows] = useState<AgencyUsage[]>([]);
+  const [rows, setRows] = useState<LprSearchLog[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [totalUsage, setTotalUsage] = useState(0);
-  const [selectedData, setSelectedData] = useState<AgencyUsage | null>(null);
+  const [selectedData, setSelectedData] = useState<LprSearchLog | null>(null);
 
   // Options
   const [agencyOptions, setAgencyOptions] = useState<{ label: string, value: string }[]>([]);
   const [bhOptions, setBhOptions] = useState<{ label: string, value: string }[]>([]);
   const [bkOptions, setBkOptions] = useState<{ label: string, value: string }[]>([]);
   const [provinceOptions, setProvinceOptions] = useState<{ label: string, value: string }[]>([]);
+
+  // Constants
+  const CHUNK_SIZE = 500;
+  const REQUEST_LIMIT = 5000;
 
   // Form Data
   const [formData, setFormData] = useState<FormData>({
@@ -117,31 +122,137 @@ const StatisticSearchAgencyPlate = () => {
   );
 
   // Slice
-  const { agency, bh, bk, province } = useSelector((state: RootState) => state.dropdown);
+  const { agency, bh, bk, province, org } = useSelector((state: RootState) => state.dropdown);
 
   usePageTitle(t("pages.statistic-search-agency-plate"));
 
   useEffect(() => {
-    setAgencyOptions(buildOptions(agency, t("dropdown.all-agency")));
-    setBhOptions(buildOptions(bh, t("dropdown.all-bh")));
-    setBkOptions(buildOptions(bk, t("dropdown.all-bk")));
-    setProvinceOptions(buildOptions(province, "", false));
-  }, [agency, bh, bk, t, i18n.language, i18n.isInitialized]);
+    const langKeyAgency = i18n.language === "th" ? "ou_abbr_th" : "ou_abbr_en";
+    const langKeyBh = i18n.language === "th" ? "bh_abbr_th" : "bh_abbr_en";
+    const langKeyBk = i18n.language === "th" ? "bk_abbr_th" : "bk_abbr_en";
+
+    setAgencyOptions(
+      buildOptions(agency, t("dropdown.all-agency"), langKeyAgency, "ou_code")
+    );
+
+    const filteredBh =
+      formData.agency_id !== "0"
+        ? bh.filter((item) => item.ou_code === formData.agency_id)
+        : bh;
+
+    setBhOptions(
+      buildOptions(filteredBh, t("dropdown.all-bh"), langKeyBh, "bh_code")
+    );
+
+    const filteredBk =
+      formData.bh_id !== "0"
+        ? bk.filter((item) => item.bh_code === formData.bh_id)
+        : bk;
+
+    setBkOptions(
+      buildOptions(filteredBk, t("dropdown.all-bk"), langKeyBk, "bk_code")
+    );
+
+    setProvinceOptions(
+      buildOptions(
+        province, "", 
+        i18n.language === "th" ? "name_th" : "name_en", 
+        "province_code",
+        false)
+      );
+  }, [
+    agency,
+    bh,
+    bk,
+    province,
+    formData.agency_id,
+    formData.bh_id,
+    t,
+    i18n.language,
+  ]);
 
   useEffect(() => {
-    fetchData();
-  }, [formData]);
+    fetchData(formData);
+  }, [formData, agency, bh, bk, org]);
+
+  const mapLprSearchLogRows = useCallback(
+    (data: LprSearchLog[]) => {
+      return data.map((item) => {
+        const agencyData = agency.find((a) => a.ou_code === item.ou_code);
+        const bhData = bh.find((b) => b.bh_code === item.bh_code);
+        const bkData = bk.find((k) => k.bk_code === item.bk_code);
+        const orgData = org.find((o) => o.org_code === item.org_code);
+
+        return {
+          ...item,
+          ou_name: agencyData
+            ? i18n.language === "th"
+              ? agencyData.ou_abbr_th
+              : agencyData.ou_abbr_en
+            : "-",
+          bh_name: bhData
+            ? i18n.language === "th"
+              ? bhData.bh_name_th
+              : bhData.bh_name_en
+            : "-",
+          bk_name: bkData
+            ? i18n.language === "th"
+              ? bkData.bk_abbr_th
+              : bkData.bk_abbr_en
+            : "-",
+          org_name: orgData
+            ? i18n.language === "th"
+              ? orgData.org_abbr_th
+              : orgData.org_abbr_en
+            : "-",
+        };
+      });
+    },
+    [agency, bh, bk, org, i18n.language]
+  );
 
   const fetchData = useCallback(
-    async () => {
-      setIsLoading(true);
-      const res = await getAgencyUsage();
-      setRows(res.data);
-      setTimeout(() => {
+    async (filterData: FormData = formData) => {
+      try {
+        setIsLoading(true);
+
+        const res = await searchLprSearchLogs(
+          {},
+          {
+            groupBy: "org_code",
+            limit: rowsPerPage.toString(),
+            page: page.toString(),
+            orderBy: "org_code",
+            ...getFilters(filterData),
+          }
+        );
+
+        const updatedRows = mapLprSearchLogRows(res.data);
+
+        const totalUsage = res.data.reduce(
+          (sum, item) => sum + (item.total || 0),
+          0
+        );
+
+        setRows(updatedRows);
+        setTotalItems(res.pagination.countAll);
+        setTotalData(res.pagination.countAll);
+        setTotalPages(res.pagination.maxPage);
+        setTotalUsage(totalUsage);
+      } 
+      catch (error) {
+        await PopupMessage(t("popup.fetch-error"), "", "error");
+        setRows([]);
+        setTotalUsage(0);
+        setTotalItems(0);
+        setTotalPages(1);
+        setTotalData(0);
+      } 
+      finally {
         setIsLoading(false);
-      }, 500)
-    },
-    []
+      }
+    }, 
+    [agency, bh, bk, org, i18n.language]
   );
 
   const handleTextChange = (key: keyof typeof formData, value: string) => {
@@ -157,11 +268,36 @@ const StatisticSearchAgencyPlate = () => {
     setFormData((prev) => ({ ...prev, [key]: value?.value ?? "0" }));
   };
 
-  const handleDateTimeChange = (key: keyof typeof formData, date: Date | null) => {
-    setFormData((prevState) => ({
-      ...prevState,
-      [key]: date,
-    }));
+  const handleDateTimeChange = (
+    key: "start_date_time" | "end_date_time",
+    value: Date | null
+  ) => {
+    setFormData((prev) => {
+      const newData = {
+        ...prev,
+        [key]: value,
+      };
+
+      if (!value) return newData;
+
+      if (
+        key === "start_date_time" &&
+        newData.end_date_time &&
+        dayjs(value).isAfter(dayjs(newData.end_date_time))
+      ) {
+        newData.end_date_time = value;
+      }
+
+      if (
+        key === "end_date_time" &&
+        newData.start_date_time &&
+        dayjs(value).isBefore(dayjs(newData.start_date_time))
+      ) {
+        newData.start_date_time = value;
+      }
+
+      return newData;
+    });
   };
 
   const handleClear = () => {
@@ -178,65 +314,178 @@ const StatisticSearchAgencyPlate = () => {
   }
 
   const handleExportPdf = async () => {
-    setIsLoading(true);
-    const dateFormat = i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD";
-    const pdfName = `${t('file-name.statistic-search-agency-plate')}_${dayjs(formData.start_date_time).format(dateFormat)}_${dayjs(formData.end_date_time).format(dateFormat)}.pdf`;
-    const pdfData: SearchAgencyPlatePdfData = {
+    try {
+      let exportRows = rows;
+
+      if (totalData > CHUNK_SIZE) {
+        const isConfirmed = await PopupMessageWithCancel(
+          t("popup.export-chunk-confirm-title"),
+          t("popup.export-chunk-confirm-message", {
+            totalData: totalData.toLocaleString(),
+          }),
+          t("button.confirm"),
+          t("button.cancel"),
+          "warning"
+        );
+
+        if (!isConfirmed) return;
+      }
+
+      const res = await searchLprSearchLogs(
+        {},
+        {
+          groupBy: "org_code",
+          limit: REQUEST_LIMIT.toString(),
+          page: "1",
+          orderBy: "org_code",
+          ...getFilters(formData),
+        }
+      );
+
+      exportRows = mapLprSearchLogRows(res.data);
+
+      const dateFormat = i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD";
+
+      const pdfName = `${t("file-name.statistic-search-agency-plate")}_${dayjs(
+        formData.start_date_time
+      ).format(dateFormat)}_${dayjs(formData.end_date_time).format(
+        dateFormat
+      )}.pdf`;
+
+      await downloadStatisticSearchAgencyPlatePdf(
+        buildPdfData(exportRows),
+        pdfName,
+        t,
+        i18n
+      );
+    } 
+    catch (error) {
+      await PopupMessage(t("popup.export-error-title"), t("popup.export-error-message"), "error");
+    } 
+    finally {
+      setIsLoading(false);
+    }
+  };
+
+  const buildPdfData = (agencyPlate: LprSearchLog[]): SearchAgencyPlatePdfData => {
+    const selectedAgency = agency.find(
+      (a) => a.ou_code === formData.agency_id
+    );
+    const selectedBh = bh.find((bh) => bh.bh_code === formData.bh_id);
+    const selectedBk = bk.find((bk) => bk.bk_code === formData.bk_id);
+
+    const agencyName =
+      formData.agency_id === "0"
+        ? t("text.all")
+        : selectedAgency
+          ? i18n.language === "th"
+            ? selectedAgency.ou_name_th ?? "-"
+            : selectedAgency.ou_name_en ?? "-"
+          : "-";
+
+    const bhName =
+      formData.bh_id === "0"
+        ? t("text.all")
+        : selectedBh
+          ? i18n.language === "th"
+            ? selectedBh.bh_name_th ?? "-"
+            : selectedBh.bh_name_en ?? "-"
+          : "-";
+
+    const bkName =
+      formData.bk_id === "0"
+        ? t("text.all")
+        : selectedBk
+          ? i18n.language === "th"
+            ? selectedBk.bk_name_th ?? "-"
+            : selectedBk.bk_name_en ?? "-"
+          : "-";
+
+    return {
       agency_id: formData.agency_id,
-      agency_name: formData.agency_id === "0" ? t('text.all') : agencyOptions.find(option => option.value === formData.agency_id)?.label || "-",
+      agency_name: agencyName,
       bh_id: formData.bh_id,
-      bh_name: formData.bh_id === "0" ? t('text.all') : bhOptions.find(option => option.value === formData.bh_id)?.label || "-",
+      bh_name: bhName,
       bk_id: formData.bk_id,
-      bk_name: formData.bk_id === "0" ? t('text.all') : bkOptions.find(option => option.value === formData.bk_id)?.label || "-",
+      bk_name: bkName,
       plate_group: formData.plate_group,
       plate_number: formData.plate_number,
       province_id: formData.province_id,
       province_name: provinceOptions.find(option => option.value === formData.province_id)?.label || "",
-      start_date: dayjs(formData.start_date_time).format(i18n.language === "th" ? "DD/MM/BBBB" : "DD/MM/YYYY"),
-      end_date: dayjs(formData.end_date_time).format(i18n.language === "th" ? "DD/MM/BBBB" : "DD/MM/YYYY"),
-      agencyPlate: rows,
+      start_date: dayjs(formData.start_date_time).format(
+        i18n.language === "th" ? "DD/MM/BBBB" : "DD/MM/YYYY"
+      ),
+      end_date: dayjs(formData.end_date_time).format(
+        i18n.language === "th" ? "DD/MM/BBBB" : "DD/MM/YYYY"
+      ),
+      agencyPlate,
     }
-    await downloadStatisticSearchAgencyPlatePdf(
-      pdfData,
-      pdfName,
-      t,
-      i18n
-    );
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 500)
   };
 
   const handleExportExcel = async () => {
-    setIsLoading(true);
-    const dateFormat = i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD";
-    await exportExcel({
-      sheetName: `${t('file-name.statistic-search-agency-plate')}`,
-      fileName: `${t('file-name.statistic-search-agency-plate')}_${dayjs(formData.start_date_time).format(dateFormat)}_${dayjs(formData.end_date_time).format(dateFormat)}.xlsx`,
-      headers: [
-        t('table.header.no'),
-        t('table.header.count'),
-        t('table.header.agency'),
-        t('table.header.bh'),
-        t('table.header.bk'),
-        t('table.header.org'),
-      ],
-      data: rows,
-      mapRow: (data, index) => [
-        (page - 1) * rowsPerPage + index + 1,
-        Number(data.usage_count),
-        data.agency_name,
-        data.bh_name,
-        data.bk_name,
-        data.org_name,
-      ],
-      columnStyles: {
-        2: { alignment: { horizontal: "center" } },
-      },
-    });
-    setTimeout(() => {
+    try {
+      let exportRows = rows;
+      
+      if (totalData > CHUNK_SIZE) {
+        const isConfirmed = await PopupMessageWithCancel(
+          t("popup.export-chunk-confirm-title"),
+          t("popup.export-chunk-confirm-message", {
+            totalData: totalData.toLocaleString(),
+          }),
+          t("button.confirm"),
+          t("button.cancel"),
+          "warning"
+        );
+
+        if (!isConfirmed) return;
+      }
+      setIsLoading(true);
+
+      const res = await searchLprSearchLogs(
+        {},
+        {
+          groupBy: "org_code",
+          limit: REQUEST_LIMIT.toString(),
+          page: "1",
+          orderBy: "org_code",
+          ...getFilters(formData),
+        }
+      );
+
+      exportRows = mapLprSearchLogRows(res.data);
+
+      const dateFormat = i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD";
+      await exportExcel({
+        sheetName: `${t('file-name.statistic-search-agency-plate')}`,
+        fileName: `${t('file-name.statistic-search-agency-plate')}_${dayjs(formData.start_date_time).format(dateFormat)}_${dayjs(formData.end_date_time).format(dateFormat)}.xlsx`,
+        headers: [
+          t('table.header.no'),
+          t('table.header.count'),
+          t('table.header.agency'),
+          t('table.header.bh'),
+          t('table.header.bk'),
+          t('table.header.org'),
+        ],
+        data: rows,
+        mapRow: (data, index) => [
+          (page - 1) * rowsPerPage + index + 1,
+          (data.total || 0).toLocaleString(),,
+          data.ou_name,
+          data.bh_name,
+          data.bk_name,
+          data.org_name,
+        ],
+        columnStyles: {
+          2: { alignment: { horizontal: "center" } },
+        },
+      });
+    }
+    catch (error) {
+      await PopupMessage(t("popup.export-error-title"), t("popup.export-error-message"), "error");
+    } 
+    finally {
       setIsLoading(false);
-    }, 500)
+    }
   };
 
   const handlePageChange = async (
@@ -252,7 +501,7 @@ const StatisticSearchAgencyPlate = () => {
     setRowsPerPage(limit);
   };
 
-  const showDetailDialog = (data: AgencyUsage) => {
+  const showDetailDialog = (data: LprSearchLog) => {
     setSelectedData(data);
     setDetailDialogOpen(true);
   };
@@ -267,10 +516,10 @@ const StatisticSearchAgencyPlate = () => {
       state: {
         fromNavigate: true,
         filters: {
-          agency_id: selectedData?.agency_id ?? 0,
-          bh_id: selectedData?.bh_id ?? 0,
-          bk_id: selectedData?.bk_id ?? 0,
-          org_id: selectedData?.org_id ?? 0,
+          agency_id: selectedData?.ou_code ?? 0,
+          bh_id: selectedData?.bh_code ?? 0,
+          bk_id: selectedData?.bk_code ?? 0,
+          org_id: selectedData?.org_code ?? 0,
           start_date: formData.start_date_time,
           end_date: formData.end_date_time,
         }
@@ -279,6 +528,28 @@ const StatisticSearchAgencyPlate = () => {
     setSelectedData(null);
     setDetailDialogOpen(false);
   }
+
+  const getFilters = (data: FormData) => {
+    const filters: string[] = [];
+
+    if (data.agency_id !== "0") filters.push(`ou_code=${data.agency_id}`);
+    if (data.bh_id !== "0") filters.push(`bh_code=${data.bh_id}`);
+    if (data.bk_id !== "0") filters.push(`bk_code=${data.bk_id}`);
+    if (data.plate_group.trim() !== "") filters.push(`plate_group=${data.plate_group.trim()}`);
+    if (data.plate_number.trim() !== "") filters.push(`plate_number=${data.plate_number.trim()}`);
+    if (data.province_id !== "0") filters.push(`region_code=${data.province_id}`);
+
+    filters.push(
+      `log_timestamp>=${dayjs(data.start_date_time).format("YYYY-MM-DD")}`
+    );
+    filters.push(
+      `log_timestamp<=${dayjs(data.end_date_time).format("YYYY-MM-DD")}`
+    );
+
+    return {
+      filter: filters.join(","),
+    };
+  };
 
   return (
     <section id='statistic-search-agency-plate' className="flex flex-col h-full w-full p-2">
@@ -532,7 +803,7 @@ const StatisticSearchAgencyPlate = () => {
                   >
                     <TableCell
                       sx={{
-                        backgroundColor: selectedData?.id === data.id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--secondary-color)",
+                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--secondary-color)",
                         color: "var(--tertiary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                         textAlign: "center",
@@ -542,26 +813,26 @@ const StatisticSearchAgencyPlate = () => {
                     </TableCell>
                     <TableCell
                       sx={{
-                        backgroundColor: selectedData?.id === data.id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--secondary-color)",
+                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--secondary-color)",
                         color: "var(--tertiary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                         textAlign: "center",
                       }}
                     >
-                      {data.usage_count?.toLocaleString()}
+                      {(data.total || 0).toLocaleString()}
                     </TableCell>
                     <TableCell
                       sx={{
-                        backgroundColor: selectedData?.id === data.id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--secondary-color)",
+                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--secondary-color)",
                         color: "var(--tertiary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                       }}
                     >
-                      {data.agency_name}
+                      {data.ou_name}
                     </TableCell>
                     <TableCell
                       sx={{
-                        backgroundColor: selectedData?.id === data.id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--secondary-color)",
+                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--secondary-color)",
                         color: "var(--tertiary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                       }}
@@ -570,7 +841,7 @@ const StatisticSearchAgencyPlate = () => {
                     </TableCell>
                     <TableCell
                       sx={{
-                        backgroundColor: selectedData?.id === data.id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--secondary-color)",
+                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--secondary-color)",
                         color: "var(--tertiary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                       }}
@@ -579,7 +850,7 @@ const StatisticSearchAgencyPlate = () => {
                     </TableCell>
                     <TableCell
                       sx={{
-                        backgroundColor: selectedData?.id === data.id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--secondary-color)",
+                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--secondary-color)",
                         color: "var(--tertiary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                       }}
@@ -605,11 +876,11 @@ const StatisticSearchAgencyPlate = () => {
                   <Box className="w-full text-(--primary-color) grid grid-cols-[110px_10px_1fr]">
                     <p>{`${t('text.count')} (${t('text.time')})`}</p>
                     <p>:</p>
-                    <p>{selectedData?.usage_count?.toLocaleString() ?? 0}</p>
+                    <p>{0}</p>
 
                     <p>{t('text.agency')}</p>
                     <p>:</p>
-                    <p>{selectedData?.agency_name}</p>
+                    <p>{selectedData?.ou_name}</p>
 
                     <p>{t('text.bh')}</p>
                     <p>:</p>

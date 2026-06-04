@@ -30,10 +30,10 @@ export const generateStatisticUsagePersonPdfBlob = async (
     ],
     ...data.personUsage.map((item, index) => [
       { text: String(index + 1), alignment: "center" } as TableCell,
-      { text: item.usage_count?.toLocaleString() ?? 0, alignment: "center" } as TableCell,
-      { text: item.name } as TableCell,
-      { text: item.pid } as TableCell,
-      { text: item.agency_name } as TableCell,
+      { text: (item.total || 0).toLocaleString(), alignment: "center" } as TableCell,
+      { text: `${item.title || ""} ${item.firstname} ${item.lastname}` } as TableCell,
+      { text: item.idcard } as TableCell,
+      { text: item.ou_name } as TableCell,
       { text: item.bh_name } as TableCell,
       { text: item.bk_name } as TableCell,
       { text: item.org_name } as TableCell,
@@ -150,7 +150,7 @@ export const generateStatisticUsagePersonPdfBlob = async (
       {
         table: {
           headerRows: 1,
-          widths: [30, 35, 95, 80, "*", "*", "*", "*"],
+          widths: [30, 35, 80, 75, 60, 60, 60, 60],
           body,
         },
         layout: {

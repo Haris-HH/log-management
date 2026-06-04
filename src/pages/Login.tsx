@@ -14,6 +14,14 @@ import CinematicTitle from "../components/cinematic-title/CinematicTitle";
 // i18n
 import { useTranslation } from "react-i18next";
 
+// API
+import { loginApi } from "../features/login/api/LoginApi";
+import { getUserApi } from "../features/users/api/UsersApi";
+import { getNsbOuApi } from "../features/nsb/api/NsbOuApi";
+
+// Utils
+import { PopupMessage } from "../utils/popupMessage";
+
 interface FormData {
   username: string;
   password: string;
@@ -25,8 +33,10 @@ const Login = () => {
   // i18n
   const { t } = useTranslation();
 
+  // State
   const [introDone, setIntroDone] = useState(false);
   const [skipIntro, setSkipIntro] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = React.useState<FormData>({
     username: "",
@@ -58,8 +68,39 @@ const Login = () => {
     setValue(key, value);
   };
 
-  const handleFormSubmit = () => {
-    alert("Login");
+  const handleFormSubmit = async (data: FormData) => {
+    setLoading(true);
+
+    try {
+      const result = await loginApi({
+        username: data.username,
+        password: data.password,
+      });
+
+      localStorage.setItem("accessToken", result.accessToken);
+
+      if (result.userId) {
+        const userResponse = await getUserApi({ filter: `user_id=${result.userId}` });
+        const nsbOuResponse = await getNsbOuApi({ filter: `ou_code=${userResponse.data[0]?.ou_code}` });
+        localStorage.setItem("hash_id", userResponse.data[0]?.hash_id ?? "-");
+        localStorage.setItem("nsbOu", 
+          JSON.stringify(
+            {
+              ou_abbr_en: nsbOuResponse.data[0]?.ou_abbr_en ?? "-",
+              ou_abbr_th: nsbOuResponse.data[0]?.ou_abbr_th ?? "-",
+            }
+          )
+        );
+      }
+
+      window.location.href = "/";
+    } 
+    catch (error) {
+      await PopupMessage(t("popup.login-failed-title"), t("popup.login-failed-message"), "error");
+    } 
+    finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -182,7 +223,8 @@ const Login = () => {
 
           <motion.button
             type="submit"
-            whileHover={{ scale: 1.05 }}
+            disabled={loading}
+            whileHover={{ scale: loading ? 1 : 1.05 }}
             style={{
               backgroundColor: "var(--primary-color)",
               width: "100%",
@@ -190,9 +232,11 @@ const Login = () => {
               borderRadius: "5px",
               marginTop: "10px",
               color: "var(--tertiary-color)",
+              opacity: loading ? 0.6 : 1,
+              cursor: loading ? "not-allowed" : "pointer",
             }}
           >
-            {t("button.login")}
+            {loading ? t("button.loading") : t("button.login")}
           </motion.button>
         </form>
 

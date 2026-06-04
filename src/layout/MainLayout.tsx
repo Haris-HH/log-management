@@ -9,17 +9,26 @@ import Watermark from "../components/watermark/WaterMark";
 // Assets
 import backgroundVideo from "../assets/video/background_video.mp4";
 
+// i18n
+import { useTranslation } from "react-i18next";
+
 const MainLayout = () => {
+  // i18n
+  const { i18n } = useTranslation();
+
   // State
   const [open, setOpen] = useState(false);
 
   const location = useLocation();
 
+  const hashPid = localStorage.getItem("hash_id") || "NO HASH ID";
+  const nsbOu = JSON.parse(localStorage.getItem("nsbOu") || "{}");
+
   return (
     <div className="relative min-h-screen overflow-hidden">
       <Navbar />
 
-      <Watermark text={"คู่สัญญา"} hashPid={"HASH PID"} />
+      <Watermark text={i18n.language === "th" ? nsbOu.ou_abbr_th : nsbOu.ou_abbr_en} hashPid={hashPid} />
       
       <main
         style={{

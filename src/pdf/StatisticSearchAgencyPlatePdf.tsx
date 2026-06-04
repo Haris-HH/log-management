@@ -6,7 +6,6 @@ import type { SearchAgencyPlatePdfData } from "../types/pdf";
 import buddhistEra from "dayjs/plugin/buddhistEra";
 
 // Utils
-import { formatNumber } from "../utils/commonFunctions";
 import { getConfiguredPdfMake } from "../utils/loadFontPdf";
 
 dayjs.extend(buddhistEra);
@@ -29,8 +28,8 @@ export const generateStatisticSearchAgencyPlatePdfBlob = async (
     ],
     ...data.agencyPlate.map((item, index) => [
       { text: String(index + 1), alignment: "center" } as TableCell,
-      { text: formatNumber(item.usage_count), alignment: "center" } as TableCell,
-      { text: item.agency_name } as TableCell,
+      { text: (item.total || 0).toLocaleString(), alignment: "center" } as TableCell,
+      { text: item.ou_name } as TableCell,
       { text: item.bh_name } as TableCell,
       { text: item.bk_name } as TableCell,
       { text: item.org_name } as TableCell,

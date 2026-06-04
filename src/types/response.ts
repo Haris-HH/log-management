@@ -12,6 +12,17 @@ import type {
   OverallReportType,
   OverallReportDetail,
   OverallWeekReportType,
+  User,
+  NsbOu,
+  NsbBh,
+  NsbBk,
+  NsbOrg,
+  Province,
+  District,
+  Subdistrict,
+  AccessLog,
+  LprSearchLog,
+  Title,
 } from "../types/common";
 
 export interface UsageChartResponse {
@@ -29,10 +40,6 @@ export interface TopUsersResponse {
 
 export interface DropdownResponse {
   data: Dropdown[];
-}
-
-export interface AgencyUsageResponse {
-  data: AgencyUsage[];
 }
 
 export interface PersonUsageResponse {
@@ -69,4 +76,44 @@ export interface OverallLineChartReportResponse {
 
 export interface OverallReportDetailResponse {
   data: OverallReportDetail[];
+}
+
+export interface TitleResponse extends BasicResponse<Title[]> {}
+
+export interface AccessLogResponse extends BasicResponse<AccessLog[]> {}
+
+export interface LprSearchLogResponse extends BasicResponse<LprSearchLog[]> {}
+
+export interface UserResponse extends BasicResponse<User> {}
+
+export interface NsbOuResponse extends BasicResponse<NsbOu[]> {}
+
+export interface NsbBhResponse extends BasicResponse<NsbBh[]> {}
+
+export interface NsbBkResponse extends BasicResponse<NsbBk[]> {}
+
+export interface NsbOrgResponse extends BasicResponse<NsbOrg[]> {}
+
+export interface ProvinceResponse extends BasicResponse<Province[]> {}
+
+export interface DistrictResponse extends BasicResponse<District[]> {}
+
+export interface SubdistrictResponse extends BasicResponse<Subdistrict[]> {}
+
+export interface BasicResponse<T> {
+  endpoint: string;
+  message: string;
+  statusCode: number;
+  status: string;
+  success: boolean;
+  pagination?: Pagination;
+  data: T;
+}
+
+export interface Pagination {
+  page: number;
+  maxPage: number;
+  limit: number | string;
+  count: number;
+  countAll: number;
 }

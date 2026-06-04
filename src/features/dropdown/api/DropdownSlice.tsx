@@ -1,7 +1,17 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 // Types
-import type { DropdownResponse } from "../../../types/response";
+import type { 
+  DropdownResponse,
+  ProvinceResponse,
+  DistrictResponse,
+  SubdistrictResponse,
+  NsbOuResponse,
+  NsbBhResponse,
+  NsbBkResponse,
+  NsbOrgResponse,
+  TitleResponse,
+} from "../../../types/response";
 
 // API
 import {
@@ -12,18 +22,24 @@ import {
   getOrg,
   getProject,
   getProvince,
+  getDistrict,
+  getSubdistrict,
   getCheckpointType,
+  getTitle,
 } from "./DropdownApi";
 
 interface DropdownState {
   area: DropdownResponse["data"];
-  agency: DropdownResponse["data"];
-  bh: DropdownResponse["data"];
-  bk: DropdownResponse["data"];
-  org: DropdownResponse["data"];
+  agency: NsbOuResponse["data"];
+  bh: NsbBhResponse["data"];
+  bk: NsbBkResponse["data"];
+  org: NsbOrgResponse["data"];
   project: DropdownResponse["data"];
-  province: DropdownResponse["data"];
+  province: ProvinceResponse["data"];
+  district: DistrictResponse["data"];
+  subdistrict: SubdistrictResponse["data"];
   checkpointType: DropdownResponse["data"];
+  title: TitleResponse["data"];
   loading: boolean;
   error: string | null;
 }
@@ -37,7 +53,10 @@ const initialState: DropdownState = {
   org: [],
   project: [],
   province: [],
+  district: [],
+  subdistrict: [],
   checkpointType: [],
+  title: [],
   loading: false,
   error: null,
 };
@@ -127,11 +146,47 @@ export const fetchProvince = createAsyncThunk(
   }
 );
 
+export const fetchDistrict = createAsyncThunk(
+  "dropdown/fetchDistrict",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await getDistrict();
+      return res.data;
+    } catch (err: any) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
+export const fetchSubdistrict = createAsyncThunk(
+  "dropdown/fetchSubdistrict",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await getSubdistrict();
+      return res.data;
+    } catch (err: any) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
 export const fetchCheckpointType = createAsyncThunk(
   "dropdown/fetchCheckpointType",
   async (_, { rejectWithValue }) => {
     try {
       const res = await getCheckpointType();
+      return res.data;
+    } catch (err: any) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
+export const fetchTitle = createAsyncThunk(
+  "dropdown/fetchTitle",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await getTitle();
       return res.data;
     } catch (err: any) {
       return rejectWithValue(err.message);
@@ -254,6 +309,20 @@ const dropdownSlice = createSlice({
         state.checkpointType = action.payload;
       })
       .addCase(fetchCheckpointType.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+
+      // TITLE
+      .addCase(fetchTitle.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchTitle.fulfilled, (state, action) => {
+        state.loading = false;
+        state.title = action.payload;
+      })
+      .addCase(fetchTitle.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

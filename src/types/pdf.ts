@@ -6,6 +6,8 @@ import type {
   SearchLog, 
   OverallReportDetail, 
   OverallReportType,
+  AccessLog,
+  LprSearchLog,
 } from "./common";
 
 export interface AgencyUsagePdfData {
@@ -17,7 +19,7 @@ export interface AgencyUsagePdfData {
   bk_name: string;
   start_date: string;
   end_date: string;
-  agencyUsage: AgencyUsage[];
+  agencyUsage: AccessLog[];
 }
 
 export interface PersonUsagePdfData {
@@ -33,7 +35,7 @@ export interface PersonUsagePdfData {
   org_name: string;
   start_date: string;
   end_date: string;
-  personUsage: PersonUsage[];
+  personUsage: AccessLog[];
 }
 
 export interface LogUsagePdfData {
@@ -49,7 +51,7 @@ export interface LogUsagePdfData {
   org_name: string;
   start_date: string;
   end_date: string;
-  logUsage: LogUsage[];
+  logUsage: AccessLog[];
 }
 
 export interface SearchAgencyPlatePdfData {
@@ -65,7 +67,7 @@ export interface SearchAgencyPlatePdfData {
   province_name: string;
   start_date: string;
   end_date: string;
-  agencyPlate: AgencyUsage[];
+  agencyPlate: LprSearchLog[];
 }
 
 export interface SearchPersonPlatePdfData {
@@ -85,7 +87,7 @@ export interface SearchPersonPlatePdfData {
   province_name: string;
   start_date: string;
   end_date: string;
-  personPlate: PersonUsage[];
+  personPlate: LprSearchLog[];
 }
 
 export interface SearchLogPlatePdfData {
@@ -105,7 +107,7 @@ export interface SearchLogPlatePdfData {
   province_name: string;
   start_date: string;
   end_date: string;
-  logPlate: SearchLog[];
+  logPlate: LprSearchLog[];
 }
 
 export interface OverallCheckpointsPdfData {

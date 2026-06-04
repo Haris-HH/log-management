@@ -81,7 +81,12 @@ const OverallMap = () => {
 
   useEffect(() => {
     setAreaOptions(buildOptions(area, t('dropdown.all-area')));
-    setProvinceOptions(buildOptions(province, t('dropdown.all-province')));
+    setProvinceOptions(
+      buildOptions(
+        province, t('dropdown.all-province'), 
+        i18n.language === "th" ? "name_th" : "name_en",
+        "province_code")
+      );
     setTypeOptions(buildOptions(checkpointType, t('dropdown.all-type')));
   }, [area, province, checkpointType, t, i18n.language, i18n.isInitialized]);
 

@@ -1,317 +1,129 @@
 // Types
-import type { Dropdown } from "../types/common";
+import type { ProvinceResponse } from "../types/response";
 
-export const mockProvince: Dropdown[] = [
-  {
-    code: "กรุงเทพมหานคร",
-    name: "กรุงเทพมหานคร"
-  },
-  {
-    code: "กระบี่",
-    name: "กระบี่"
-  },
-  {
-    code: "กาญจนบุรี",
-    name: "กาญจนบุรี"
-  },
-  {
-    code: "กาฬสินธุ์",
-    name: "กาฬสินธุ์"
-  },
-  {
-    code: "กำแพงเพชร",
-    name: "กำแพงเพชร"
-  },
-  {
-    code: "ขอนแก่น",
-    name: "ขอนแก่น"
-  },
-  {
-    code: "จันทบุรี",
-    name: "จันทบุรี"
-  },
-  {
-    code: "ฉะเชิงเทรา",
-    name: "ฉะเชิงเทรา"
-  },
-  {
-    code: "ชลบุรี",
-    name: "ชลบุรี"
-  },
-  {
-    code: "ชัยนาท",
-    name: "ชัยนาท"
-  },
-  {
-    code: "ชัยภูมิ",
-    name: "ชัยภูมิ"
-  },
-  {
-    code: "ชุมพร",
-    name: "ชุมพร"
-  },
-  {
-    code: "เชียงใหม่",
-    name: "เชียงใหม่"
-  },
-  {
-    code: "เชียงราย",
-    name: "เชียงราย"
-  },
-  {
-    code: "ตรัง",
-    name: "ตรัง"
-  },
-  {
-    code: "ตราด",
-    name: "ตราด"
-  },
-  {
-    code: "ตาก",
-    name: "ตาก"
-  },
-  {
-    code: "นครนายก",
-    name: "นครนายก"
-  },
-  {
-    code: "นครปฐม",
-    name: "นครปฐม"
-  },
-  {
-    code: "นครพนม",
-    name: "นครพนม"
-  },
-  {
-    code: "นครราชสีมา",
-    name: "นครราชสีมา"
-  },
-  {
-    code: "นครศรีธรรมราช",
-    name: "นครศรีธรรมราช"
-  },
-  {
-    code: "นครสวรรค์",
-    name: "นครสวรรค์"
-  },
-  {
-    code: "นนทบุรี",
-    name: "นนทบุรี"
-  },
-  {
-    code: "นราธิวาส",
-    name: "นราธิวาส"
-  },
-  {
-    code: "น่าน",
-    name: "น่าน"
-  },
-  {
-    code: "บึงกาฬ",
-    name: "บึงกาฬ"
-  },
-  {
-    code: "บุรีรัมย์",
-    name: "บุรีรัมย์"
-  },
-  {
-    code: "ปทุมธานี",
-    name: "ปทุมธานี"
-  },
-  {
-    code: "ประจวบคีรีขันธ์",
-    name: "ประจวบคีรีขันธ์"
-  },
-  {
-    code: "ปราจีนบุรี",
-    name: "ปราจีนบุรี"
-  },
-  {
-    code: "ปัตตานี",
-    name: "ปัตตานี"
-  },
-  {
-    code: "พระนครศรีอยุธยา",
-    name: "พระนครศรีอยุธยา"
-  },
-  {
-    code: "พะเยา",
-    name: "พะเยา"
-  },
-  {
-    code: "พังงา",
-    name: "พังงา"
-  },
-  {
-    code: "พัทลุง",
-    name: "พัทลุง"
-  },
-  {
-    code: "พิจิตร",
-    name: "พิจิตร"
-  },
-  {
-    code: "พิษณุโลก",
-    name: "พิษณุโลก"
-  },
-  {
-    code: "เพชรบุรี",
-    name: "เพชรบุรี"
-  },
-  {
-    code: "เพชรบูรณ์",
-    name: "เพชรบูรณ์"
-  },
-  {
-    code: "แพร่",
-    name: "แพร่"
-  },
-  {
-    code: "ภูเก็ต",
-    name: "ภูเก็ต"
-  },
-  {
-    code: "มหาสารคาม",
-    name: "มหาสารคาม"
-  },
-  {
-    code: "มุกดาหาร",
-    name: "มุกดาหาร"
-  },
-  {
-    code: "แม่ฮ่องสอน",
-    name: "แม่ฮ่องสอน"
-  },
-  {
-    code: "ยโสธร",
-    name: "ยโสธร"
-  },
-  {
-    code: "ยะลา",
-    name: "ยะลา"
-  },
-  {
-    code: "ร้อยเอ็ด",
-    name: "ร้อยเอ็ด"
-  },
-  {
-    code: "ระนอง",
-    name: "ระนอง"
-  },
-  {
-    code: "ระยอง",
-    name: "ระยอง"
-  },
-  {
-    code: "ราชบุรี",
-    name: "ราชบุรี"
-  },
-  {
-    code: "ลพบุรี",
-    name: "ลพบุรี"
-  },
-  {
-    code: "ลำปาง",
-    name: "ลำปาง"
-  },
-  {
-    code: "ลำพูน",
-    name: "ลำพูน"
-  },
-  {
-    code: "เลย",
-    name: "เลย"
-  },
-  {
-    code: "ศรีสะเกษ",
-    name: "ศรีสะเกษ"
-  },
-  {
-    code: "สกลนคร",
-    name: "สกลนคร"
-  },
-  {
-    code: "สงขลา",
-    name: "สงขลา"
-  },
-  {
-    code: "สตูล",
-    name: "สตูล"
-  },
-  {
-    code: "สมุทรปราการ",
-    name: "สมุทรปราการ"
-  },
-  {
-    code: "สมุทรสงคราม",
-    name: "สมุทรสงคราม"
-  },
-  {
-    code: "สมุทรสาคร",
-    name: "สมุทรสาคร"
-  },
-  {
-    code: "สระแก้ว",
-    name: "สระแก้ว"
-  },
-  {
-    code: "สระบุรี",
-    name: "สระบุรี"
-  },
-  {
-    code: "สิงห์บุรี",
-    name: "สิงห์บุรี"
-  },
-  {
-    code: "สุโขทัย",
-    name: "สุโขทัย"
-  },
-  {
-    code: "สุพรรณบุรี",
-    name: "สุพรรณบุรี"
-  },
-  {
-    code: "สุราษฎร์ธานี",
-    name: "สุราษฎร์ธานี"
-  },
-  {
-    code: "สุรินทร์",
-    name: "สุรินทร์"
-  },
-  {
-    code: "หนองคาย",
-    name: "หนองคาย"
-  },
-  {
-    code: "หนองบัวลำภู",
-    name: "หนองบัวลำภู"
-  },
-  {
-    code: "อ่างทอง",
-    name: "อ่างทอง"
-  },
-  {
-    code: "อำนาจเจริญ",
-    name: "อำนาจเจริญ"
-  },
-  {
-    code: "อุดรธานี",
-    name: "อุดรธานี"
-  },
-  {
-    code: "อุตรดิตถ์",
-    name: "อุตรดิตถ์"
-  },
-  {
-    code: "อุทัยธานี",
-    name: "อุทัยธานี"
-  },
-  {
-    code: "อุบลราชธานี",
-    name: "อุบลราชธานี"
-  },
-  {
-    code: "เบตง",
-    name: "เบตง"
-  }
-]
+export const mockProvince: ProvinceResponse = {
+  "endpoint": "api/v0/masterdata/provinces/get?page=1&limit=10&orderBy=province_code.asc",
+  "statusCode": 200,
+  "status": "Successful",
+  "success": true,
+  "message": "OK",
+  "pagination": {
+    "page": 1,
+    "maxPage": 8,
+    "limit": "10",
+    "count": 10,
+    "countAll": 77
+  },
+  "data": [
+    {
+      "id": 1,
+      "country_id": 196,
+      "province_code": "10",
+      "name_en": "Bangkok",
+      "name_th": "กรุงเทพมหานคร",
+      "geo_region_id": 9,
+      "police_region_id": 0,
+      "visible": 1,
+      "active": 1
+    },
+    {
+      "id": 2,
+      "country_id": 196,
+      "province_code": "11",
+      "name_en": "Samut Prakan",
+      "name_th": "สมุทรปราการ",
+      "geo_region_id": 9,
+      "police_region_id": 1,
+      "visible": 1,
+      "active": 1
+    },
+    {
+      "id": 3,
+      "country_id": 196,
+      "province_code": "12",
+      "name_en": "Nonthaburi",
+      "name_th": "นนทบุรี",
+      "geo_region_id": 9,
+      "police_region_id": 1,
+      "visible": 1,
+      "active": 1
+    },
+    {
+      "id": 4,
+      "country_id": 196,
+      "province_code": "13",
+      "name_en": "Pathum Thani",
+      "name_th": "ปทุมธานี",
+      "geo_region_id": 9,
+      "police_region_id": 1,
+      "visible": 1,
+      "active": 1
+    },
+    {
+      "id": 5,
+      "country_id": 196,
+      "province_code": "14",
+      "name_en": "Phra Nakhon Si Ayutthaya",
+      "name_th": "พระนครศรีอยุธยา",
+      "geo_region_id": 9,
+      "police_region_id": 1,
+      "visible": 1,
+      "active": 1
+    },
+    {
+      "id": 6,
+      "country_id": 196,
+      "province_code": "15",
+      "name_en": "Ang Thong",
+      "name_th": "อ่างทอง",
+      "geo_region_id": 9,
+      "police_region_id": 1,
+      "visible": 1,
+      "active": 1
+    },
+    {
+      "id": 7,
+      "country_id": 196,
+      "province_code": "16",
+      "name_en": "Lopburi",
+      "name_th": "ลพบุรี",
+      "geo_region_id": 9,
+      "police_region_id": 1,
+      "visible": 1,
+      "active": 1
+    },
+    {
+      "id": 8,
+      "country_id": 196,
+      "province_code": "17",
+      "name_en": "Sing Buri",
+      "name_th": "สิงห์บุรี",
+      "geo_region_id": 9,
+      "police_region_id": 1,
+      "visible": 1,
+      "active": 1
+    },
+    {
+      "id": 9,
+      "country_id": 196,
+      "province_code": "18",
+      "name_en": "Chai Nat",
+      "name_th": "ชัยนาท",
+      "geo_region_id": 9,
+      "police_region_id": 1,
+      "visible": 1,
+      "active": 1
+    },
+    {
+      "id": 10,
+      "country_id": 196,
+      "province_code": "19",
+      "name_en": "Saraburi",
+      "name_th": "สระบุรี",
+      "geo_region_id": 9,
+      "police_region_id": 1,
+      "visible": 1,
+      "active": 1
+    }
+  ]
+}
