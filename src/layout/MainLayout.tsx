@@ -25,7 +25,7 @@ const MainLayout = () => {
 
   const location = useLocation();
 
-  const user = useSelector((state: RootState) => state.authUser.user);
+  const user = useSelector((state: RootState) => state.authUser);
 
   const hashPid = localStorage.getItem("hash_id") || "NO HASH ID";
   const nsbOu = JSON.parse(localStorage.getItem("nsbOu") || "{}");
