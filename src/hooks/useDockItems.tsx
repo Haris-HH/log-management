@@ -52,11 +52,11 @@ export const useDockItems = (): DockItem[] => {
       },
       {
         icon: <BarChartIcon />,
-        label: t("dock.statistics"),
+        label: t("dock.access-statistics"),
         subMenu: [
-          { label: t("menu.statistic-usage-agency"), path: "/statistic-usage-agency" },
-          { label: t("menu.statistic-usage-person"), path: "/statistic-usage-person" },
-          { label: t("menu.statistic-usage-log"), path: "/statistic-usage-log" },
+          { label: t("menu.statistic-access-agency"), path: "/statistic-access-agency" },
+          { label: t("menu.statistic-access-person"), path: "/statistic-access-person" },
+          { label: t("menu.statistic-access-log"), path: "/statistic-access-log" },
         ],
       },
       {
@@ -75,6 +75,15 @@ export const useDockItems = (): DockItem[] => {
             label: t("menu.statistic-search-log-plate"),
             path: "/statistic-search-log-plate",
           },
+        ],
+      },
+      {
+        icon: <BarChartIcon />,
+        label: t("dock.statistics"),
+        subMenu: [
+          { label: t("menu.statistic-usage-agency"), path: "/statistic-usage-agency" },
+          { label: t("menu.statistic-usage-person"), path: "/statistic-usage-person" },
+          { label: t("menu.statistic-usage-log"), path: "/statistic-usage-log" },
         ],
       },
     ],

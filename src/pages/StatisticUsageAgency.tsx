@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import dayjs from 'dayjs';
 import { useNavigate } from "react-router-dom";
 import { useSelector } from 'react-redux';
+import { saveAs } from "file-saver";
+import JSZip from "jszip";
 
 // Material UI
 import Box from "@mui/material/Box";
@@ -30,10 +32,11 @@ import { ROWS_PER_PAGE_OPTIONS } from "../constants/dropdown";
 // PDF
 import {
   downloadStatisticUsageAgencyPdf,
+  generateStatisticUsageAgencyPdfBlob,
 } from "../pdf/StatisticUsageAgencyPdf";
 
 // Types
-import type { AccessLog } from "../types/common";
+import type { UsageLog } from "../types/common";
 import type { AgencyUsagePdfData } from "../types/pdf";
 
 // i18n
@@ -47,7 +50,7 @@ import InformationIcon from "../assets/icons/information.png";
 
 // Utils
 import { buildOptions } from "../utils/commonFunctions";
-import { exportExcel } from "../utils/exportData";
+import { exportExcel, generateExcelBlob } from "../utils/exportData";
 import { PopupMessage, PopupMessageWithCancel } from '../utils/popupMessage';
 
 // Hooks
@@ -57,7 +60,7 @@ import usePageTitle from "../hooks/usePageTitle";
 import type { RootState } from "../store/store";
 
 // API
-import { searchAccessLogs } from "../features/usage-data/api/UsageDataApi";
+import { searchUsageLogs } from "../features/usage-data/api/UsageDataApi";
 
 interface FormData {
   agency_id: string;
@@ -78,10 +81,10 @@ const StatisticUsageAgency = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   // Data
-  const [rows, setRows] = useState<AccessLog[]>([]);
+  const [rows, setRows] = useState<UsageLog[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [totalUsage, setTotalUsage] = useState(0);
-  const [selectedData, setSelectedData] = useState<AccessLog | null>(null);
+  const [selectedData, setSelectedData] = useState<UsageLog | null>(null);
 
   // Options
   const [agencyOptions, setAgencyOptions] = useState<{ label: string, value: string }[]>([]);
@@ -89,8 +92,8 @@ const StatisticUsageAgency = () => {
   const [bkOptions, setBkOptions] = useState<{ label: string, value: string }[]>([]);
 
   // Constants
-  const CHUNK_SIZE = 500;
-  const REQUEST_LIMIT = 5000;
+  const CHUNK_SIZE = 1000;
+  const REQUEST_LIMIT = 1000;
 
   // Form Data
   const [formData, setFormData] = useState<FormData>({
@@ -159,7 +162,7 @@ const StatisticUsageAgency = () => {
   }, [formData, agency, bh, bk, org]);
 
   const mapAccessLogRows = useCallback(
-    (data: AccessLog[]) => {
+    (data: UsageLog[]) => {
       return data.map((item) => {
         const agencyData = agency.find((a) => a.ou_code === item.ou_code);
         const bhData = bh.find((b) => b.bh_code === item.bh_code);
@@ -199,7 +202,7 @@ const StatisticUsageAgency = () => {
       try {
         setIsLoading(true);
 
-        const res = await searchAccessLogs(
+        const res = await searchUsageLogs(
           {},
           {
             groupBy: "org_code",
@@ -292,7 +295,11 @@ const StatisticUsageAgency = () => {
 
   const handleExportPdf = async () => {
     try {
-      let exportRows = rows;
+      setIsLoading(true);
+
+      const dateFormat = i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD";
+      const startDate = dayjs(formData.start_date_time).format(dateFormat);
+      const endDate = dayjs(formData.end_date_time).format(dateFormat);
 
       if (totalData > CHUNK_SIZE) {
         const isConfirmed = await PopupMessageWithCancel(
@@ -306,10 +313,52 @@ const StatisticUsageAgency = () => {
         );
 
         if (!isConfirmed) return;
-      }
-      setIsLoading(true);
 
-      const res = await searchAccessLogs(
+        const zip = new JSZip();
+        const totalFiles = Math.ceil(totalData / CHUNK_SIZE);
+
+        for (let page = 1; page <= totalFiles; page++) {
+          const res = await searchUsageLogs(
+            {},
+            {
+              groupBy: "org_code",
+              limit: CHUNK_SIZE.toString(),
+              page: page.toString(),
+              orderBy: "org_code",
+              ...getFilters(formData),
+            }
+          );
+
+          const formattedData = await mapAccessLogRows(res.data);
+
+          const fileName = `${t(
+            "file-name.statistic-usage-agency"
+          )}_${startDate}_${endDate}_${page}.pdf`;
+
+          const blob = await generateStatisticUsageAgencyPdfBlob(
+            buildPdfData(formattedData),
+            t,
+            i18n
+          );
+
+          zip.file(fileName, blob);
+
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+
+        saveAs(
+          zipBlob,
+          `PDF_${t("file-name.statistic-usage-agency")}_${dayjs().format(
+            "YYYY-MM-DD"
+          )}.zip`
+        );
+
+        return;
+      }
+
+      const res = await searchUsageLogs(
         {},
         {
           groupBy: "org_code",
@@ -320,15 +369,11 @@ const StatisticUsageAgency = () => {
         }
       );
 
-      exportRows = mapAccessLogRows(res.data);
+      const exportRows = await mapAccessLogRows(res.data);
 
-      const dateFormat = i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD";
-
-      const pdfName = `${t("file-name.statistic-usage-agency")}_${dayjs(
-        formData.start_date_time
-      ).format(dateFormat)}_${dayjs(formData.end_date_time).format(
-        dateFormat
-      )}.pdf`;
+      const pdfName = `${t(
+        "file-name.statistic-usage-agency"
+      )}_${startDate}_${endDate}.pdf`;
 
       await downloadStatisticUsageAgencyPdf(
         buildPdfData(exportRows),
@@ -338,14 +383,18 @@ const StatisticUsageAgency = () => {
       );
     } 
     catch (error) {
-      await PopupMessage(t("popup.export-error-title"), t("popup.export-error-message"), "error");
+      await PopupMessage(
+        t("popup.export-error-title"),
+        t("popup.export-error-message"),
+        "error"
+      );
     } 
     finally {
       setIsLoading(false);
     }
   };
 
-  const buildPdfData = (agencyUsage: AccessLog[]): AgencyUsagePdfData => {
+  const buildPdfData = (agencyUsage: UsageLog[]): AgencyUsagePdfData => {
     const selectedAgency = agency.find(
       (a) => a.ou_code === formData.agency_id
     );
@@ -398,7 +447,37 @@ const StatisticUsageAgency = () => {
 
   const handleExportExcel = async () => {
     try {
-      let exportRows = rows;
+      const dateFormat = i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD";
+
+      const startDate = dayjs(formData.start_date_time).format(dateFormat);
+      const endDate = dayjs(formData.end_date_time).format(dateFormat);
+
+      const baseFileName = `${t(
+        "file-name.statistic-usage-agency"
+      )}_${startDate}_${endDate}`;
+
+      const headers = [
+        t('table.header.no'),
+        t('table.header.count'),
+        t('table.header.agency'),
+        t('table.header.bh'),
+        t('table.header.bk'),
+        t('table.header.org'),
+      ];
+
+      const mapRow = (data: any, index: number) => [
+        index + 1,
+        Number(data.total || 0).toLocaleString(),
+        data.ou_name || "-",
+        data.bh_name || "-",
+        data.bk_name || "-",
+        data.org_name || "-",
+      ];
+
+      const columnStyles = {
+        1: { alignment: { horizontal: "center" as const } },
+        2: { alignment: { horizontal: "right" as const } },
+      };
 
       if (totalData > CHUNK_SIZE) {
         const isConfirmed = await PopupMessageWithCancel(
@@ -412,10 +491,55 @@ const StatisticUsageAgency = () => {
         );
 
         if (!isConfirmed) return;
+
+        setIsLoading(true);
+
+        const zip = new JSZip();
+        const totalFiles = Math.ceil(totalData / CHUNK_SIZE);
+
+        for (let pageIndex = 1; pageIndex <= totalFiles; pageIndex++) {
+          const res = await searchUsageLogs(
+            {},
+            {
+              groupBy: "org_code",
+              limit: CHUNK_SIZE.toString(),
+              page: pageIndex.toString(),
+              orderBy: "org_code",
+              ...getFilters(formData),
+            }
+          );
+
+          const exportRows = await mapAccessLogRows(res.data);
+
+          const blob = await generateExcelBlob({
+            sheetName: t("file-name.statistic-usage-agency"),
+            headers,
+            data: exportRows,
+            mapRow: (data, index) => [
+              (pageIndex - 1) * CHUNK_SIZE + index + 1,
+              Number(data.total || 0).toLocaleString(),
+              data.ou_name || "-",
+              data.bh_name || "-",
+              data.bk_name || "-",
+              data.org_name || "-",
+            ],
+            columnStyles,
+          });
+
+          zip.file(`${baseFileName}_${pageIndex}.xlsx`, blob);
+
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        saveAs(zipBlob, `Excel_${baseFileName}.zip`);
+
+        return;
       }
+
       setIsLoading(true);
 
-      const res = await searchAccessLogs(
+      const res = await searchUsageLogs(
         {},
         {
           groupBy: "org_code",
@@ -426,37 +550,23 @@ const StatisticUsageAgency = () => {
         }
       );
 
-      exportRows = mapAccessLogRows(res.data);
-
-      const dateFormat = i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD";
+      const exportRows = await mapAccessLogRows(res.data);
 
       await exportExcel({
-        sheetName: `${t('file-name.statistic-usage-agency')}`,
-        fileName: `${t('file-name.statistic-usage-agency')}_${dayjs(formData.start_date_time).format(dateFormat)}_${dayjs(formData.end_date_time).format(dateFormat)}.xlsx`,
-        headers: [
-          t('table.header.no'),
-          t('table.header.count'),
-          t('table.header.agency'),
-          t('table.header.bh'),
-          t('table.header.bk'),
-          t('table.header.org'),
-        ],
+        sheetName: t("file-name.statistic-usage-agency"),
+        fileName: `${baseFileName}.xlsx`,
+        headers,
         data: exportRows,
-        mapRow: (data, index) => [
-          (page - 1) * rowsPerPage + index + 1,
-          (data.total || 0).toLocaleString(),
-          data.ou_name,
-          data.bh_name,
-          data.bk_name,
-          data.org_name,
-        ],
-        columnStyles: {
-          2: { alignment: { horizontal: "center" } },
-        },
+        mapRow,
+        columnStyles,
       });
-    }
+    } 
     catch (error) {
-      await PopupMessage(t("popup.export-error-title"), t("popup.export-error-message"), "error");
+      await PopupMessage(
+        t("popup.export-error-title"),
+        t("popup.export-error-message"),
+        "error"
+      );
     } 
     finally {
       setIsLoading(false);
@@ -476,7 +586,7 @@ const StatisticUsageAgency = () => {
     setRowsPerPage(limit);
   };
 
-  const showDetailDialog = (data: AccessLog) => {
+  const showDetailDialog = (data: UsageLog) => {
     setSelectedData(data);
     setDetailDialogOpen(true);
   };

@@ -1,35 +1,35 @@
 // Types
-import type { AgencyColumn, AgencyChartData, AgencyChartDataGroup } from "../types/common";
+import type {
+  AgencyColumn,
+  AgencyChartDataGroup,
+} from "../types/common";
 
 export const mockChartExternalPoliceColumn: AgencyColumn[] = [
-  { key: "police_forensic", label: "กสพ." },
-  { key: "contract_partner", label: "คู่สัญญา" },
-  { key: "army", label: "ทบ." },
-  { key: "navy", label: "ทร." },
-  { key: "narcotics_control", label: "ปปส." },
-  { key: "justice_ministry", label: "ยธ." },
+  { key: "external_0001", label: "กสพ." },
+  { key: "external_0002", label: "คู่สัญญา" },
+  { key: "external_0003", label: "ทบ." },
+  { key: "external_0004", label: "ทร." },
+  { key: "external_0005", label: "ปปส." },
+  { key: "external_0006", label: "ยธ." },
 ];
 
-const createMockData = (): AgencyChartData[] =>
-  mockChartExternalPoliceColumn.map(col => ({
-    key: col.key,
-    value: Math.floor(Math.random() * 1000),
+const createMockAccess = () =>
+  mockChartExternalPoliceColumn.map((col) => ({
+    org_code: col.key,
+    count: Math.floor(Math.random() * 1000),
   }));
 
 export const mockChartExternalPoliceDataGroup: AgencyChartDataGroup[] = [
   {
-    month_year: "2026-02",
-    month: 2,
-    data: createMockData()
+    month: "2026-02",
+    access: createMockAccess(),
   },
   {
-    month_year: "2026-03",
-    month: 3,
-    data: createMockData()
+    month: "2026-03",
+    access: createMockAccess(),
   },
   {
-    month_year: "2026-04",
-    month: 4,
-    data: createMockData()
+    month: "2026-04",
+    access: createMockAccess(),
   },
-]
+];

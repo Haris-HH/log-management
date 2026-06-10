@@ -70,20 +70,24 @@ export interface SearchLog {
   detail: string;
 }
 
-export interface AgencyChartDataGroup {
-  month_year: string;
-  month: number;
-  data: AgencyChartData[];
+export interface AgencyAccessItem {
+  org_code: string;
+  count: number;
 }
 
-export interface AgencyChartData {
-  key: string;
-  value: number;
+export interface AgencyChartDataGroup {
+  month: string;
+  access: AgencyAccessItem[];
 }
 
 export interface AgencyColumn {
   key: string;
   label: string;
+}
+
+export interface AgencyChartData {
+  key: string;
+  value: number;
 }
 
 export interface TopUsersType {
@@ -214,7 +218,7 @@ export interface User {
   service_channel: ServiceChannel[];
   image_url: string | null;
   username: string;
-  title: string;
+  title_id: number;
   firstname: string;
   lastname: string;
   idcard: string;
@@ -328,8 +332,8 @@ export interface District {
 
 export interface Subdistrict {
   id: number;
-  province_id: number;
-  district_id: number;
+  province_code: string;
+  district_code: string;
   subdistrict_code: string;
   name_en: string;
   name_th: string;
@@ -337,6 +341,14 @@ export interface Subdistrict {
   visible: boolean;
   active: boolean;
   remark: string;
+}
+
+export interface LprRegion {
+  id: number;
+  region_code: string;
+  name_en: string;
+  name_th: string;
+  remark: string | null;
 }
 
 export interface Ou {
@@ -350,6 +362,39 @@ export interface Ou {
 }
 
 export interface AccessLog {
+  log_id: number;
+  log_timestamp: string;
+  user_id: string;
+  idcard?: string;
+  title?: string;
+  firstname?: string;
+  lastname?: string;
+  username: string;
+  service_channel: string;
+  device_platform: string;
+
+  ou_code: string | null;
+  ou_name?: string;
+  bh_code: string | null;
+  bh_name?: string;
+  bk_code: string | null;
+  bk_name?: string;
+  org_code: string | null;
+  org_name?: string;
+
+  request_ip: string;
+
+  location_webui: LocationWebUI;
+  location_api: LocationApi;
+
+  user_agent: string;
+  user_os: string;
+  request_result: string;
+  access_details: string;
+  total?: number;
+}
+
+export interface UsageLog {
   log_id: number;
   log_timestamp: string;
   user_id: string;
@@ -438,4 +483,119 @@ export interface Title {
   visible: boolean;
   active: boolean;
   remark: string;
+}
+
+export interface Area {
+  id: number;
+  title_en: string;
+  title_th: string;
+  visible: boolean;
+  active: boolean;
+}
+
+export interface DeviceStatus {
+  id: number;
+  status_code: string;
+  status_en: string;
+  status_th: string;
+  details_en: string;
+  details_th: string;
+  visible: boolean;
+  active: boolean;
+  total: number;
+  color?: string;
+}
+
+export interface Project {
+  project_id: string;
+  customer_id: string;
+  project_code: string;
+  project_name: string;
+  subdistrict_code: string;
+  district_code: string;
+  province_code: string;
+  police_region_id: number;
+  police_station_id: number;
+  description: string;
+  details: string | null;
+  notes: string | null;
+  status: string;
+  project_start_date: string;
+  project_test_date: string;
+  project_migration_date: string;
+  maintenance_start_date: string;
+  maintenance_expired_date: string;
+  timezone: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TopUsers {
+  rank: number;
+  user_id: string;
+  title_id?: number;
+  title?: string;
+  firstname?: string;
+  lastname?: string;
+  idcard?: string;
+  phone?: string;
+  username: string;
+  ou_code: string;
+  ou_name?: string;
+  org_code: string;
+  months: Record<string, number>;
+  total: number;
+}
+
+export interface DeviceCheckLog {
+  log_id: number;
+  log_timestamp: string;
+  device_id: string;
+  device_ip: string;
+  device_status_code: string;
+  alive: boolean;
+  response_ms: number;
+  packet_loss: number;
+  check_type: string;
+  error_message: string;
+  checked_by: string;
+}
+
+export interface Device {
+  device_id: string;
+  device_name: string;
+  device_ip: string;
+  device_mac: string;
+  device_category: string;
+  device_type: string;
+  brand: string;
+  model: string;
+  serial_number: string;
+  part_number: string;
+  project_id: string;
+  center_id: string;
+  checkpoint_id: string;
+  province_code: string;
+  district_code: string;
+  subdistrict_code: string;
+  route: string;
+  address: string;
+  police_station_id: number;
+  latitude: number;
+  longitude: number;
+  visible: boolean;
+  active: boolean;
+  alive: boolean;
+  device_status_code: string;
+  maintenance_status_code: string;
+  last_online: string;
+  last_check: string;
+  response_ms: number;
+  deleted: boolean;
+  request_delete: boolean;
+  request_delete_reason: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string;
+  latLng?: LatLngExpression;
 }

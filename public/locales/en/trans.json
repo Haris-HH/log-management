@@ -17,6 +17,9 @@
     "statistic-usage-agency": "Statistic Usage Agency",
     "statistic-usage-person": "Statistic Usage Person",
     "statistic-usage-log": "Statistic Usage Log",
+    "statistic-access-agency": "Statistic Access Agency",
+    "statistic-access-person": "Statistic Access Person",
+    "statistic-access-log": "Statistic Access Log",
     "statistic-search-agency-plate": "Statistic Search Agency Plate",
     "statistic-search-person-plate": "Statistic Search Person Plate",
     "statistic-search-log-plate": "Statistic Search Log Plate"
@@ -45,7 +48,8 @@
     "to-date": "To Date",
     "month": "Month",
     "pid": "PID",
-    "password": "Password"
+    "password": "Password",
+    "title": "Title"
   },
   "placeholder": {
     "agency": "Please select agency",
@@ -64,7 +68,8 @@
     "search-only": "Search",
     "type": "Please select type",
     "pid": "PID",
-    "password": "Password"
+    "password": "Password",
+    "title": "Please select title"
   },
   "button": {
     "1-month": "1 Month",
@@ -133,6 +138,7 @@
     "home": "Home",
     "internal-chart": "Internal Chart",
     "overview": "Overview",
+    "access-statistics": "Access Statistics",
     "statistics": "Statistics",
     "search-statistics": "Search Statistics"
   },
@@ -147,6 +153,9 @@
     "statistic-usage-agency": "Statistic Usage Agency",
     "statistic-usage-person": "Statistic Usage Person",
     "statistic-usage-log": "Statistic Usage Log",
+    "statistic-access-agency": "Statistic Access Agency",
+    "statistic-access-person": "Statistic Access Person",
+    "statistic-access-log": "Statistic Access Log",
     "statistic-search-agency-plate": "Statistic Search Agency Plate",
     "statistic-search-person-plate": "Statistic Search Person Plate",
     "statistic-search-log-plate": "Statistic Search Log Plate"
@@ -214,7 +223,8 @@
     "all-area": "All Area",
     "all-province": "All Province",
     "all-project": "All Project",
-    "all-type": "All Type"
+    "all-type": "All Type",
+    "all-title": "All Title"
   },
   "status": {
     "disable": "Disable",
@@ -227,6 +237,9 @@
     "statistic-usage-agency": "Statistic Usage Agency",
     "statistic-usage-person": "Statistic Usage Person",
     "statistic-usage-log": "Statistic Usage Log",
+    "statistic-access-agency": "Statistic Access Agency",
+    "statistic-access-person": "Statistic Access Person",
+    "statistic-access-log": "Statistic Access Log",
     "statistic-search-agency-plate": "Statistic Search Agency Plate",
     "statistic-search-person-plate": "Statistic Search Person Plate",
     "statistic-search-log-plate": "Statistic Search Log Plate",
@@ -241,6 +254,9 @@
     "statistic-usage-agency": "Statistic Usage Agency Report",
     "statistic-usage-person": "Statistic Usage Person Report",
     "statistic-usage-log": "Statistic Usage Log Report",
+    "statistic-access-agency": "Statistic Access Agency",
+    "statistic-access-person": "Statistic Access Person",
+    "statistic-access-log": "Statistic Access Log",
     "statistic-search-agency-plate": "Statistic Search Agency Plate Report",
     "statistic-search-person-plate": "Statistic Search Person Plate Report",
     "statistic-search-log-plate": "Statistic Search Log Plate Report",

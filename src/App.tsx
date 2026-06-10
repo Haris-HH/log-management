@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import "./App.css";
+import { useSelector } from 'react-redux';
 
 // Components
 import MainLayout from "./layout/MainLayout";
@@ -16,6 +17,9 @@ import ChartTopUsers from "./pages/ChartTopUsers";
 import StatisticUsageAgency from "./pages/StatisticUsageAgency";
 import StatisticUsagePerson from "./pages/StatisticUsagePerson";
 import StatisticUsageLog from "./pages/StatisticUsageLog";
+import StatisticAccessAgency from "./pages/StatisticAccessAgency";
+import StatisticAccessPerson from "./pages/StatisticAccessPerson";
+import StatisticAccessLog from "./pages/StatisticAccessLog";
 import StatisticSearchAgencyPlate from "./pages/StatisticSearchAgencyPlate";
 import StatisticSearchPersonPlate from "./pages/StatisticSearchPersonPlate";
 import StatisticSearchLogPlate from "./pages/StatisticSearchLogPlate";
@@ -32,8 +36,9 @@ import {
   fetchOrg,
   fetchProject,
   fetchProvince,
-  fetchCheckpointType,
+  fetchDeviceStatus,
   fetchTitle,
+  fetchLprRegion,
 } from "./features/dropdown/api/DropdownSlice";
 
 // i18n
@@ -42,12 +47,21 @@ import { useTranslation } from 'react-i18next';
 // Store
 import { useAppDispatch } from "./store/hooks";
 
+// Utils
+import { useSse } from "./utils/useSse";
+
+// Store
+import type { RootState } from "./store/store";
+
 function App() {
 
   const dispatch = useAppDispatch();
 
   // i18n
   const { i18n } = useTranslation();
+
+  // Slice
+  const { user } = useSelector((state: RootState) => state.authUser);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
@@ -69,6 +83,10 @@ function App() {
         theme.rgb
       );
     }
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
 
     dispatch(fetchArea());
     dispatch(fetchAgency());
@@ -77,9 +95,23 @@ function App() {
     dispatch(fetchOrg());
     dispatch(fetchProject());
     dispatch(fetchProvince());
-    dispatch(fetchCheckpointType());
+    dispatch(fetchDeviceStatus());
     dispatch(fetchTitle());
-  }, [dispatch]);
+    dispatch(fetchLprRegion());
+  }, [user, dispatch])
+
+  const enabled = Boolean(localStorage.getItem("accessToken") ?? false);
+
+  const handleSseMessage = (data: any) => {
+  };
+
+  useSse(
+    "",
+    "",
+    "",
+    handleSseMessage,
+    enabled
+  );
 
   return (
     <>
@@ -96,14 +128,18 @@ function App() {
           <Route path="chart-internal-nsb" element={<ChartInternalNsb />} />
           <Route path="chart-external-police" element={<ChartExternalPolice />} />
           <Route path="chart-top-users" element={<ChartTopUsers />} />
-          {/* Statistic Usage */}
-          <Route path="statistic-usage-agency" element={<StatisticUsageAgency />} />
-          <Route path="statistic-usage-person" element={<StatisticUsagePerson />} />
-          <Route path="statistic-usage-log" element={<StatisticUsageLog />} />
+          {/* Statistic Access */}
+          <Route path="statistic-access-agency" element={<StatisticAccessAgency />} />
+          <Route path="statistic-access-person" element={<StatisticAccessPerson />} />
+          <Route path="statistic-access-log" element={<StatisticAccessLog />} />
           {/* Statistic Search Plate */}
           <Route path="statistic-search-agency-plate" element={<StatisticSearchAgencyPlate />} />
           <Route path="statistic-search-person-plate" element={<StatisticSearchPersonPlate />} />
           <Route path="statistic-search-log-plate" element={<StatisticSearchLogPlate />} />
+          {/* Statistic Usage */}
+          <Route path="statistic-usage-agency" element={<StatisticUsageAgency />} />
+          <Route path="statistic-usage-person" element={<StatisticUsagePerson />} />
+          <Route path="statistic-usage-log" element={<StatisticUsageLog />} />
           {/* Overall */}
           <Route path="overall-checkpoints" element={<OverallCheckpoints />} />
           <Route path="overall-map" element={<OverallMap />} />

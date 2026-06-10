@@ -15,26 +15,16 @@ type ExportExcelParams<T> = {
   columnStyles?: Record<number, ColumnStyle>;
 };
 
-export const exportExcel = async <T,>({
-  sheetName,
-  fileName,
-  headers,
-  data,
-  mapRow,
-  columnStyles = {},
-}: ExportExcelParams<T>) => {
+export const generateExcelBlob = async <T,>(
+  params: Omit<ExportExcelParams<T>, "fileName">
+): Promise<Blob> => {
   const workbook = new ExcelJS.Workbook();
-  const sheet = workbook.addWorksheet(sheetName);
+  const sheet = workbook.addWorksheet(params.sheetName);
 
-  // Header
-  const headerRow = sheet.addRow(headers);
+  const headerRow = sheet.addRow(params.headers);
 
-  // Header style
   headerRow.eachCell((cell) => {
-    cell.font = {
-      bold: true,
-      color: { argb: "00000000" },
-    };
+    cell.font = { bold: true, color: { argb: "00000000" } };
     cell.fill = {
       type: "pattern",
       pattern: "solid",
@@ -43,40 +33,36 @@ export const exportExcel = async <T,>({
     cell.alignment = { vertical: "middle", horizontal: "center" };
   });
 
-  // Data rows
-  data.forEach((item, index) => {
-    const row = sheet.addRow(mapRow(item, index));
+  params.data.forEach((item, index) => {
+    const row = sheet.addRow(params.mapRow(item, index));
 
-    Object.entries(columnStyles).forEach(([colIndex, style]) => {
+    Object.entries(params.columnStyles ?? {}).forEach(([colIndex, style]) => {
       const cell = row.getCell(Number(colIndex));
 
-      if (style.alignment) {
-        cell.alignment = style.alignment;
-      }
-
-      if (style.numFmt) {
-        cell.numFmt = style.numFmt;
-      }
+      if (style.alignment) cell.alignment = style.alignment;
+      if (style.numFmt) cell.numFmt = style.numFmt;
     });
   });
 
-  // Auto width
   sheet.columns.forEach((column) => {
     let maxLength = 10;
+
     column.eachCell?.({ includeEmpty: true }, (cell) => {
       const val = cell.value ? cell.value.toString() : "";
       maxLength = Math.max(maxLength, val.length);
     });
+
     column.width = maxLength + 2;
   });
 
-  // Export
   const buffer = await workbook.xlsx.writeBuffer();
 
-  saveAs(
-    new Blob([buffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    }),
-    fileName
-  );
+  return new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+};
+
+export const exportExcel = async <T,>(params: ExportExcelParams<T>) => {
+  const blob = await generateExcelBlob(params);
+  saveAs(blob, params.fileName);
 };

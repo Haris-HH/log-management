@@ -2,8 +2,8 @@
 import type { 
   AgencyChartDataGroup, 
   AgencyColumn,
-  TopUsersType,
-  Dropdown, 
+  Area,
+  Dropdown,
   AgencyUsage,
   LogUsage,
   PersonUsage,
@@ -21,21 +21,20 @@ import type {
   District,
   Subdistrict,
   AccessLog,
+  UsageLog,
   LprSearchLog,
   Title,
+  LprRegion,
+  DeviceStatus,
+  Project,
+  TopUsers,
+  DeviceCheckLog,
+  Device,
 } from "../types/common";
 
 export interface UsageChartResponse {
   data: AgencyChartDataGroup[];
   columns: AgencyColumn[];
-}
-
-export interface TopUsersResponse {
-  messages: string;
-  results: TopUsersType[];
-  status: string;
-  total_matches: number;
-  total: number;
 }
 
 export interface DropdownResponse {
@@ -82,6 +81,8 @@ export interface TitleResponse extends BasicResponse<Title[]> {}
 
 export interface AccessLogResponse extends BasicResponse<AccessLog[]> {}
 
+export interface UsageLogResponse extends BasicResponse<UsageLog[]> {}
+
 export interface LprSearchLogResponse extends BasicResponse<LprSearchLog[]> {}
 
 export interface UserResponse extends BasicResponse<User> {}
@@ -99,6 +100,20 @@ export interface ProvinceResponse extends BasicResponse<Province[]> {}
 export interface DistrictResponse extends BasicResponse<District[]> {}
 
 export interface SubdistrictResponse extends BasicResponse<Subdistrict[]> {}
+
+export interface AreaResponse extends BasicResponse<Area[]> {}
+
+export interface LprRegionResponse extends BasicResponse<LprRegion[]> {}
+
+export interface DeviceStatusResponse extends BasicResponse<DeviceStatus[]> {}
+
+export interface ProjectResponse extends BasicResponse<Project[]> {}
+
+export interface TopUsersResponse extends BasicResponse<TopUsers[]> {}
+
+export interface DeviceCheckLogResponse extends BasicResponse<DeviceCheckLog[]> {}
+
+export interface DeviceResponse extends BasicResponse<Device[]> {}
 
 export interface BasicResponse<T> {
   endpoint: string;

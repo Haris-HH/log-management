@@ -1,6 +1,10 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/th';
+import { useSelector } from 'react-redux';
+
+// Store
+import type { RootState } from "../store/store";
 
 // Material UI
 import Box from "@mui/material/Box";
@@ -10,6 +14,7 @@ import Button from "@mui/material/Button";
 import MainTitle from '../components/main-title/MainTitle';
 import AgencyBarChart from '../components/charts/AgencyBarChart';
 import DatePickerBuddhist from "../components/date-picker-buddhist/DatePickerBuddhist";
+import LoadingScreen from '../components/loading-screen/LoadingScreen';
 
 // Hooks
 import usePageTitle from '../hooks/usePageTitle';
@@ -18,7 +23,7 @@ import usePageTitle from '../hooks/usePageTitle';
 import type { UsageChartResponse } from "../types/response";
 
 // API
-import { getUsageExternalPoliceChart } from "../features/usage-chart/api/UsageChartApi";
+import { getUsagePoliceChart } from "../features/usage-chart/api/UsageChartApi";
 
 // i18n
 import { useTranslation } from 'react-i18next';
@@ -31,9 +36,10 @@ const ChartExternalPolice = () => {
 
   // State
   const [monthRange, setMonthRange] = useState<1 | 3>(1);
-  
+  const [isLoading, setIsLoading] = useState(false);
+
   // i18n
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Data
   const [data, setData] = useState<UsageChartResponse | null>(null);
@@ -42,24 +48,65 @@ const ChartExternalPolice = () => {
   const [formData, setFormData] = useState<FormData>({
     month_year: dayjs().toDate(),
   });
+
+  // Slice
+  const { org } = useSelector((state: RootState) => state.dropdown);
   
   usePageTitle(t("pages.chart-external-police"));
 
   useEffect(() => {
     if (!formData.month_year) return;
 
-    fetchData(dayjs(formData.month_year).format("YYYY-MM-DD"), monthRange);
+    fetchData();
   }, [formData.month_year, monthRange]);
 
-  const fetchData = useCallback(
-    async (monthYear: string, range: 1 | 3) => {
-      const res = await getUsageExternalPoliceChart(monthYear, range);
+  const chartColumns = useMemo(() => {
+    return org
+      .filter((item) => item.ou_code !== "00" && item.ou_code !== "05")
+      .map((item) => ({
+        key: item.org_code,
+        label:
+          i18n.language === "th"
+            ? item.org_abbr_th || item.org_name_th || item.org_code
+            : item.org_abbr_en || item.org_name_en || item.org_code,
+      }));
+  }, [org, i18n.language]);
+
+  const getFilters = useCallback((): Record<string, string> => {
+    const filters: Record<string, string> = {
+      event_type: "login", 
+      exclude_ou_code: "00,05",
+    };
+
+    if (formData.month_year) {
+      filters.start_month = dayjs(formData.month_year).format("YYYY-MM");
+    }
+
+    if (monthRange) {
+      filters.count_month = monthRange.toString();
+    }
+
+    return filters;
+  }, [formData.month_year, monthRange]);
+
+  const fetchData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+
+      const res = await getUsagePoliceChart(getFilters());
+
       setData(res);
-      setTimeout(() => {
-      }, 500)
-    },
-    []
-  );
+    } 
+    catch (error) {
+      setData({
+        columns: [],
+        data: [],
+      });
+    } 
+    finally {
+      setIsLoading(false);
+    }
+  }, [getFilters]);
 
   const handleStateChange = (value: 1 | 3) => {
     setMonthRange(value);
@@ -74,6 +121,7 @@ const ChartExternalPolice = () => {
 
   return (
     <section id='chart-external-police' className="flex flex-col h-full w-full p-2">
+      { isLoading && <LoadingScreen /> }
       {/* Main Title */}
       <MainTitle title={t("pages.chart-external-police")} />
       <div className='p-2 bg-(--main-bg-color)/80 flex-1 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-hidden'>
@@ -156,7 +204,7 @@ const ChartExternalPolice = () => {
             data && (
               <AgencyBarChart
                 data={data?.data ?? []}
-                columns={data?.columns ?? []}
+                columns={chartColumns}
                 selectedMonthYear={dayjs(formData.month_year).format("YYYY-MM-DD")}
               />
             )

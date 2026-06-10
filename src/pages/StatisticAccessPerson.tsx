@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import dayjs from 'dayjs';
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from 'react-redux';
 import { saveAs } from "file-saver";
 import JSZip from "jszip";
@@ -23,8 +23,8 @@ import MainTitle from '../components/main-title/MainTitle';
 import AutoComplete from "../components/auto-complete/AutoComplete";
 import DatePickerBuddhist from "../components/date-picker-buddhist/DatePickerBuddhist";
 import PaginationComponent from "../components/pagination/Pagination";
+import DetailsDialog from "../components/details-dialog/DetailsDialog";
 import LoadingScreen from '../components/loading-screen/LoadingScreen';
-import LocationUsage from "../components/location-usage/LocationUsage";
 import TextBox from "../components/text-box/TextBox";
 
 // Constants
@@ -32,13 +32,13 @@ import { ROWS_PER_PAGE_OPTIONS } from "../constants/dropdown";
 
 // PDF
 import {
-  downloadStatisticSearchLogPlatePdf,
-  generateStatisticSearchLogPlatePdfBlob,
-} from "../pdf/StatisticSearchLogPlatePdf";
+  downloadStatisticAccessPersonPdf,
+  generateStatisticAccessPersonPdfBlob,
+} from "../pdf/StatisticAccessPersonPdf";
 
 // Types
-import type { LprSearchLog } from "../types/common";
-import type { SearchLogPlatePdfData } from "../types/pdf";
+import type { AccessLog } from "../types/common";
+import type { PersonUsagePdfData } from "../types/pdf";
 
 // i18n
 import { useTranslation } from 'react-i18next';
@@ -47,6 +47,7 @@ import { useTranslation } from 'react-i18next';
 import ClearIcon from "../assets/icons/clear.png";
 import ExportExcelIcon from "../assets/icons/export-excel.png";
 import ExportPdfIcon from "../assets/icons/export-pdf.png";
+import InformationIcon from "../assets/icons/information.png";
 
 // Utils
 import { buildOptions } from "../utils/commonFunctions";
@@ -60,16 +61,13 @@ import usePageTitle from "../hooks/usePageTitle";
 import type { RootState } from "../store/store";
 
 // API
-import { searchLprSearchLogs } from "../features/usage-search-data/api/UsageSearchDataApi";
+import { searchAccessLogs } from "../features/access-data/api/AccessDataApi";
 import { getUserApi } from '../features/users/api/UsersApi';
 
 interface FormData {
   title_id: string;
   name: string;
   pid_or_water_mark: string;
-  plate_group: string;
-  plate_number: string;
-  province_id: string;
   agency_id: string;
   bh_id: string;
   bk_id: string;
@@ -78,31 +76,31 @@ interface FormData {
   end_date_time: Date | null;
 }
 
-const StatisticSearchLogPlate = () => {
+const StatisticAccessPerson = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   // i18n
   const { t, i18n } = useTranslation();
 
   // State
-  const [locationDialogOpen, setLocationDialogOpen] = useState(false);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTrigger, setSearchTrigger] = useState(0);
 
   // Data
-  const [rows, setRows] = useState<LprSearchLog[]>([]);
+  const [rows, setRows] = useState<AccessLog[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [totalUsage, setTotalUsage] = useState(0);
-  const [selectedData, setSelectedData] = useState<{latitude: number, longitude: number}[]>([]);
-
+  const [selectedData, setSelectedData] = useState<AccessLog | null>(null);
+  
   // Options
   const [agencyOptions, setAgencyOptions] = useState<{ label: string, value: string }[]>([]);
   const [bhOptions, setBhOptions] = useState<{ label: string, value: string }[]>([]);
   const [bkOptions, setBkOptions] = useState<{ label: string, value: string }[]>([]);
   const [orgOptions, setOrgOptions] = useState<{ label: string, value: string }[]>([]);
-  const [provinceOptions, setProvinceOptions] = useState<{ label: string, value: string }[]>([]);
   const [titleOptions, setTitleOptions] = useState<{ label: string, value: string }[]>([]);
-
+  
   // Constants
   const CHUNK_SIZE = 1000;
   const REQUEST_LIMIT = 1000;
@@ -114,9 +112,6 @@ const StatisticSearchLogPlate = () => {
         title_id: "0",
         name: "",
         pid_or_water_mark: "",
-        plate_group: "",
-        plate_number: "",
-        province_id: "0",
         agency_id: location.state.filters.agency_id,
         bh_id: location.state.filters.bh_id,
         bk_id: location.state.filters.bk_id,
@@ -130,9 +125,6 @@ const StatisticSearchLogPlate = () => {
       title_id: "0",
       name: "",
       pid_or_water_mark: "",
-      plate_group: "",
-      plate_number: "",
-      province_id: "0",
       agency_id: "0",
       bh_id: "0",
       bk_id: "0",
@@ -155,9 +147,9 @@ const StatisticSearchLogPlate = () => {
   );
 
   // Slice
-  const { agency, bh, bk, org, lprRegion, title } = useSelector((state: RootState) => state.dropdown);
+  const { agency, bh, bk, org, title } = useSelector((state: RootState) => state.dropdown);
 
-  usePageTitle(t("pages.statistic-search-log-plate"));
+  usePageTitle(t("pages.statistic-access-person"));
 
   useEffect(() => {
     const langKeyAgency = i18n.language === "th" ? "ou_abbr_th" : "ou_abbr_en";
@@ -200,21 +192,12 @@ const StatisticSearchLogPlate = () => {
     setTitleOptions(
       buildOptions(title, t("dropdown.all-title"), langKeyTitle, "id")
     );
-
-    setProvinceOptions(
-      buildOptions(
-        lprRegion, "", 
-        i18n.language === "th" ? "name_th" : "name_en", 
-        "region_code",
-        false)
-      );
   }, [
     title,
     agency,
     bh,
     bk,
     org,
-    lprRegion,
     formData.agency_id,
     formData.bh_id,
     t,
@@ -239,54 +222,55 @@ const StatisticSearchLogPlate = () => {
     bk,
     org,
     title,
-    lprRegion,
   ]);
 
-  const mapLprSearchLogRows = useCallback(
-    async (data: LprSearchLog[]): Promise<LprSearchLog[]> => {
+  const mapAccessLogRows = useCallback(
+    async (data: AccessLog[]): Promise<AccessLog[]> => {
       const rows = await Promise.all(
         data.map(async (item) => {
           const userRes = await getUserApi({
-          filter: `user_id=${item.user_id}`,
-        });
+            filter: `user_id=${item.user_id}`,
+          });
 
-        const user = userRes.data[0];
-        const agencyData = agency.find((a) => a.ou_code === item.ou_code);
-        const bhData = bh.find((b) => b.bh_code === item.bh_code);
-        const bkData = bk.find((k) => k.bk_code === item.bk_code);
-        const orgData = org.find((o) => o.org_code === item.org_code);
-        const titleData = title.find((t) => t.id === user?.title);
-        return {
-          ...item,
-          idcard: userRes.data[0]?.idcard ?? "-",
-          title:  titleData 
-            ? i18n.language === "th"
-              ? titleData.title_abbr_th
-              : titleData.title_abbr_en
-            : "",
-          firstname: userRes.data[0]?.firstname ?? "-",
-          lastname: userRes.data[0]?.lastname ?? "-",
-          ou_name: agencyData
-            ? i18n.language === "th"
-              ? agencyData.ou_abbr_th
-              : agencyData.ou_abbr_en
-            : "-",
-          bh_name: bhData
-            ? i18n.language === "th"
-              ? bhData.bh_name_th
-              : bhData.bh_name_en
-            : "-",
-          bk_name: bkData
-            ? i18n.language === "th"
-              ? bkData.bk_abbr_th
-              : bkData.bk_abbr_en
-            : "-",
-          org_name: orgData
-            ? i18n.language === "th"
-              ? orgData.org_abbr_th
-              : orgData.org_abbr_en
-            : "-",
-        };
+          const user = userRes.data[0];
+
+          const agencyData = agency.find((a) => a.ou_code === item.ou_code);
+          const bhData = bh.find((b) => b.bh_code === item.bh_code);
+          const bkData = bk.find((k) => k.bk_code === item.bk_code);
+          const orgData = org.find((o) => o.org_code === item.org_code);
+          const titleData = title.find((t) => t.id === user?.title);
+
+          return {
+            ...item,
+            idcard: user?.idcard ?? "-",
+            title:  titleData 
+              ? i18n.language === "th"
+                ? titleData.title_abbr_th
+                : titleData.title_abbr_en
+              : "",
+            firstname: user?.firstname ?? "-",
+            lastname: user?.lastname ?? "-",
+            ou_name: agencyData
+              ? i18n.language === "th"
+                ? agencyData.ou_abbr_th
+                : agencyData.ou_abbr_en
+              : "-",
+            bh_name: bhData
+              ? i18n.language === "th"
+                ? bhData.bh_abbr_th
+                : bhData.bh_abbr_en
+              : "-",
+            bk_name: bkData
+              ? i18n.language === "th"
+                ? bkData.bk_abbr_th
+                : bkData.bk_abbr_en
+              : "-",
+            org_name: orgData
+              ? i18n.language === "th"
+                ? orgData.org_abbr_th
+                : orgData.org_abbr_en
+              : "-",
+          };
         })
       );
 
@@ -300,15 +284,18 @@ const StatisticSearchLogPlate = () => {
       try {
         setIsLoading(true);
 
-        const res = await searchLprSearchLogs(
+        const res = await searchAccessLogs(
           {},
           {
+            groupBy: "user_id",
             limit: rowsPerPage.toString(),
             page: page.toString(),
+            orderBy: "user_id",
             ...getFilters(filterData),
           }
         );
-        const updatedRows = await mapLprSearchLogRows(res.data);
+
+        const updatedRows = await mapAccessLogRows(res.data);
 
         const totalUsage = res.data.reduce(
           (sum, item) => sum + (item.total ?? 0),
@@ -333,7 +320,7 @@ const StatisticSearchLogPlate = () => {
         setIsLoading(false);
       }
     }, 
-    [formData, page, title, agency, rowsPerPage, bh, bk, org, lprRegion, i18n.language, i18n.isInitialized]
+    [formData, page, title, agency, rowsPerPage, bh, bk, org, i18n.language]
   );
 
   const handleDropdownChange = (
@@ -343,10 +330,6 @@ const StatisticSearchLogPlate = () => {
   ) => {
     event.preventDefault();
     setFormData((prev) => ({ ...prev, [key]: value?.value ?? "0" }));
-  };
-
-  const handleTextChange = (key: keyof typeof formData, value: string) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleDateTimeChange = (
@@ -381,14 +364,15 @@ const StatisticSearchLogPlate = () => {
     });
   };
 
+  const handleTextChange = (key: keyof typeof formData, value: string) => {
+    setFormData((prev) => ({ ...prev, [key]: value }));
+  };
+
   const handleClear = () => {
     setFormData({
       title_id: "0",
       name: "",
       pid_or_water_mark: "",
-      plate_group: "",
-      plate_number: "",
-      province_id: "0",
       agency_id: "0",
       bh_id: "0",
       bk_id: "0",
@@ -423,7 +407,7 @@ const StatisticSearchLogPlate = () => {
         const totalFiles = Math.ceil(totalData / CHUNK_SIZE);
 
         for (let page = 1; page <= totalFiles; page++) {
-          const res = await searchLprSearchLogs(
+          const res = await searchAccessLogs(
             {},
             {
               limit: CHUNK_SIZE.toString(),
@@ -432,13 +416,13 @@ const StatisticSearchLogPlate = () => {
             }
           );
 
-          const formattedData = await mapLprSearchLogRows(res.data);
+          const formattedData = await mapAccessLogRows(res.data);
 
           const fileName = `${t(
-            "file-name.statistic-search-log-plate"
+            "file-name.statistic-access-person"
           )}_${startDate}_${endDate}_${page}.pdf`;
 
-          const blob = await generateStatisticSearchLogPlatePdfBlob(
+          const blob = await generateStatisticAccessPersonPdfBlob(
             buildPdfData(formattedData),
             t,
             i18n
@@ -453,7 +437,7 @@ const StatisticSearchLogPlate = () => {
 
         saveAs(
           zipBlob,
-          `PDF_${t("file-name.statistic-search-log-plate")}_${dayjs().format(
+          `PDF_${t("file-name.statistic-access-person")}_${dayjs().format(
             "YYYY-MM-DD"
           )}.zip`
         );
@@ -461,7 +445,7 @@ const StatisticSearchLogPlate = () => {
         return;
       }
 
-      const res = await searchLprSearchLogs(
+      const res = await searchAccessLogs(
         {},
         {
           limit: REQUEST_LIMIT.toString(),
@@ -470,13 +454,13 @@ const StatisticSearchLogPlate = () => {
         }
       );
 
-      const exportRows = await mapLprSearchLogRows(res.data);
+      const exportRows = await mapAccessLogRows(res.data);
 
       const pdfName = `${t(
-        "file-name.statistic-search-log-plate"
+        "file-name.statistic-access-person"
       )}_${startDate}_${endDate}.pdf`;
 
-      await downloadStatisticSearchLogPlatePdf(
+      await downloadStatisticAccessPersonPdf(
         buildPdfData(exportRows),
         pdfName,
         t,
@@ -495,7 +479,7 @@ const StatisticSearchLogPlate = () => {
     }
   };
 
-  const buildPdfData = (logPlate: LprSearchLog[]): SearchLogPlatePdfData => {
+  const buildPdfData = (personUsage: AccessLog[]): PersonUsagePdfData => {
     const selectedAgency = agency.find(
       (a) => a.ou_code === formData.agency_id
     );
@@ -550,17 +534,13 @@ const StatisticSearchLogPlate = () => {
       bk_name: bkName,
       org_id: formData.org_id,
       org_name: orgName,
-      plate_group: formData.plate_group || "",
-      plate_number: formData.plate_number || "",
-      province_id: formData.province_id,
-      province_name: provinceOptions.find(option => option.value === formData.province_id)?.label || "",
       start_date: dayjs(formData.start_date_time).format(
         i18n.language === "th" ? "DD/MM/BBBB" : "DD/MM/YYYY"
       ),
       end_date: dayjs(formData.end_date_time).format(
         i18n.language === "th" ? "DD/MM/BBBB" : "DD/MM/YYYY"
       ),
-      logPlate,
+      personUsage,
     };
   };
 
@@ -572,17 +552,12 @@ const StatisticSearchLogPlate = () => {
       const endDate = dayjs(formData.end_date_time).format(dateFormat);
 
       const baseFileName = `${t(
-        "file-name.statistic-search-log-plate"
+        "file-name.statistic-access-person"
       )}_${startDate}_${endDate}`;
 
       const headers = [
         t('table.header.no'),
-        t('table.header.first-name-last-name'),
-        t('table.header.pid-full'),
-        t('table.header.date'),
-        t('table.header.ip-address'),
-        t('table.header.coordinates'),
-        t('table.header.user-agent'),
+        t('table.header.count'),
         t('table.header.agency'),
         t('table.header.bh'),
         t('table.header.bk'),
@@ -591,15 +566,11 @@ const StatisticSearchLogPlate = () => {
 
       const mapRow = (data: any, index: number) => [
         index + 1,
-        data.idcard,
-        dayjs(data.log_timestamp).format(i18n.language === "th" ? "DD/MM/BBBB HH:mm:ss" : "DD/MM/YYYY HH:mm:ss"),
-        data.request_ip,
-        data.location_webui?.lat || data.location_webui?.lng ? "-" : `${data.location_webui?.lat || "-"}, ${data.location_webui?.lng || "-"}`,
-        data.user_agent,
-        data.ou_name,
-        data.bh_name,
-        data.bk_name,
-        data.org_name,
+        Number(data.total || 0).toLocaleString(),
+        data.ou_name || "-",
+        data.bh_name || "-",
+        data.bk_name || "-",
+        data.org_name || "-",
       ];
 
       const columnStyles = {
@@ -626,32 +597,30 @@ const StatisticSearchLogPlate = () => {
         const totalFiles = Math.ceil(totalData / CHUNK_SIZE);
 
         for (let pageIndex = 1; pageIndex <= totalFiles; pageIndex++) {
-          const res = await searchLprSearchLogs(
+          const res = await searchAccessLogs(
             {},
             {
+              groupBy: "user_id",
               limit: CHUNK_SIZE.toString(),
               page: pageIndex.toString(),
+              orderBy: "user_id",
               ...getFilters(formData),
             }
           );
 
-          const exportRows = await mapLprSearchLogRows(res.data);
+          const exportRows = await mapAccessLogRows(res.data);
 
           const blob = await generateExcelBlob({
-            sheetName: t("file-name.statistic-search-log-plate"),
+            sheetName: t("file-name.statistic-access-person"),
             headers,
             data: exportRows,
             mapRow: (data, index) => [
-              index + 1,
-              data.idcard,
-              dayjs(data.log_timestamp).format(i18n.language === "th" ? "DD/MM/BBBB HH:mm:ss" : "DD/MM/YYYY HH:mm:ss"),
-              data.request_ip,
-              data.location_webui?.lat || data.location_webui?.lng ? "-" : `${data.location_webui?.lat || "-"}, ${data.location_webui?.lng || "-"}`,
-              data.user_agent,
-              data.ou_name,
-              data.bh_name,
-              data.bk_name,
-              data.org_name,
+              (pageIndex - 1) * CHUNK_SIZE + index + 1,
+              Number(data.total || 0).toLocaleString(),
+              data.ou_name || "-",
+              data.bh_name || "-",
+              data.bk_name || "-",
+              data.org_name || "-",
             ],
             columnStyles,
           });
@@ -669,19 +638,21 @@ const StatisticSearchLogPlate = () => {
 
       setIsLoading(true);
 
-      const res = await searchLprSearchLogs(
+      const res = await searchAccessLogs(
         {},
         {
+          groupBy: "user_id",
           limit: REQUEST_LIMIT.toString(),
           page: "1",
+          orderBy: "user_id",
           ...getFilters(formData),
         }
       );
 
-      const exportRows = await mapLprSearchLogRows(res.data);
+      const exportRows = await mapAccessLogRows(res.data);
 
       await exportExcel({
-        sheetName: t("file-name.statistic-search-log-plate"),
+        sheetName: t("file-name.statistic-access-person"),
         fileName: `${baseFileName}.xlsx`,
         headers,
         data: exportRows,
@@ -714,16 +685,35 @@ const StatisticSearchLogPlate = () => {
     setRowsPerPage(limit);
   };
 
-  const showLocationDialog = (event: React.MouseEvent<HTMLTableCellElement>, data: LprSearchLog) => {
-    event.preventDefault();
-    if (!data.location_webui?.lat || !data.location_webui?.lng) return;
-    setSelectedData([{ latitude: data.location_webui.lat, longitude: data.location_webui.lng }, rows.filter((item) => item.location_webui?.lat !== data.location_webui?.lat && item.location_webui?.lng !== data.location_webui?.lng).map((item) => ({ latitude: item.location_webui?.lat, longitude: item.location_webui?.lng }))].flat());
-    setLocationDialogOpen(true);
+  const showDetailDialog = (data: AccessLog) => {
+    setSelectedData(data);
+    setDetailDialogOpen(true);
+  };
+
+  const handleDetailsDialogClose = () => {
+    setSelectedData(null);
+    setDetailDialogOpen(false);
   }
 
-  const handleLocationDialogClose = () => {
-    setSelectedData([]);
-    setLocationDialogOpen(false);
+  const navigateToLogUsage = async () => {
+    navigate("/statistic-usage-log", {
+      state: {
+        fromNavigate: true,
+        filters: {
+          pid: selectedData?.idcard ?? "",
+          name: selectedData?.firstname && selectedData?.lastname ? `${selectedData.firstname} ${selectedData.lastname}` : "",
+          prefix_id: selectedData?.title ?? "",
+          agency_id: selectedData?.ou_code ?? 0,
+          bh_id: selectedData?.bh_code ?? 0,
+          bk_id: selectedData?.bk_code ?? 0,
+          org_id: selectedData?.org_code ?? 0,
+          start_date: formData.start_date_time,
+          end_date: formData.end_date_time,
+        }
+      }
+    });
+    setSelectedData(null);
+    setDetailDialogOpen(false);
   }
 
   const getFilters = (data: FormData) => {
@@ -731,8 +721,6 @@ const StatisticSearchLogPlate = () => {
 
     const pid = data.pid_or_water_mark.trim();
     const name = data.name.trim();
-    const plate_group = data.plate_group.trim();
-    const plate_number = data.plate_number.trim();
 
     if (pid) {
       filters.push(`idcard=${encodeURIComponent(pid)}`);
@@ -740,18 +728,6 @@ const StatisticSearchLogPlate = () => {
 
     if (name) {
       filters.push(`fullname=${encodeURIComponent(name)}`);
-    }
-
-    if (plate_group) {
-      filters.push(`plate_prefix=${encodeURIComponent(plate_group)}`);
-    }
-
-    if (plate_number) {
-      filters.push(`plate_number=${encodeURIComponent(plate_number)}`);
-    }
-
-    if (data.province_id !== "0") {
-      filters.push(`region_code=${data.province_id}`);
     }
 
     if (data.title_id !== "0") {
@@ -797,237 +773,194 @@ const StatisticSearchLogPlate = () => {
   };
 
   return (
-    <section id='statistic-search-log-plate' className="flex flex-col h-full w-full p-2">
+    <section id='statistic-access-person' className="flex flex-col h-full w-full p-2">
       { isLoading && <LoadingScreen /> }
       {/* Main Title */}
-      <MainTitle title={t("pages.statistic-search-log-plate")} />
+      <MainTitle title={t("pages.statistic-access-person")} />
       <div className='p-4 bg-(--main-bg-color)/80 flex flex-1 flex-col gap-4 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-y-auto'>
         {/* Search Filters */}
         <Box 
-          className="flex flex-col border border-(--primary-color) rounded-[10px] p-4 gap-2 bg-(--secondary-color)"
+          className="grid grid-cols-[repeat(9,minmax(0,1fr))_180px] border border-(--primary-color) rounded-[10px] p-4 gap-2 bg-(--secondary-color)"
           sx={{
             boxShadow: "0px 2px 8px rgba(var(--secondary-color-rgb),0.1)"
           }}
         >
-          <Box className="grid grid-cols-6 gap-2">
-            <TextBox
-              sx={{ marginTop: "5px", fontSize: "15px" }}
-              id="plate-group"
-              label={t('component.plate-group')}
-              placeholder={t('placeholder.plate-group')}
-              labelFontSize="14px"
-              value={formData.plate_group}
-              onChange={(event) =>
-                handleTextChange("plate_group", event.target.value)
-              }
-              onKeyPress={handleSearchOnEnter}
-            />
+          <TextBox
+            sx={{ marginTop: "5px", fontSize: "15px" }}
+            id="pid-and-water-mark"
+            label={t('component.pid-and-water-mark')}
+            placeholder={t('placeholder.pid-and-water-mark')}
+            labelFontSize="14px"
+            value={formData.pid_or_water_mark}
+            onChange={(event) =>
+              handleTextChange("pid_or_water_mark", event.target.value)
+            }
+            onKeyPress={handleSearchOnEnter}
+          />
 
-            <TextBox
-              sx={{ marginTop: "5px", fontSize: "15px" }}
-              id="plate-number"
-              label={t('component.plate-number')}
-              placeholder={t('placeholder.plate-number')}
-              labelFontSize="14px"
-              value={formData.plate_number}
-              onChange={(event) =>
-                handleTextChange("plate_number", event.target.value)
-              }
-              onKeyPress={handleSearchOnEnter}
-            />
-
-            <AutoComplete 
-              id="province-select"
-              sx={{ marginTop: "5px" }}
-              value={formData.province_id}
-              onChange={(event, value) => handleDropdownChange(event, "province_id", value)}
-              options={provinceOptions}
-              label={t('component.plate-province')}
-              placeholder={t('placeholder.plate-province')}
-              labelFontSize="14px"
-            />
-
-            <TextBox
-              sx={{ marginTop: "5px", fontSize: "15px" }}
-              id="pid-or-watermark"
-              label={t('component.pid-and-water-mark')}
-              placeholder={t('placeholder.pid-and-water-mark')}
-              labelFontSize="14px"
-              value={formData.pid_or_water_mark}
-              onChange={(event) =>
-                handleTextChange("pid_or_water_mark", event.target.value)
-              }
-              onKeyPress={handleSearchOnEnter}
-            />
-
-            <div className='flex col-span-2 gap-2'>
-              <div className='w-[50%]'>
-                <AutoComplete 
-                  id="title-select"
-                  sx={{ marginTop: "5px" }}
-                  value={formData.title_id}
-                  onChange={(event, value) => handleDropdownChange(event, "title_id", value)}
-                  options={titleOptions}
-                  label={t('component.title')}
-                  placeholder={t('placeholder.title')}
-                  labelFontSize="14px"
-                />
-              </div>
-
-              <TextBox
-                sx={{ marginTop: "5px", fontSize: "15px" }}
-                id="full-name"
-                label={t('component.first-name-last-name')}
-                placeholder={t('placeholder.first-name-last-name')}
+          <div className='flex col-span-2 gap-2'>
+            <div className='w-[60%]'>
+              <AutoComplete 
+                id="title-select"
+                sx={{ marginTop: "5px" }}
+                value={formData.title_id}
+                onChange={(event, value) => handleDropdownChange(event, "title_id", value)}
+                options={titleOptions}
+                label={t('component.title')}
+                placeholder={t('placeholder.title')}
                 labelFontSize="14px"
-                value={formData.name}
-                onChange={(event) =>
-                  handleTextChange("name", event.target.value)
-                }
-                onKeyPress={handleSearchOnEnter}
               />
             </div>
-          </Box>
 
-          <Box className="grid grid-cols-[repeat(6,1fr)_180px] gap-2">
-            <AutoComplete 
-              id="agency-select"
-              sx={{ marginTop: "5px"}}
-              value={formData.agency_id}
-              onChange={(event, value) => handleDropdownChange(event, "agency_id", value)}
-              options={agencyOptions}
-              label={t('component.agency')}
-              placeholder={t('placeholder.agency')}
+            <TextBox
+              sx={{ marginTop: "5px", fontSize: "15px" }}
+              id="full-name"
+              label={t('component.first-name-last-name')}
+              placeholder={t('placeholder.first-name-last-name')}
               labelFontSize="14px"
+              value={formData.name}
+              onChange={(event) =>
+                handleTextChange("name", event.target.value)
+              }
+              onKeyPress={handleSearchOnEnter}
             />
+          </div>
 
-            <AutoComplete 
-              id="bh-select"
-              sx={{ marginTop: "5px" }}
-              value={formData.bh_id}
-              onChange={(event, value) => handleDropdownChange(event, "bh_id", value)}
-              options={bhOptions}
-              label={t('component.bh')}
-              placeholder={t('placeholder.bh')}
-              labelFontSize="14px"
-              disabled={formData.agency_id === "0"}
-            />
+          <DatePickerBuddhist
+            value={formData.start_date_time}
+            sx={{
+              marginTop: "5px",
+              borderRadius: "5px",
+              "& .MuiTextField-root": {
+                height: "fit-content",
+              },
+              "& .MuiOutlinedInput-input": {
+                fontSize: 14,
+              },
+            }}
+            className="w-full"
+            id="start-date-time"
+            onChange={(value) =>
+              handleDateTimeChange("start_date_time", value)
+            }
+            label={t('component.start-date')}
+            labelFontSize="14px"
+          />
 
-            <AutoComplete 
-              id="bk-select"
-              sx={{ marginTop: "5px" }}
-              value={formData.bk_id}
-              onChange={(event, value) => handleDropdownChange(event, "bk_id", value)}
-              options={bkOptions}
-              label={t('component.bk')}
-              placeholder={t('placeholder.bk')}
-              labelFontSize="14px"
-              disabled={formData.agency_id === "0" || formData.bh_id === "0"}
-            />
+          <DatePickerBuddhist
+            value={formData.end_date_time}
+            sx={{
+              marginTop: "5px",
+              borderRadius: "5px",
+              "& .MuiTextField-root": {
+                height: "fit-content",
+              },
+              "& .MuiOutlinedInput-input": {
+                fontSize: 14,
+              },
+            }}
+            className="w-full"
+            id="end-date-time"
+            onChange={(value) =>
+              handleDateTimeChange("end_date_time", value)
+            }
+            label={t('component.end-date')}
+            labelFontSize="14px"
+          />
 
-            <AutoComplete 
-              id="org-select"
-              sx={{ marginTop: "5px" }}
-              value={formData.org_id}
-              onChange={(event, value) => handleDropdownChange(event, "org_id", value)}
-              options={orgOptions}
-              label={t('component.org')}
-              placeholder={t('placeholder.org')}
-              labelFontSize="14px"
-              disabled={formData.agency_id === "0" || formData.bh_id === "0" || formData.bk_id === "0"}
-            />
+          <AutoComplete 
+            id="agency-select"
+            sx={{ marginTop: "5px"}}
+            value={formData.agency_id}
+            onChange={(event, value) => handleDropdownChange(event, "agency_id", value)}
+            options={agencyOptions}
+            label={t('component.agency')}
+            placeholder={t('placeholder.agency')}
+            labelFontSize="14px"
+          />
 
-            <DatePickerBuddhist
-              value={formData.start_date_time}
-              sx={{
-                marginTop: "5px",
-                borderRadius: "5px",
-                backgroundColor: "white",
-                "& .MuiTextField-root": {
-                  height: "fit-content",
+          <AutoComplete 
+            id="bh-select"
+            sx={{ marginTop: "5px" }}
+            value={formData.bh_id}
+            onChange={(event, value) => handleDropdownChange(event, "bh_id", value)}
+            options={bhOptions}
+            label={t('component.bh')}
+            placeholder={t('placeholder.bh')}
+            labelFontSize="14px"
+            disabled={formData.agency_id === "0"}
+          />
+
+          <AutoComplete 
+            id="bk-select"
+            sx={{ marginTop: "5px" }}
+            value={formData.bk_id}
+            onChange={(event, value) => handleDropdownChange(event, "bk_id", value)}
+            options={bkOptions}
+            label={t('component.bk')}
+            placeholder={t('placeholder.bk')}
+            labelFontSize="14px"
+            disabled={formData.agency_id === "0" || formData.bh_id === "0"}
+          />
+
+          <AutoComplete 
+            id="org-select"
+            sx={{ marginTop: "5px" }}
+            value={formData.org_id}
+            onChange={(event, value) => handleDropdownChange(event, "org_id", value)}
+            options={orgOptions}
+            label={t('component.org')}
+            placeholder={t('placeholder.org')}
+            labelFontSize="14px"
+            disabled={formData.agency_id === "0" || formData.bh_id === "0" || formData.bk_id === "0"}
+          />
+
+          <Box className="flex gap-2 items-end">
+            <Button 
+              variant="contained" 
+              startIcon={<img src={ClearIcon} alt="Clear" className="h-6 w-6" />} 
+              sx={{ 
+                backgroundColor: "var(--primary-color)", 
+                fontSize: "14px", 
+                width: t('button.clear-width'),
+                height: "40px",
+                ":hover": {
+                  backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
                 },
-                "& .MuiOutlinedInput-input": {
-                  fontSize: 14,
+                textTransform: "capitalize",
+              }}
+              onClick={handleClear}
+            >
+              {t('button.clear')}
+            </Button>
+            <IconButton 
+              sx={{ 
+                border: "1px solid var(--primary-color)", 
+                width: "40px", 
+                height: "40px", 
+                borderRadius: "5px",
+                "&:hover": {
+                  backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
                 },
               }}
-              className="w-full"
-              id="start-date-time"
-              onChange={(value) =>
-                handleDateTimeChange("start_date_time", value)
-              }
-              label={t('component.start-date')}
-              labelFontSize="14px"
-            />
-
-            <DatePickerBuddhist
-              value={formData.end_date_time}
-              sx={{
-                marginTop: "5px",
+              onClick={handleExportPdf}
+            >
+              <img src={ExportPdfIcon} alt="Export PDF" className="h-6 w-6" />
+            </IconButton>
+            <IconButton 
+              sx={{ 
+                border: "1px solid var(--primary-color)", 
+                width: "40px", 
+                height: "40px", 
                 borderRadius: "5px",
-                backgroundColor: "white",
-                "& .MuiTextField-root": {
-                  height: "fit-content",
-                },
-                "& .MuiOutlinedInput-input": {
-                  fontSize: 14,
+                "&:hover": {
+                  backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
                 },
               }}
-              className="w-full"
-              id="end-date-time"
-              onChange={(value) =>
-                handleDateTimeChange("end_date_time", value)
-              }
-              label={t('component.end-date')}
-              labelFontSize="14px"
-            />
-
-            <Box className="flex gap-2 items-end">
-              <Button 
-                variant="contained" 
-                startIcon={<img src={ClearIcon} alt="Clear" className="h-6 w-6" />} 
-                sx={{ 
-                  backgroundColor: "var(--primary-color)", 
-                  fontSize: "14px", 
-                  width: t('button.clear-width'),
-                  height: "40px",
-                  ":hover": {
-                    backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
-                  },
-                  textTransform: "capitalize",
-                }}
-                onClick={handleClear}
-              >
-                {t('button.clear')}
-              </Button>
-              <IconButton 
-                sx={{ 
-                  border: "1px solid var(--primary-color)", 
-                  width: "40px", 
-                  height: "40px", 
-                  borderRadius: "5px",
-                  "&:hover": {
-                    backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
-                  },
-                }}
-                onClick={handleExportPdf}
-              >
-                <img src={ExportPdfIcon} alt="Export PDF" className="h-6 w-6" />
-              </IconButton>
-              <IconButton 
-                sx={{ 
-                  border: "1px solid var(--primary-color)", 
-                  width: "40px", 
-                  height: "40px", 
-                  borderRadius: "5px",
-                  "&:hover": {
-                    backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
-                  },
-                }}
-                onClick={handleExportExcel}
-              >
-                <img src={ExportExcelIcon} alt="Export CSV" className="h-6 w-6" />
-              </IconButton>
-            </Box>
+              onClick={handleExportExcel}
+            >
+              <img src={ExportExcelIcon} alt="Export CSV" className="h-6 w-6" />
+            </IconButton>
           </Box>
         </Box>
 
@@ -1045,9 +978,6 @@ const StatisticSearchLogPlate = () => {
         <Box sx={{ width: '100%' }}>
           <TableContainer
             component={Paper}
-            sx={{
-              backgroundColor: "var(--secondary-color)",
-            }}
           >
             <Table
               sx={{ minWidth: 650, backgroundColor: "var(--secondary-color)", border: "1px solid var(--primary-color)"}}
@@ -1070,67 +1000,43 @@ const StatisticSearchLogPlate = () => {
                   </TableCell>
                   <TableCell
                     align="center"
-                    sx={{ color: "#FFFFFF", minWidth: "250px" }}
+                    sx={{ color: "var(--tertiary-color)", width: "10%" }}
+                  >
+                    {t('table.header.count')}
+                  </TableCell>
+                  <TableCell
+                    align="center"
+                    sx={{ color: "#FFFFFF", width: "10%" }}
                   >
                     {t('table.header.first-name-last-name')}
                   </TableCell>
                   <TableCell
                     align="center"
-                    sx={{ color: "#FFFFFF", minWidth: "250px" }}
+                    sx={{ color: "#FFFFFF", width: "10%" }}
                   >
                     {t('table.header.pid-full')}
                   </TableCell>
                   <TableCell
                     align="center"
-                    sx={{ color: "#FFFFFF", minWidth: "200px" }}
-                  >
-                    {t('table.header.date')}
-                  </TableCell>
-                  <TableCell
-                    align="center"
-                    sx={{ color: "#FFFFFF", minWidth: "600px" }}
-                  >
-                    {t('table.header.detail')}
-                  </TableCell>
-                  <TableCell
-                    align="center"
-                    sx={{ color: "#FFFFFF", minWidth: "200px" }}
-                  >
-                    {t('table.header.ip-address')}
-                  </TableCell>
-                  <TableCell
-                    align="center"
-                    sx={{ color: "#FFFFFF", minWidth: "200px" }}
-                  >
-                    {t('table.header.coordinates')}
-                  </TableCell>
-                  <TableCell
-                    align="center"
-                    sx={{ color: "#FFFFFF", minWidth: "500px" }}
-                  >
-                    {t('table.header.user-agent')}
-                  </TableCell>
-                  <TableCell
-                    align="center"
-                    sx={{ color: "var(--tertiary-color)", minWidth: "120px" }}
+                    sx={{ color: "var(--tertiary-color)", width: "10%" }}
                   >
                     {t('table.header.agency')}
                   </TableCell>
                   <TableCell
                     align="center"
-                    sx={{ color: "var(--tertiary-color)", minWidth: "120px" }}
+                    sx={{ color: "var(--tertiary-color)", width: "10%" }}
                   >
                     {t('table.header.bh')}
                   </TableCell>
                   <TableCell
                     align="center"
-                    sx={{ color: "var(--tertiary-color)", minWidth: "120px" }}
+                    sx={{ color: "var(--tertiary-color)", width: "10%" }}
                   >
                     {t('table.header.bk')}
                   </TableCell>
                   <TableCell
                     align="center"
-                    sx={{ color: "var(--tertiary-color)", minWidth: "120px" }}
+                    sx={{ color: "var(--tertiary-color)", width: "10%" }}
                   >
                     {t('table.header.org')}
                   </TableCell>
@@ -1140,10 +1046,13 @@ const StatisticSearchLogPlate = () => {
                 {rows.map((data, index) => (
                   <TableRow
                     key={index}
+                    onClick={() => {
+                      showDetailDialog(data);
+                    }}
                   >
                     <TableCell
                       sx={{
-                        backgroundColor: "var(--secondary-color)",
+                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--secondary-color)",
                         color: "var(--tertiary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                         textAlign: "center",
@@ -1153,91 +1062,35 @@ const StatisticSearchLogPlate = () => {
                     </TableCell>
                     <TableCell
                       sx={{
-                        backgroundColor: "var(--secondary-color)",
-                        color: "var(--tertiary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
-                        py: 1,
-                        px: 1,
-                      }}
-                    >
-                      {`${data.title || ""}${data.firstname || ""} ${data.lastname || ""}`}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        backgroundColor: "var(--secondary-color)",
+                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--secondary-color)",
                         color: "var(--tertiary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                         textAlign: "center",
-                        py: 1,
-                        px: 1,
+                      }}
+                    >
+                      {(data.total || 0).toLocaleString()}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--secondary-color)",
+                        color: "var(--tertiary-color)",
+                        borderBottom: "1px solid var(--primary-color)",
+                      }}
+                    >
+                      {`${data.title || ""}${data.firstname} ${data.lastname}`}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--secondary-color)",
+                        color: "var(--tertiary-color)",
+                        borderBottom: "1px solid var(--primary-color)",
                       }}
                     >
                       {data.idcard}
                     </TableCell>
                     <TableCell
                       sx={{
-                        backgroundColor: "var(--secondary-color)",
-                        color: "var(--tertiary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
-                        textAlign: "center",
-                        py: 1,
-                        px: 1,
-                      }}
-                    >
-                      {dayjs(data.log_timestamp).format("DD/MM/BBBB HH:mm:ss")}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        backgroundColor: "var(--secondary-color)",
-                        color: "var(--tertiary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
-                        textAlign: "center",
-                        py: 1,
-                        px: 1,
-                      }}
-                    >
-                      {"-"}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        backgroundColor: "var(--secondary-color)",
-                        color: "var(--tertiary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
-                        textAlign: "center",
-                        py: 1,
-                        px: 1,
-                      }}
-                    >
-                      {data.request_ip}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        backgroundColor: "var(--secondary-color)",
-                        color: data.location_webui?.lat && data.location_webui?.lng ? "var(--hyper-text-color)" : "var(--tertiary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
-                        py: 1,
-                        px: 1,
-                        textDecoration: "underline",
-                        cursor: data.location_webui?.lat && data.location_webui?.lng ? "pointer" : "default",
-                      }}
-                      onClick={(event) => showLocationDialog(event, data)}
-                    >
-                      <a>{`${data.location_webui?.lat}, ${data.location_webui?.lng}`}</a>
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        backgroundColor: "var(--secondary-color)",
-                        color: "var(--tertiary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
-                        py: 1,
-                        px: 1,
-                      }}
-                    >
-                      {data.user_agent}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        backgroundColor: "var(--secondary-color)",
+                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--secondary-color)",
                         color: "var(--tertiary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                       }}
@@ -1246,7 +1099,7 @@ const StatisticSearchLogPlate = () => {
                     </TableCell>
                     <TableCell
                       sx={{
-                        backgroundColor: "var(--secondary-color)",
+                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--secondary-color)",
                         color: "var(--tertiary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                       }}
@@ -1255,7 +1108,7 @@ const StatisticSearchLogPlate = () => {
                     </TableCell>
                     <TableCell
                       sx={{
-                        backgroundColor: "var(--secondary-color)",
+                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--secondary-color)",
                         color: "var(--tertiary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                       }}
@@ -1264,7 +1117,7 @@ const StatisticSearchLogPlate = () => {
                     </TableCell>
                     <TableCell
                       sx={{
-                        backgroundColor: "var(--secondary-color)",
+                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--secondary-color)",
                         color: "var(--tertiary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                       }}
@@ -1277,15 +1130,57 @@ const StatisticSearchLogPlate = () => {
             </Table>
           </TableContainer>
 
-          {/* Location Usage Dialog */}
+          {/* Detail Dialog */}
           {
-            locationDialogOpen && selectedData && (
-              <LocationUsage
-                open={locationDialogOpen}
-                handleClose={handleLocationDialogClose}
-                dialogTitle={t('modal.usage-coordinates-search-plate')}
-                data={selectedData}
-              />
+            detailDialogOpen && (
+              <DetailsDialog
+                open={detailDialogOpen}
+                handleClose={handleDetailsDialogClose}
+                dialogTitle={t('pages.statistic-access-person')}
+              >
+                <Box className="flex flex-col gap-3 items-center px-4 pt-4">
+                  <img src={InformationIcon} alt="Information" className="h-15 w-15" />
+                  <Box className="w-full text-(--primary-color) grid grid-cols-[110px_10px_1fr]">
+                    <p>{`${t('text.count')} (${t('text.time')})`}</p>
+                    <p>:</p>
+                    <p>{(selectedData?.total || 0).toLocaleString()}</p>
+
+                    <p>{t('text.first-name-last-name')}</p>
+                    <p>:</p>
+                    <p>{`${selectedData?.title || ""}${selectedData?.firstname} ${selectedData?.lastname}`}</p>
+
+                    <p>{t('text.agency')}</p>
+                    <p>:</p>
+                    <p>{selectedData?.ou_name}</p>
+
+                    <p>{t('text.bh')}</p>
+                    <p>:</p>
+                    <p>{selectedData?.bh_name}</p>
+
+                    <p>{t('text.bk')}</p>
+                    <p>:</p>
+                    <p>{selectedData?.bk_name}</p>
+
+                    <p>{t('text.org')}</p>
+                    <p>:</p>
+                    <p>{selectedData?.org_name}</p>
+                  </Box>
+                  <Button
+                    variant="contained"
+                    sx={{ 
+                      backgroundColor: "var(--primary-color)", 
+                      fontSize: "13px", 
+                      width: "120px", 
+                      py: 0.35, 
+                      borderRadius: "5px",
+                      mt: 1,
+                    }}
+                    onClick={navigateToLogUsage}
+                  >
+                    {t('button.detail')}
+                  </Button>
+                </Box>
+              </DetailsDialog>
             )
           }
         </Box>
@@ -1294,4 +1189,4 @@ const StatisticSearchLogPlate = () => {
   )
 }
 
-export default StatisticSearchLogPlate;
+export default StatisticAccessPerson;

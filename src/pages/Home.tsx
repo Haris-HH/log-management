@@ -15,7 +15,7 @@ const Home = () => {
 
   return (
     <section id="home" className="h-full w-full">
-      <div className="grid h-full grid-cols-2 [@media(max-height:780px)]:grid-cols-1 gap-4 p-4">
+      <div className="grid h-full grid-cols-3 [@media(max-height:780px)]:grid-cols-1 gap-4 p-4">
         {dockItems.filter((item) => item.subMenu).map((item, index) => {
           const isHovered = hoveredIndex === index;
           const pointer = mousePosition[index] || { x: 50, y: 50 };

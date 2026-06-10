@@ -1,6 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/th';
+import { useSelector } from 'react-redux';
+
+// Store
+import type { RootState } from "../store/store";
 
 // Material UI
 import Box from "@mui/material/Box";
@@ -23,15 +27,17 @@ import MainTitle from '../components/main-title/MainTitle';
 import DatePickerBuddhist from "../components/date-picker-buddhist/DatePickerBuddhist";
 import TopUsersDisplaySetting from '../components/top-users-display-setting/TopUsersDisplaySetting';
 import PaginationBelowTableComponent from "../components/pagination/PaginationBelowTable";
+import LoadingScreen from '../components/loading-screen/LoadingScreen';
 
 // Hooks
 import usePageTitle from '../hooks/usePageTitle';
 
 // Types
-import type { TopUsersType } from "../types/common";
+import type { TopUsersResponse } from "../types/response";
 
 // API
 import { getTopUsersChart } from "../features/usage-chart/api/UsageChartApi";
+import { getUserApi } from "../features/users/api/UsersApi";
 
 // i18n
 import { useTranslation } from 'react-i18next';
@@ -55,7 +61,7 @@ const ChartTopUsers = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   // Data
-  const [topUsersData, setTopUsersData] = useState<TopUsersType[]>([]);
+  const [topUsersData, setTopUsersData] = useState<TopUsersResponse | null>(null);
   const [topInternalValue, setTopInternalValue] = useState<number>(5000);
   const [topExternalValue, setTopExternalValue] = useState<number>(3000);
 
@@ -73,23 +79,94 @@ const ChartTopUsers = () => {
     month_year: dayjs().toDate(),
   });
 
+  // Slice
+  const { title, agency } = useSelector((state: RootState) => state.dropdown);
+
   useEffect(() => {
     if (!formData.month_year) return;
 
-    fetchData(dayjs(formData.month_year).format("YYYY-MM-DD"), policeState);
-  }, [formData.month_year, policeState]);
+    fetchData();
+  }, [
+    formData.month_year, 
+    policeState,
+    topInternalValue,
+    topExternalValue,
+    page,
+    rowsPerPage,
+  ]);
 
-  const fetchData = useCallback(
-    async (monthYear: string, policeState: "internal" | "external") => {
+  const getFilters = useCallback((): Record<string, string> => {
+    const filters: Record<string, string> = {
+      start_month: dayjs(formData.month_year).format("YYYY-MM"),
+      ou_code: policeState === "internal" ? "00" : "05",
+      event_type: "login",
+      count_month: "3",
+      min_count: policeState === "internal"
+        ? topInternalValue.toString()
+        : topExternalValue.toString(),
+      page: page.toString(),
+      limit: rowsPerPage.toString(),
+    };
+
+    return filters;
+  }, [
+    formData.month_year, 
+    policeState,
+    topInternalValue,
+    topExternalValue,
+    page,
+    rowsPerPage,
+  ]);
+
+  const fetchData = useCallback(async () => {
+    try {
       setIsLoading(true);
-      const res = await getTopUsersChart(monthYear, policeState);
-      setTopUsersData(res.results);
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 500)
-    },
-    []
-  );
+
+      const res = await getTopUsersChart(getFilters());
+
+      const updatedData = await Promise.all(
+        (res.data ?? []).map(async (user) => {
+          const userInfo = await getUserApi({ user_id: user.user_id });
+
+          const titleName = title.find(
+            (titleItem) => titleItem.id === userInfo?.data?.title_id
+          );
+
+          const agencyName = agency.find(
+            (agencyItem) => agencyItem.ou_code === userInfo?.data?.ou_code
+          );
+
+          return {
+            ...user,
+            title_id: userInfo?.data?.title_id,
+            title_name:
+              i18n.language === "th"
+                ? titleName?.title_abbr_th ?? ""
+                : titleName?.title_abbr_en ?? "",
+            firstname: userInfo?.data?.firstname ?? "",
+            lastname: userInfo?.data?.lastname ?? "",
+            idcard: userInfo?.data?.idcard ?? "-",
+            phone: userInfo?.data?.phone ?? "-",
+            ou_name:
+              i18n.language === "th"
+                ? agencyName?.ou_abbr_th ?? "-"
+                : agencyName?.ou_abbr_en ?? "-",
+          };
+        })
+      );
+
+      setTopUsersData({
+        ...res,
+        data: updatedData,
+      });
+    } 
+    catch (error) {
+      setTopUsersData(null);
+    } 
+    finally {
+      setIsLoading(false);
+    }
+  }, [getFilters, title, agency, i18n.language]);
 
   const handleStateChange = (value: "internal" | "external") => {
     setPoliceState(value);
@@ -144,6 +221,7 @@ const ChartTopUsers = () => {
 
   return (
     <section id='chart-top-users' className="flex flex-col h-full w-full p-2">
+      { isLoading && <LoadingScreen /> }
       {/* Main Title */}
       <MainTitle title={t("pages.chart-top-users")} />
       <div className='p-2 bg-(--main-bg-color)/80 flex-1 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-hidden'>
@@ -294,28 +372,34 @@ const ChartTopUsers = () => {
                       {t("table.header.agency")}
                     </TableCell>
 
-                    {topUsersData[0]?.usageData
-                    .sort((a, b) =>
-                      dayjs(a.usageMonthYear).valueOf() -
-                      dayjs(b.usageMonthYear).valueOf()
-                    )
-                    .map((usage, index) => (
-                      <TableCell
-                        key={`header-${index}`}
-                        align="center"
-                        sx={{ width: "8%", fontWeight: 700 }}
-                      >
-                        {dayjs(usage.usageMonthYear)
-                          .locale("th")
-                          .format(i18n.language === "th" ? "MMMM BBBB" : "MMMM YYYY")}
-                      </TableCell>
-                    ))}
+                    {topUsersData?.data?.[0] &&
+                      Object.keys(topUsersData.data[0].months)
+                        .sort(
+                          (a, b) =>
+                            dayjs(a).valueOf() - dayjs(b).valueOf()
+                        )
+                        .map((month) => (
+                          <TableCell
+                            key={month}
+                            align="center"
+                            sx={{ width: "8%", fontWeight: 700 }}
+                          >
+                            {dayjs(month)
+                              .locale(i18n.language)
+                              .format(
+                                i18n.language === "th"
+                                  ? "MMMM BBBB"
+                                  : "MMMM YYYY"
+                              )}
+                          </TableCell>
+                        ))
+                    }
                   </TableRow>
                 </TableHead>
 
                 {/* ================= BODY ================= */}
                 <TableBody>
-                  {topUsersData.map((item, index) => {
+                  {topUsersData?.data?.map((item, index) => {
                     
                     return (
                       <TableRow
@@ -329,15 +413,15 @@ const ChartTopUsers = () => {
                         }}
                       >
                         <TableCell align="center">
-                          {index + 1}
+                          {item.rank}
                         </TableCell>
 
                         <TableCell align="center">
-                          {item.nation_number}
+                          {item.user_id}
                         </TableCell>
 
                         <TableCell align="center">
-                          {`${item.prename_id}${item.fullname}`}
+                          {`${item.title ? item.title + " " : ""}${item.firstname} ${item.lastname}`}
                         </TableCell>
 
                         <TableCell align="center">
@@ -345,27 +429,36 @@ const ChartTopUsers = () => {
                         </TableCell>
 
                         <TableCell align="center">
-                          {item.ad_ou}
+                          {item.ou_name}
                         </TableCell>
 
-                        {item.usageData
-                        .sort((a, b) =>
-                          dayjs(a.usageMonthYear).valueOf() -
-                          dayjs(b.usageMonthYear).valueOf()
-                        )
-                        .map((usage, usageIndex) => (
-                          <TableCell
-                            key={`row-${index}-${usageIndex}`}
-                            sx={{
-                              backgroundColor: dayjs(formData.month_year).format("YYYY-MM") === usage.usageMonthYear ? "rgba(var(--primary-color-rgb), 0.5)" : "rgba(var(--primary-color-rgb), 0.2)",
-                              fontWeight: dayjs(formData.month_year).format("YYYY-MM") === usage.usageMonthYear ? "bold" : "normal",
-                              color: dayjs(formData.month_year).format("YYYY-MM") === usage.usageMonthYear ? "var(--tertiary-color) !important" : "var(--primary-color)",
-                            }}
-                            align="center"
-                          >
-                            {usage.usageCount?.toLocaleString()}
-                          </TableCell>
-                        ))}
+                        {Object.entries(item.months)
+                          .sort(
+                            ([a], [b]) =>
+                              dayjs(a).valueOf() - dayjs(b).valueOf()
+                          )
+                          .map(([month, count]) => {
+                            const isCurrentMonth =
+                              dayjs(formData.month_year).format("YYYY-MM") === month;
+
+                            return (
+                              <TableCell
+                                key={`${item.user_id}-${month}`}
+                                sx={{
+                                  backgroundColor: isCurrentMonth
+                                    ? "rgba(var(--primary-color-rgb), 0.5)"
+                                    : "rgba(var(--primary-color-rgb), 0.2)",
+                                  fontWeight: isCurrentMonth ? "bold" : "normal",
+                                  color: isCurrentMonth
+                                    ? "var(--tertiary-color) !important"
+                                    : "var(--primary-color)",
+                                }}
+                                align="center"
+                              >
+                                {count.toLocaleString()}
+                              </TableCell>
+                            );
+                          })}
                       </TableRow>
                     );
                   })}
@@ -375,7 +468,7 @@ const ChartTopUsers = () => {
           </Box>
         </Box>
 
-        <Box className={`${topUsersData.length > 0 ? "flex" : "hidden"} items-center justify-between py-3 pl-1 mt-auto`}>
+        <Box className={`${topUsersData?.data?.length > 0 ? "flex" : "hidden"} items-center justify-between py-3 pl-1 mt-auto`}>
           <PaginationBelowTableComponent 
             page={page} 
             onChange={handlePageChange}

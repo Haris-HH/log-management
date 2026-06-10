@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSelector } from 'react-redux';
+import { useNavigate } from "react-router-dom";
 
 // Material UI
 import Box from "@mui/material/Box";
@@ -17,10 +19,14 @@ import { useTranslation } from "react-i18next";
 // API
 import { loginApi } from "../features/login/api/LoginApi";
 import { getUserApi } from "../features/users/api/UsersApi";
-import { getNsbOuApi } from "../features/nsb/api/NsbOuApi";
+import { setAuthUser } from "../features/auth-user/api/AuthUserSlice";
 
 // Utils
 import { PopupMessage } from "../utils/popupMessage";
+
+// Store
+import type { RootState } from "../store/store";
+import { useAppDispatch } from "../store/hooks";
 
 interface FormData {
   username: string;
@@ -28,6 +34,8 @@ interface FormData {
 }
 
 const Login = () => {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const version = __APP_VERSION__;
 
   // i18n
@@ -38,11 +46,15 @@ const Login = () => {
   const [skipIntro, setSkipIntro] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Form Data
   const [formData, setFormData] = React.useState<FormData>({
     username: "",
     password: "",
   });
 
+  // Slice
+  const { agency, title } = useSelector((state: RootState) => state.dropdown);
+  
   const {
     register,
     handleSubmit,
@@ -81,19 +93,28 @@ const Login = () => {
 
       if (result.userId) {
         const userResponse = await getUserApi({ filter: `user_id=${result.userId}` });
-        const nsbOuResponse = await getNsbOuApi({ filter: `ou_code=${userResponse.data[0]?.ou_code}` });
-        localStorage.setItem("hash_id", userResponse.data[0]?.hash_id ?? "-");
-        localStorage.setItem("nsbOu", 
-          JSON.stringify(
-            {
-              ou_abbr_en: nsbOuResponse.data[0]?.ou_abbr_en ?? "-",
-              ou_abbr_th: nsbOuResponse.data[0]?.ou_abbr_th ?? "-",
-            }
-          )
+        const titleName = title.find(
+          (titleItem) => titleItem.id === userResponse.data[0]?.title_id
+        );
+        const nsbOu = agency.find((a) => a.ou_code === userResponse.data[0]?.ou_code);
+        dispatch(
+          setAuthUser({
+            user_id: userResponse.data[0]?.user_id ?? "-",
+            hash_id: userResponse.data[0]?.hash_id ?? "-",
+            title_name_th: titleName?.title_abbr_th ?? "",
+            title_name_en: titleName?.title_abbr_en ?? "",
+            first_name: userResponse.data[0]?.firstname ?? "-",
+            last_name: userResponse.data[0]?.lastname ?? "-",
+            agency: {
+              ou_code: userResponse.data[0]?.ou_code,
+              ou_abbr_th: nsbOu?.ou_abbr_th ?? "-",
+              ou_abbr_en: nsbOu?.ou_abbr_en ?? "-",
+            },
+          })
         );
       }
 
-      window.location.href = "/";
+      navigate("/", { replace: true });
     } 
     catch (error) {
       await PopupMessage(t("popup.login-failed-title"), t("popup.login-failed-message"), "error");

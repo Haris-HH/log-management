@@ -1,5 +1,8 @@
 // Types
-import type { AgencyColumn, AgencyChartData, AgencyChartDataGroup } from "../types/common";
+import type {
+  AgencyColumn,
+  AgencyChartDataGroup,
+} from "../types/common";
 
 export const mockChartInternalNsbColumn: AgencyColumn[] = [
   { key: "nsb_hq_support", label: "บก.ขส.บช.ปส." },
@@ -11,26 +14,23 @@ export const mockChartInternalNsbColumn: AgencyColumn[] = [
   { key: "unknown", label: "ไม่ระบุ" },
 ];
 
-const createMockData = (): AgencyChartData[] =>
+const createMockData = () =>
   mockChartInternalNsbColumn.map(col => ({
-    key: col.key,
-    value: Math.floor(Math.random() * 1000),
+    org_code: col.key,
+    count: Math.floor(Math.random() * 1000),
   }));
 
 export const mockChartInternalNsbDataGroup: AgencyChartDataGroup[] = [
   {
-    month_year: "2026-02",
-    month: 2,
-    data: createMockData()
+    month: "2026-02",
+    access: createMockData()
   },
   {
-    month_year: "2026-03",
-    month: 3,
-    data: createMockData()
+    month: "2026-03",
+    access: createMockData()
   },
   {
-    month_year: "2026-04",
-    month: 4,
-    data: createMockData()
+    month: "2026-04",
+    access: createMockData()
   },
 ]

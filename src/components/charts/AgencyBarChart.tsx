@@ -32,29 +32,43 @@ const AgencyBarChart = ({ data, columns, selectedMonthYear }: Props) => {
   const { t, i18n } = useTranslation();
 
   // Group by agency name
-  const agencyMap: Record<string, any> = {};
+  const agencyMap: Record<string, Record<string, string | number>> = {};
 
-  data.forEach((group) => {
+  const normalizedData: AgencyChartDataGroup[] = data.map((group) => {
+    const accessMap = new Map(
+      group.access.map((item) => [item.org_code, item.count])
+    );
+
+    return {
+      ...group,
+      access: columns.map((column) => ({
+        org_code: column.key,
+        count: accessMap.get(column.key) ?? 0,
+      })),
+    };
+  });
+
+  normalizedData.forEach((group) => {
     const monthKey = `month_${group.month}`;
 
-    group.data.forEach((item) => {
-      if (!agencyMap[item.key]) {
-        agencyMap[item.key] = {
-          key: item.key,
+    group.access.forEach((item) => {
+      if (!agencyMap[item.org_code]) {
+        agencyMap[item.org_code] = {
+          key: item.org_code,
         };
       }
 
-      agencyMap[item.key][monthKey] = item.value;
+      agencyMap[item.org_code][monthKey] = item.count;
     });
   });
 
   const chartData = Object.values(agencyMap);
 
   // Limit to max 3 months
-  const months = data
+  const months = normalizedData
     .map((d) => d.month)
     .slice(0, MAX_BAR)
-    .sort((a, b) => Number(a) - Number(b));
+    .sort((a, b) => dayjs(a).valueOf() - dayjs(b).valueOf());
 
   // Color by month
   const getColor = (index: number) => {
@@ -89,7 +103,7 @@ const AgencyBarChart = ({ data, columns, selectedMonthYear }: Props) => {
   const monthIndexMap = months.reduce((acc, m, i) => {
     acc[m] = i;
     return acc;
-  }, {} as Record<number, number>);
+  }, {} as Record<string, number>);
 
   const gridCols = `145px repeat(${columns.length}, 1fr)`;
 
@@ -103,6 +117,7 @@ const AgencyBarChart = ({ data, columns, selectedMonthYear }: Props) => {
             margin={{ left: 85 }} 
             barCategoryGap="10%"
             barGap={4}
+            style={{ pointerEvents: "none" }}
           >
             <CartesianGrid stroke="var(--primary-color)" horizontal vertical={false} />
             <CartesianGrid stroke="var(--primary-color)" vertical horizontal={false} />
@@ -155,59 +170,68 @@ const AgencyBarChart = ({ data, columns, selectedMonthYear }: Props) => {
             </div>
 
             {/* Rows */}
-            {data.sort((a, b) => Number(b.month) - Number(a.month)).map((group) => {
-              const isSameMonthYear = checkSameMonthYear(group.month_year, selectedMonthYear)
+            {[...normalizedData]
+              .sort((a, b) => dayjs(b.month).valueOf() - dayjs(a.month).valueOf())
+              .map((group) => {
+                const isSameMonthYear = checkSameMonthYear(group.month, selectedMonthYear);
 
-              return (
-                <div
-                  key={group.month}
-                  className="grid text-sm border-b border-[rgba(var(--tertiary-color-rgb),0.2)]"
-                  style={{ gridTemplateColumns: gridCols }}
-                >
-                  {/* Month */}
-                  <div 
-                    className="flex items-center min-w-36 gap-2 px-2 border-r border-[rgba(var(--tertiary-color-rgb),0.2)]"
-                    style={{
-                      backgroundColor: isSameMonthYear ? "var(--current-date-highlight-bg-color)" : "",
-                      color: "var(--primary-color)",
-                      fontWeight: isSameMonthYear ? "700" : "400",
-                    }}
+                return (
+                  <div
+                    key={group.month}
+                    className="grid text-sm border-b border-[rgba(var(--tertiary-color-rgb),0.2)]"
+                    style={{ gridTemplateColumns: gridCols }}
                   >
                     <div
-                      className="w-4 h-4 shrink-0 rounded-sm"
-                      style={{
-                        backgroundColor: getColor(monthIndexMap[group.month] ?? 0),
-                      }}
-                    />
-                    <div>
-                      {dayjs(group.month_year)
-                        .format(i18n.language === "th" ? "MMMM BBBB" : "MMMM YYYY")}
-                    </div>
-                  </div>
-
-                  {/* Values */}
-                  {group.data.map((item, idx) => (
-                    <div
-                      key={item.key}
-                      className={`p-2 min-w-[0.5vw] text-center whitespace-normal wrap-break-word ${
-                        idx !== group.data.length - 1
-                          ? "border-r border-[rgba(var(--tertiary-color-rgb),0.2)]"
-                          : ""
-                      }`}
+                      className="flex items-center min-w-36 gap-2 px-2 border-r border-[rgba(var(--tertiary-color-rgb),0.2)]"
                       style={{
                         backgroundColor: isSameMonthYear
                           ? "var(--current-date-highlight-bg-color)"
                           : "",
                         color: "var(--primary-color)",
-                        fontWeight: isSameMonthYear ? "700" : "500",
+                        fontWeight: isSameMonthYear ? "700" : "400",
                       }}
                     >
-                      {item.value.toLocaleString()}
+                      <div
+                        className="w-4 h-4 shrink-0 rounded-sm"
+                        style={{
+                          backgroundColor: getColor(monthIndexMap[group.month] ?? 0),
+                        }}
+                      />
+                      <div>
+                        {dayjs(group.month).format(
+                          i18n.language === "th" ? "MMMM BBBB" : "MMMM YYYY"
+                        )}
+                      </div>
                     </div>
-                  ))}
-                </div>
-              )
-            })}
+
+                    {columns.map((column, idx) => {
+                      const accessItem = group.access.find(
+                        (item) => item.org_code === column.key
+                      );
+
+                      return (
+                        <div
+                          key={column.key}
+                          className={`p-2 min-w-[0.5vw] text-center whitespace-normal wrap-break-word ${
+                            idx !== columns.length - 1
+                              ? "border-r border-[rgba(var(--tertiary-color-rgb),0.2)]"
+                              : ""
+                          }`}
+                          style={{
+                            backgroundColor: isSameMonthYear
+                              ? "var(--current-date-highlight-bg-color)"
+                              : "",
+                            color: "var(--primary-color)",
+                            fontWeight: isSameMonthYear ? "700" : "500",
+                          }}
+                        >
+                          {(accessItem?.count ?? 0).toLocaleString()}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
           </div>
         </div>
       </div>

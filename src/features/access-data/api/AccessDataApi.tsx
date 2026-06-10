@@ -1,23 +1,23 @@
 // Types
 import type { 
-  UsageLogResponse,
+  AccessLogResponse,
 } from "../../../types/response";
 
 // Api
 import { fetchClient } from "../../../api/fetchClient";
 
 // Mocks
-import { mockUsageLog } from "../../../mocks/mockUsageLog";
+import { mockAccessLog } from "../../../mocks/mockAccessLog";
 
 // Env
 const isDev = import.meta.env.VITE_IS_DEV;
 
-export const searchUsageLogs = async (param?: Record<string, string>, body?: Record<string, string>): Promise<UsageLogResponse> => {
+export const searchAccessLogs = async (param?: Record<string, string>, body?: Record<string, string>): Promise<AccessLogResponse> => {
   if (isDev) {
-    return mockUsageLog;
+    return mockAccessLog;
   }
 
-  const res = await fetchClient<UsageLogResponse>(
+  const res = await fetchClient<AccessLogResponse>(
     "/log-management/user-action-logs/search",
     {
       method: "POST",

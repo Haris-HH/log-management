@@ -25,23 +25,36 @@ import {
 // Env
 const isDev = import.meta.env.VITE_IS_DEV;
 
-export const getUsageInternalPoliceChart = async (selectedMonthYear: string, monthRange: 1 | 3): Promise<UsageChartResponse> => {
+export const getUsagePoliceChart = async (
+  body: Record<string, string>
+): Promise<UsageChartResponse> => {
   if (isDev) {
+    const monthRange = Number(body.count_month ?? 1);
+
+    let columns = mockChartInternalPoliceColumn;
+    let data = mockChartInternalPoliceDataGroup.slice(0, monthRange);
+
+    if (body.ou_code === "05") {
+      columns = mockChartExternalPoliceColumn;
+      data = mockChartExternalPoliceDataGroup.slice(0, monthRange);
+    }
+    if (body.ou_code !== "05" && body.ou_code !== "00") {
+      columns = mockChartInternalNsbColumn;
+      data = mockChartInternalNsbDataGroup.slice(0, monthRange);
+    }
+    
     return {
-      columns: mockChartInternalPoliceColumn,
-      data: mockChartInternalPoliceDataGroup.slice(0, monthRange),
+      columns: columns,
+      data: data,
     };
   }
 
   const res = await fetchClient<UsageChartResponse>(
-    "/statistic/usage-chart",
+    "/log-management/access-logs/statistics/ou-access",
     {
       method: "POST",
-      body: JSON.stringify({
-        selectedMonthYear,
-        monthRange,
-      }),
-    },
+      body: JSON.stringify(body),
+    }
   );
 
   return {
@@ -50,71 +63,20 @@ export const getUsageInternalPoliceChart = async (selectedMonthYear: string, mon
   };
 };
 
-export const getUsageExternalPoliceChart = async (selectedMonthYear: string, monthRange: 1 | 3): Promise<UsageChartResponse> => {
+export const getTopUsersChart = async (
+  body: Record<string, string>
+): Promise<TopUsersResponse> => {
   if (isDev) {
-    return {
-      columns: mockChartExternalPoliceColumn,
-      data: mockChartExternalPoliceDataGroup.slice(0, monthRange),
-    };
+    return body.police_state === "internal"
+      ? mockTopInternalUsers
+      : mockTopExternalUsers;
   }
 
-  const res = await fetchClient<UsageChartResponse>(
-    "/statistic/usage-chart",
+  return await fetchClient<TopUsersResponse>(
+    "/log-management/access-logs/statistics/user-max-access",
     {
       method: "POST",
-      body: JSON.stringify({
-        selectedMonthYear,
-        monthRange,
-      }),
-    },
+      body: JSON.stringify(body),
+    }
   );
-
-  return {
-    columns: mockChartExternalPoliceColumn,
-    data: res.data,
-  };
-};
-
-export const getUsageInternalNsbChart = async (selectedMonthYear: string, monthRange: 1 | 3): Promise<UsageChartResponse> => {
-  if (isDev) {
-    return {
-      columns: mockChartInternalNsbColumn,
-      data: mockChartInternalNsbDataGroup.slice(0, monthRange),
-    };
-  }
-
-  const res = await fetchClient<UsageChartResponse>(
-    "/statistic/usage-chart",
-    {
-      method: "POST",
-      body: JSON.stringify({
-        selectedMonthYear,
-        monthRange,
-      }),
-    },
-  );
-
-  return {
-    columns: mockChartInternalNsbColumn,
-    data: res.data,
-  };
-};
-
-export const getTopUsersChart = async (selectedMonthYear: string, policeState: "internal" | "external"): Promise<TopUsersResponse> => {
-  if (isDev) {
-    return policeState === "internal" ? mockTopInternalUsers : mockTopExternalUsers;
-  }
-
-  const res = await fetchClient<TopUsersResponse>(
-    "/statistic/usage-chart",
-    {
-      method: "POST",
-      body: JSON.stringify({
-        selectedMonthYear,
-        policeState,
-      }),
-    },
-  );
-
-  return policeState === "internal" ? res : res;
 };

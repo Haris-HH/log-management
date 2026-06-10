@@ -3,6 +3,8 @@ import dayjs from "dayjs";
 import buddhistEra from "dayjs/plugin/buddhistEra";
 import "dayjs/locale/th";
 import { Th, Gb } from "react-flags-select"
+import { useSelector } from 'react-redux';
+import { useNavigate } from "react-router-dom";
 
 // Material UI
 import AppBar from "@mui/material/AppBar";
@@ -17,6 +19,7 @@ import LanguageIcon from '@mui/icons-material/Language';
 
 // Components
 import HoverSelectMenu from "../components/select-menu/HoverSelectMenu";
+import LoadingScreen from '../components/loading-screen/LoadingScreen';
 
 // Constants
 import { THEMES } from "../constants/themes";
@@ -27,22 +30,34 @@ import { useTranslation } from 'react-i18next';
 
 // API
 import { logoutApi } from "../features/login/api/LoginApi";
+import { clearAuthUser } from "../features/auth-user/api/AuthUserSlice";
 
 // Utils
 import { PopupMessage, PopupMessageWithCancel } from "../utils/popupMessage";
 
+// Store
+import type { RootState } from "../store/store";
+
 dayjs.extend(buddhistEra);
 
 const Navbar = () => {
+  const navigate = useNavigate();
   const version = __APP_VERSION__
+
+  // State
+  const [isLoading, setIsLoading] = useState(false);
 
   // Data
   const [currentTime, setCurrentTime] = useState(dayjs());
   const [selectedLanguage, setSelectedLanguage] = useState(LANGUAGES[0]);
   const [selectedTheme, setSelectedTheme] = useState(THEMES[0]);
+  const [userInfo, setUserInfo] = useState(null);
 
   // i18n
   const { t, i18n } = useTranslation();
+
+  // Slice
+  const { user } = useSelector((state: RootState) => state.authUser);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -62,6 +77,10 @@ const Navbar = () => {
     return () => clearInterval(timer);
   }, [])
 
+  useEffect(() => {
+    setUserInfo(user);
+  }, [user])
+
   const handleLogout = async () => {
     const isConfirmed = await PopupMessageWithCancel(
       t("popup.logout-title"),
@@ -71,15 +90,18 @@ const Navbar = () => {
       "warning"
     );
     if (!isConfirmed) return;
+    setIsLoading(true);
     try {
       await logoutApi();
+      await clearAuthUser();
       localStorage.removeItem("accessToken");
-      localStorage.removeItem("hash_id");
-      localStorage.removeItem("nsbOu");
-      window.location.href = "/login";
+      navigate("/login", { replace: true });
     } 
     catch (error) {
       await PopupMessage(t("popup.logout-failed-title"), t("popup.logout-failed-message"), "error");
+    }
+    finally {
+      setIsLoading(false);
     }
   }
 
@@ -94,6 +116,7 @@ const Navbar = () => {
         minHeight: "64px",
       }}
     >
+      { isLoading && <LoadingScreen /> }
       <Toolbar sx={{ display: "flex", justifyContent: "space-between", padding: "10px 24px" }}>
         <div className="flex [@media(max-width:600px)]:pt-0.5">
           <div className="flex gap-2 items-center justify-center">
@@ -191,7 +214,7 @@ const Navbar = () => {
           <Divider orientation="vertical" sx={{ borderColor: "var(--primary-color)", opacity: 0.2, height: "20px" }} className="[@media(max-height:780px)]:hidden" />
           <div className="flex gap-2 items-center">
             <Typography variant="body1" sx={{ fontSize: "1rem", color: "var(--primary-color)", fontWeight: "bold" }} className="[@media(max-height:780px)]:hidden">
-              ดต.ญ.สุมาลี บุญเลิศ
+              { `${i18n.language === "th" ? userInfo?.title_name_th : userInfo?.title_name_en}${userInfo?.first_name} ${userInfo?.last_name}` }
             </Typography>
             <Avatar alt="User" src="/avatars/user1.png" sx={{ width: 34, height: 34 }} />
           </div>

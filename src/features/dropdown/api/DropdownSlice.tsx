@@ -11,6 +11,10 @@ import type {
   NsbBkResponse,
   NsbOrgResponse,
   TitleResponse,
+  LprRegionResponse,
+  AreaResponse,
+  DeviceStatusResponse,
+  ProjectResponse,
 } from "../../../types/response";
 
 // API
@@ -24,22 +28,24 @@ import {
   getProvince,
   getDistrict,
   getSubdistrict,
-  getCheckpointType,
+  getDeviceStatus,
   getTitle,
+  getLprRegion,
 } from "./DropdownApi";
 
 interface DropdownState {
-  area: DropdownResponse["data"];
+  area: AreaResponse["data"];
   agency: NsbOuResponse["data"];
   bh: NsbBhResponse["data"];
   bk: NsbBkResponse["data"];
   org: NsbOrgResponse["data"];
-  project: DropdownResponse["data"];
+  project: ProjectResponse["data"];
   province: ProvinceResponse["data"];
   district: DistrictResponse["data"];
   subdistrict: SubdistrictResponse["data"];
-  checkpointType: DropdownResponse["data"];
+  deviceStatus: DeviceStatusResponse["data"];
   title: TitleResponse["data"];
+  lprRegion: LprRegionResponse["data"];
   loading: boolean;
   error: string | null;
 }
@@ -55,8 +61,9 @@ const initialState: DropdownState = {
   province: [],
   district: [],
   subdistrict: [],
-  checkpointType: [],
+  deviceStatus: [],
   title: [],
+  lprRegion: [],
   loading: false,
   error: null,
 };
@@ -170,11 +177,11 @@ export const fetchSubdistrict = createAsyncThunk(
   }
 );
 
-export const fetchCheckpointType = createAsyncThunk(
-  "dropdown/fetchCheckpointType",
+export const fetchDeviceStatus = createAsyncThunk(
+  "dropdown/fetchDeviceStatus",
   async (_, { rejectWithValue }) => {
     try {
-      const res = await getCheckpointType();
+      const res = await getDeviceStatus();
       return res.data;
     } catch (err: any) {
       return rejectWithValue(err.message);
@@ -187,6 +194,18 @@ export const fetchTitle = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const res = await getTitle();
+      return res.data;
+    } catch (err: any) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
+export const fetchLprRegion = createAsyncThunk(
+  "dropdown/fetchLprRegion",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await getLprRegion();
       return res.data;
     } catch (err: any) {
       return rejectWithValue(err.message);
@@ -300,15 +319,15 @@ const dropdownSlice = createSlice({
       })
 
       // CHECKPOINT TYPE
-      .addCase(fetchCheckpointType.pending, (state) => {
+      .addCase(fetchDeviceStatus.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchCheckpointType.fulfilled, (state, action) => {
+      .addCase(fetchDeviceStatus.fulfilled, (state, action) => {
         state.loading = false;
-        state.checkpointType = action.payload;
+        state.deviceStatus = action.payload;
       })
-      .addCase(fetchCheckpointType.rejected, (state, action) => {
+      .addCase(fetchDeviceStatus.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })

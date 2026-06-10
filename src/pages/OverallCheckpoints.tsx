@@ -126,15 +126,31 @@ const OverallCheckpoints = () => {
   usePageTitle(t("pages.overall-checkpoints"));
 
   useEffect(() => {
-    setAreaOptions(buildOptions(area, t('dropdown.all-area')));
+    const langKeyArea = i18n.language === "th" ? "title_th" : "title_en";
+    const langKeyProvince = i18n.language === "th" ? "name_th" : "name_en";
+    const langKeyProject = "project_name";
+
+    setAreaOptions(
+      buildOptions(area, t("dropdown.all-area"), langKeyArea, "id")
+    );
+
+    const filteredProvince =
+      formData.area_id !== "0"
+        ? province.filter((item) => item.police_region_id === Number(formData.area_id))
+        : province;
     setProvinceOptions(
       buildOptions(
-        province, t('dropdown.all-province'), 
-        i18n.language === "th" ? "name_th" : "name_en",
+        filteredProvince, t('dropdown.all-province'), 
+        langKeyProvince,
         "province_code")
       );
-    setProjectOptions(buildOptions(project, t('dropdown.all-project')));
-  }, [area, province, project, t, i18n.language, i18n.isInitialized]);
+
+    const filteredProject = 
+      formData.province_id !== "0"
+        ? project.filter((item) => item.province_code === formData.province_id)
+        : project;
+    setProjectOptions(buildOptions(filteredProject, t('dropdown.all-project'), langKeyProject, "project_id"));
+  }, [area, province, project, t, formData.area_id, i18n.language, i18n.isInitialized]);
 
   useEffect(() => {
     setColumnOptions(column);

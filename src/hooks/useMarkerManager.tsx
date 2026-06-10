@@ -1,29 +1,50 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import L, { Map as LeafletMap, Marker, divIcon } from 'leaflet';
 import type { LatLngExpression } from 'leaflet';
 import ReactDOMServer from "react-dom/server";
+import { useSelector } from 'react-redux';
 
 // Types
-import type { OverallMapDetail } from "../types/common";
+import type { Device, DeviceStatus } from "../types/common";
 
 // Icons
 import CameraIcon from "../assets/svg/camera.svg?react";
 import RightArrowIcon from "../assets/svg/right-arrow.svg?react";
 
-// Hooks
-import { useStatusOptions } from "../hooks/useStatusOptions";
-
 // i18n
 import { useTranslation } from 'react-i18next';
 
-export const useMarkerManager = (map: LeafletMap | null) =>{
-  const statusOptions = useStatusOptions();
+// Store
+import type { RootState } from "../store/store";
 
+// Utils
+import { DEVICE_STATUS_COLOR } from '../constants/color';
+
+export const useMarkerManager = (map: LeafletMap | null) =>{
   // Data
   const [markers, setMarkers] = useState<Marker[]>([]);
 
   // i18n
   const { t, i18n } = useTranslation();
+
+  // Options
+  const [deviceStatusOptions, setDeviceStatusOptions] = useState<DeviceStatus[]>([]);
+
+  // Slice
+  const { deviceStatus } = useSelector((state: RootState) => state.dropdown);
+
+  useEffect(() => {
+    setDeviceStatusOptions(
+      deviceStatus.map((item) => {
+        const color = DEVICE_STATUS_COLOR[item.status_code];
+
+        return {
+          ...item,
+          color: color ?? "#FFFFFF",
+        }
+      })
+    );
+  }, [deviceStatus])
 
   const clearMarkers = useCallback(() => {
     setMarkers((prevMarkers) => {
@@ -130,7 +151,7 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
     setMarkers(newMarkers);
   };
 
-  const createOverallMarkerWithList = (locations: OverallMapDetail[]) => {
+  const createOverallMarkerWithList = (locations: Device[]) => {
     if (!map) return;
     clearMarkers();
 
@@ -139,8 +160,7 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
     for (let i = 0; i < locations.length; i++) {
       const loc = locations[i];
 
-      const sortStatus = loc.camera_list.sort((a, b) => a.status_id - b.status_id);
-      const color = statusOptions.find((item) => item.id === sortStatus[0]?.status_id)?.color ?? "#FFFFFF";
+      const color = deviceStatusOptions.find((item) => item.status_code === loc.device_status_code)?.color ?? "#FFFFFF";
     
       let htmlContent = `
         <div style="
@@ -161,7 +181,7 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
             font-weight: 600;
             color: black;
           ">
-            ${loc.camera_list.length}
+            ${0}
           </div>
 
           <!-- triangle -->
@@ -227,9 +247,9 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
     );
   }
 
-  const createOverallPopup = (marker: L.Marker<any>, detail: OverallMapDetail) => {
-    const cameraLength = detail.camera_list.length;
-    const sortStatus = detail.camera_list.sort((a, b) => a.status_id - b.status_id);
+  const createOverallPopup = (marker: L.Marker<any>, detail: Device) => {
+    const cameraLength = 0;
+    const sortStatus = [];
 
     const cameraIconHtml = ReactDOMServer.renderToStaticMarkup(
       <CameraIcon style={{ width: "20px", height: "15px", marginTop: "5px", color:'var(--primary-color)' }} />
@@ -245,7 +265,7 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
           <div style="display: flex; justify-content: start; align-items: start; gap: 10px">
             ${cameraIconHtml}
             <div style="display: flex; flex-direction: column; justify-content: center; align-items: start;">
-              <label style="font-weight: bold; font-size: 20px; color: var(--primary-color);">${t('text.camera-checkpoint')} : ${detail.checkpoint_name}</label>
+              <label style="font-weight: bold; font-size: 20px; color: var(--primary-color);">${t('text.camera-checkpoint')} : ${""}</label>
               <p style="color: var(--primary-color); margin-top: 0px;">${t('text.total-2')} ${cameraLength} จุด</p>
             </div>
           </div>
@@ -254,25 +274,7 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
               <label style="color: #81898E; font-size: 12px;">${t('text.area-structure')}</label>
 
               <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
-                ${detail.area_structure
-                  .map((item, index) => {
-                    const isLast = index === detail.area_structure.length - 1;
-
-                    return `
-                      <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="color: var(--primary-color); font-size: 20px; font-weight: 500;">
-                          ${item.area_name}
-                        </span>
-
-                        ${
-                          !isLast
-                            ? rightArrowIconHtml
-                            : ""
-                        }
-                      </div>
-                    `;
-                  })
-                  .join("")}
+                
               </div>
             </div>
           </div>
@@ -286,11 +288,11 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
                 ${
                   Object.values(
                     sortStatus.reduce((acc, item) => {
-                      const key = item.status_id;
+                      const key = item.status_code;
 
                       if (!acc[key]) {
                         acc[key] = {
-                          status_id: item.status_id,
+                          status_code: item.status_code,
                           status_name: item.status_name,
                           count: 0,
                         };
@@ -298,18 +300,17 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
 
                       acc[key].count += 1;
                       return acc;
-                    }, {} as Record<number, { status_id: number; status_name: string; count: number }>)
+                    }, {} as Record<number, { status_code: number; status_name: string; count: number }>)
                   )
                     .map((item) => {
-                      const cameraColor =
-                        statusOptions.find((opt) => opt.id === Number(item.status_id))?.color ?? "#FFFFFF";
+                      
 
                       return `
                         <div style="display: flex; justify-content: start; align-items: center; gap: 10px; margin-top: 10px;">
-                          <div style="width: 20px; height: 20px; background-color: ${cameraColor}; border-radius: 50%;"></div>
+                          <div style="width: 20px; height: 20px; background-color: ${""}; border-radius: 50%;"></div>
                           
                           <label style="color: var(--primary-color); font-size: 20px; font-weight: 500;">
-                            ${item.status_name}<span> : ${item.count}</span>
+                            ${""}<span> : ${0}</span>
                           </label>
                         </div>
                       `;
@@ -347,7 +348,7 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
                       sortStatus
                         .map((item, index) => {
                           const cameraColor =
-                            statusOptions.find((opt) => opt.id === Number(item.status_id))?.color ?? "#FFFFFF";
+                            deviceStatusOptions.find((opt) => opt.id === Number(item.status_id))?.color ?? "#FFFFFF";
                           return `
                             <tr key="${item.camera_name}_${index}" style="border-bottom: 1px solid rgba(var(--primary-color-rgb), 0.1); font-size: 16px; color: var(--primary-color); height: 50px;">
                               <td style="padding: 0px 10px;">${item.camera_name}</td>
@@ -380,6 +381,160 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
       }
     )
   }
+
+  // const createOverallPopup = (marker: L.Marker<any>, detail: Device) => {
+  //   const cameraLength = detail.length;
+  //   const sortStatus = detail.camera_list.sort((a, b) => a.status_id - b.status_id);
+
+  //   const cameraIconHtml = ReactDOMServer.renderToStaticMarkup(
+  //     <CameraIcon style={{ width: "20px", height: "15px", marginTop: "5px", color:'var(--primary-color)' }} />
+  //   );
+
+  //   const rightArrowIconHtml = ReactDOMServer.renderToStaticMarkup(
+  //     <RightArrowIcon style={{ width: "12px", height: "12px", color:'var(--primary-color)' }} />
+  //   );
+
+  //   return marker.bindPopup(
+  //     `<div style="display: flex; padding: 2px; width: 700px; min-height: 500px; font-family: 'Noto Sans Thai', sans-serif;">
+  //       <div style="display: flex; flex-direction: column; gap: 15px; width: 100%;">
+  //         <div style="display: flex; justify-content: start; align-items: start; gap: 10px">
+  //           ${cameraIconHtml}
+  //           <div style="display: flex; flex-direction: column; justify-content: center; align-items: start;">
+  //             <label style="font-weight: bold; font-size: 20px; color: var(--primary-color);">${t('text.camera-checkpoint')} : ${detail.checkpoint_name}</label>
+  //             <p style="color: var(--primary-color); margin-top: 0px;">${t('text.total-2')} ${cameraLength} จุด</p>
+  //           </div>
+  //         </div>
+  //         <div style="padding: 0px 5px;">
+  //           <div style="padding: 10px 15px; background-color: #F0F2F5; width: 100%; height: 80px">
+  //             <label style="color: #81898E; font-size: 12px;">${t('text.area-structure')}</label>
+
+  //             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
+  //               ${detail.area_structure
+  //                 .map((item, index) => {
+  //                   const isLast = index === detail.area_structure.length - 1;
+
+  //                   return `
+  //                     <div style="display: flex; align-items: center; gap: 10px;">
+  //                       <span style="color: var(--primary-color); font-size: 20px; font-weight: 500;">
+  //                         ${item.area_name}
+  //                       </span>
+
+  //                       ${
+  //                         !isLast
+  //                           ? rightArrowIconHtml
+  //                           : ""
+  //                       }
+  //                     </div>
+  //                   `;
+  //                 })
+  //                 .join("")}
+  //             </div>
+  //           </div>
+  //         </div>
+  //         <div style="padding: 0px 5px;">
+  //           <div style="padding: 10px 15px; background-color: #F0F2F5; width: 100%; min-height: 80px;">
+  //             <label style="color: #81898E; font-size: 12px; display: block;">
+  //               ${t('text.status')}
+  //             </label>
+
+  //             <div style="display: flex; flex-wrap: wrap; justify-content: start; align-items: center; gap: 20px; width: 100%;">
+  //               ${
+  //                 Object.values(
+  //                   sortStatus.reduce((acc, item) => {
+  //                     const key = item.status_id;
+
+  //                     if (!acc[key]) {
+  //                       acc[key] = {
+  //                         status_id: item.status_id,
+  //                         status_name: item.status_name,
+  //                         count: 0,
+  //                       };
+  //                     }
+
+  //                     acc[key].count += 1;
+  //                     return acc;
+  //                   }, {} as Record<number, { status_id: number; status_name: string; count: number }>)
+  //                 )
+  //                   .map((item) => {
+  //                     const cameraColor =
+  //                       deviceStatusOptions.find((opt) => opt.id === Number(item.status_id))?.color ?? "#FFFFFF";
+
+  //                     return `
+  //                       <div style="display: flex; justify-content: start; align-items: center; gap: 10px; margin-top: 10px;">
+  //                         <div style="width: 20px; height: 20px; background-color: ${cameraColor}; border-radius: 50%;"></div>
+                          
+  //                         <label style="color: var(--primary-color); font-size: 20px; font-weight: 500;">
+  //                           ${item.status_name}<span> : ${item.count}</span>
+  //                         </label>
+  //                       </div>
+  //                     `;
+  //                   })
+  //                   .join("")
+  //               }
+  //             </div>
+  //           </div>
+  //         </div>
+  //         <div style="padding: 0px 5px;">
+  //           <div style="display: flex; flex-direction: column; gap: 5px; width: 100%;">
+  //             <label style="color: var(--primary-color); font-size: 16px;">${t('text.camera-checkpoint-list')} :</label>
+  //             <div style="max-height: 200px; overflow-y: auto;">
+  //               <table style="width: 100%; border-collapse: collapse;">
+                  
+  //                 <thead>
+  //                   <tr style="background-color: var(--primary-color); color: white; font-size: 16px;">
+  //                     <th style="position: sticky; top: 0; background-color: var(--primary-color); text-align: center; width: 40%; height: 60px; z-index: 1;">
+  //                       ${t('table.header.camera-checkpoint')}
+  //                     </th>
+  //                     <th style="position: sticky; top: 0; background-color: var(--primary-color); text-align: center; width: 30%; z-index: 1;">
+  //                       ${t('table.header.status')}
+  //                     </th>
+  //                     <th style="position: sticky; top: 0; background-color: var(--primary-color); text-align: center; width: 20%; z-index: 1;">
+  //                       ${t('table.header.route')}
+  //                     </th>
+  //                     <th style="position: sticky; top: 0; background-color: var(--primary-color); text-align: center; width: 10%; z-index: 1;">
+  //                       ${t('table.header.lane')}
+  //                     </th>
+  //                   </tr>
+  //                 </thead>
+
+  //                 <tbody>
+  //                   ${
+  //                     sortStatus
+  //                       .map((item, index) => {
+  //                         const cameraColor =
+  //                           deviceStatusOptions.find((opt) => opt.id === Number(item.status_id))?.color ?? "#FFFFFF";
+  //                         return `
+  //                           <tr key="${item.camera_name}_${index}" style="border-bottom: 1px solid rgba(var(--primary-color-rgb), 0.1); font-size: 16px; color: var(--primary-color); height: 50px;">
+  //                             <td style="padding: 0px 10px;">${item.camera_name}</td>
+
+  //                             <td style="padding: 0px 10px; vertical-align: middle;">
+  //                               <div style="display: flex; justify-content: center; align-items: center; gap: 10px;">
+  //                                 <div style="width: 20px; height: 20px; background-color: ${cameraColor}; border-radius: 50%;"></div>
+  //                                 <span>${item.status_name}</span>
+  //                               </div>
+  //                             </td>
+
+  //                             <td style="padding: 0px 10px;">${item.route}</td>
+  //                             <td style="text-align: center;">${item.lane === 1 ? t('text.exit') : t('text.in')}</td>
+  //                           </tr>
+  //                         `;
+  //                       }).join("")
+  //                   }
+  //                 </tbody>
+  //               </table>
+  //             </div>
+  //           </div>
+  //         </div>
+  //       </div>
+  //     </div>`,
+  //     {
+  //       offset: [0, -30],
+  //       closeButton: true,
+  //       maxWidth: 900,
+  //       className: "custom-overall-popup",
+  //     }
+  //   )
+  // }
 
   return {
     clearMarkers,

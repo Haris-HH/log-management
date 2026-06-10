@@ -32,13 +32,13 @@ import { ROWS_PER_PAGE_OPTIONS } from "../constants/dropdown";
 
 // PDF
 import {
-  downloadStatisticSearchLogPlatePdf,
-  generateStatisticSearchLogPlatePdfBlob,
-} from "../pdf/StatisticSearchLogPlatePdf";
+  downloadStatisticAccessLogPdf,
+  generateStatisticAccessLogPdfBlob,
+} from "../pdf/StatisticAccessLogPdf";
 
 // Types
-import type { LprSearchLog } from "../types/common";
-import type { SearchLogPlatePdfData } from "../types/pdf";
+import type { AccessLog } from "../types/common";
+import type { LogUsagePdfData } from "../types/pdf";
 
 // i18n
 import { useTranslation } from 'react-i18next';
@@ -60,16 +60,13 @@ import usePageTitle from "../hooks/usePageTitle";
 import type { RootState } from "../store/store";
 
 // API
-import { searchLprSearchLogs } from "../features/usage-search-data/api/UsageSearchDataApi";
+import { searchAccessLogs } from "../features/access-data/api/AccessDataApi";
 import { getUserApi } from '../features/users/api/UsersApi';
 
 interface FormData {
   title_id: string;
   name: string;
   pid_or_water_mark: string;
-  plate_group: string;
-  plate_number: string;
-  province_id: string;
   agency_id: string;
   bh_id: string;
   bk_id: string;
@@ -78,7 +75,7 @@ interface FormData {
   end_date_time: Date | null;
 }
 
-const StatisticSearchLogPlate = () => {
+const StatisticAccessLog = () => {
   const location = useLocation();
 
   // i18n
@@ -90,7 +87,7 @@ const StatisticSearchLogPlate = () => {
   const [searchTrigger, setSearchTrigger] = useState(0);
 
   // Data
-  const [rows, setRows] = useState<LprSearchLog[]>([]);
+  const [rows, setRows] = useState<AccessLog[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [totalUsage, setTotalUsage] = useState(0);
   const [selectedData, setSelectedData] = useState<{latitude: number, longitude: number}[]>([]);
@@ -100,9 +97,8 @@ const StatisticSearchLogPlate = () => {
   const [bhOptions, setBhOptions] = useState<{ label: string, value: string }[]>([]);
   const [bkOptions, setBkOptions] = useState<{ label: string, value: string }[]>([]);
   const [orgOptions, setOrgOptions] = useState<{ label: string, value: string }[]>([]);
-  const [provinceOptions, setProvinceOptions] = useState<{ label: string, value: string }[]>([]);
   const [titleOptions, setTitleOptions] = useState<{ label: string, value: string }[]>([]);
-
+  
   // Constants
   const CHUNK_SIZE = 1000;
   const REQUEST_LIMIT = 1000;
@@ -114,9 +110,6 @@ const StatisticSearchLogPlate = () => {
         title_id: "0",
         name: "",
         pid_or_water_mark: "",
-        plate_group: "",
-        plate_number: "",
-        province_id: "0",
         agency_id: location.state.filters.agency_id,
         bh_id: location.state.filters.bh_id,
         bk_id: location.state.filters.bk_id,
@@ -130,9 +123,6 @@ const StatisticSearchLogPlate = () => {
       title_id: "0",
       name: "",
       pid_or_water_mark: "",
-      plate_group: "",
-      plate_number: "",
-      province_id: "0",
       agency_id: "0",
       bh_id: "0",
       bk_id: "0",
@@ -155,9 +145,9 @@ const StatisticSearchLogPlate = () => {
   );
 
   // Slice
-  const { agency, bh, bk, org, lprRegion, title } = useSelector((state: RootState) => state.dropdown);
+  const { agency, bh, bk, org, title } = useSelector((state: RootState) => state.dropdown);
 
-  usePageTitle(t("pages.statistic-search-log-plate"));
+  usePageTitle(t("pages.statistic-access-log"));
 
   useEffect(() => {
     const langKeyAgency = i18n.language === "th" ? "ou_abbr_th" : "ou_abbr_en";
@@ -200,21 +190,12 @@ const StatisticSearchLogPlate = () => {
     setTitleOptions(
       buildOptions(title, t("dropdown.all-title"), langKeyTitle, "id")
     );
-
-    setProvinceOptions(
-      buildOptions(
-        lprRegion, "", 
-        i18n.language === "th" ? "name_th" : "name_en", 
-        "region_code",
-        false)
-      );
   }, [
     title,
     agency,
     bh,
     bk,
     org,
-    lprRegion,
     formData.agency_id,
     formData.bh_id,
     t,
@@ -222,7 +203,7 @@ const StatisticSearchLogPlate = () => {
   ]);
 
   useEffect(() => {
-    fetchData(formData);
+    fetchData();
   }, [
     formData.title_id,
     formData.agency_id,
@@ -239,54 +220,55 @@ const StatisticSearchLogPlate = () => {
     bk,
     org,
     title,
-    lprRegion,
   ]);
 
-  const mapLprSearchLogRows = useCallback(
-    async (data: LprSearchLog[]): Promise<LprSearchLog[]> => {
+  const mapAccessLogRows = useCallback(
+    async (data: AccessLog[]): Promise<AccessLog[]> => {
       const rows = await Promise.all(
         data.map(async (item) => {
           const userRes = await getUserApi({
-          filter: `user_id=${item.user_id}`,
-        });
+            filter: `user_id=${item.user_id}`,
+          });
 
-        const user = userRes.data[0];
-        const agencyData = agency.find((a) => a.ou_code === item.ou_code);
-        const bhData = bh.find((b) => b.bh_code === item.bh_code);
-        const bkData = bk.find((k) => k.bk_code === item.bk_code);
-        const orgData = org.find((o) => o.org_code === item.org_code);
-        const titleData = title.find((t) => t.id === user?.title);
-        return {
-          ...item,
-          idcard: userRes.data[0]?.idcard ?? "-",
-          title:  titleData 
-            ? i18n.language === "th"
-              ? titleData.title_abbr_th
-              : titleData.title_abbr_en
-            : "",
-          firstname: userRes.data[0]?.firstname ?? "-",
-          lastname: userRes.data[0]?.lastname ?? "-",
-          ou_name: agencyData
-            ? i18n.language === "th"
-              ? agencyData.ou_abbr_th
-              : agencyData.ou_abbr_en
-            : "-",
-          bh_name: bhData
-            ? i18n.language === "th"
-              ? bhData.bh_name_th
-              : bhData.bh_name_en
-            : "-",
-          bk_name: bkData
-            ? i18n.language === "th"
-              ? bkData.bk_abbr_th
-              : bkData.bk_abbr_en
-            : "-",
-          org_name: orgData
-            ? i18n.language === "th"
-              ? orgData.org_abbr_th
-              : orgData.org_abbr_en
-            : "-",
-        };
+          const user = userRes.data[0];
+
+          const agencyData = agency.find((a) => a.ou_code === item.ou_code);
+          const bhData = bh.find((b) => b.bh_code === item.bh_code);
+          const bkData = bk.find((k) => k.bk_code === item.bk_code);
+          const orgData = org.find((o) => o.org_code === item.org_code);
+          const titleData = title.find((t) => t.id === user?.title);
+
+          return {
+            ...item,
+            idcard: user?.idcard ?? "-",
+            title:  titleData 
+              ? i18n.language === "th"
+                ? titleData.title_abbr_th
+                : titleData.title_abbr_en
+              : "",
+            firstname: user?.firstname ?? "-",
+            lastname: user?.lastname ?? "-",
+            ou_name: agencyData
+              ? i18n.language === "th"
+                ? agencyData.ou_abbr_th
+                : agencyData.ou_abbr_en
+              : "-",
+            bh_name: bhData
+              ? i18n.language === "th"
+                ? bhData.bh_abbr_th
+                : bhData.bh_abbr_en
+              : "-",
+            bk_name: bkData
+              ? i18n.language === "th"
+                ? bkData.bk_abbr_th
+                : bkData.bk_abbr_en
+              : "-",
+            org_name: orgData
+              ? i18n.language === "th"
+                ? orgData.org_abbr_th
+                : orgData.org_abbr_en
+              : "-",
+          };
         })
       );
 
@@ -295,46 +277,43 @@ const StatisticSearchLogPlate = () => {
     [title, agency, bh, bk, org, i18n.language]
   );
 
-  const fetchData = useCallback(
-    async (filterData: FormData = formData) => {
-      try {
-        setIsLoading(true);
+  const fetchData = useCallback(async () => {
+    try {
+      setIsLoading(true);
 
-        const res = await searchLprSearchLogs(
-          {},
-          {
-            limit: rowsPerPage.toString(),
-            page: page.toString(),
-            ...getFilters(filterData),
-          }
-        );
-        const updatedRows = await mapLprSearchLogRows(res.data);
+      const res = await searchAccessLogs(
+        {},
+        {
+          limit: rowsPerPage.toString(),
+          page: page.toString(),
+        }
+      );
 
-        const totalUsage = res.data.reduce(
-          (sum, item) => sum + (item.total ?? 0),
-          0
-        );
+      const updatedRows = await mapAccessLogRows(res.data);
 
-        setRows(updatedRows);
-        setTotalItems(res.pagination.countAll);
-        setTotalData(res.pagination.countAll);
-        setTotalPages(res.pagination.maxPage);
-        setTotalUsage(totalUsage);
-      } 
-      catch (error) {
-        await PopupMessage(t("popup.fetch-error"), "", "error");
-        setRows([]);
-        setTotalItems(0);
-        setTotalData(0);
-        setTotalPages(0);
-        setTotalUsage(0);
-      } 
-      finally {
-        setIsLoading(false);
-      }
-    }, 
-    [formData, page, title, agency, rowsPerPage, bh, bk, org, lprRegion, i18n.language, i18n.isInitialized]
-  );
+      const totalUsage = res.data.reduce(
+        (sum, item) => sum + (item.total ?? 0),
+        0
+      );
+
+      setRows(updatedRows);
+      setTotalItems(res.pagination.countAll);
+      setTotalData(res.pagination.countAll);
+      setTotalPages(res.pagination.maxPage);
+      setTotalUsage(totalUsage);
+    } 
+    catch (error) {
+      await PopupMessage(t("popup.fetch-error"), "", "error");
+      setRows([]);
+      setTotalUsage(0);
+      setTotalItems(0);
+      setTotalPages(1);
+      setTotalData(0);
+    } 
+    finally {
+      setIsLoading(false);
+    }
+  }, [formData, page, title, agency, rowsPerPage, bh, bk, org, i18n.language]);
 
   const handleDropdownChange = (
     event: React.SyntheticEvent,
@@ -386,9 +365,6 @@ const StatisticSearchLogPlate = () => {
       title_id: "0",
       name: "",
       pid_or_water_mark: "",
-      plate_group: "",
-      plate_number: "",
-      province_id: "0",
       agency_id: "0",
       bh_id: "0",
       bk_id: "0",
@@ -423,7 +399,7 @@ const StatisticSearchLogPlate = () => {
         const totalFiles = Math.ceil(totalData / CHUNK_SIZE);
 
         for (let page = 1; page <= totalFiles; page++) {
-          const res = await searchLprSearchLogs(
+          const res = await searchAccessLogs(
             {},
             {
               limit: CHUNK_SIZE.toString(),
@@ -432,13 +408,13 @@ const StatisticSearchLogPlate = () => {
             }
           );
 
-          const formattedData = await mapLprSearchLogRows(res.data);
+          const formattedData = await mapAccessLogRows(res.data);
 
           const fileName = `${t(
-            "file-name.statistic-search-log-plate"
+            "file-name.statistic-access-log"
           )}_${startDate}_${endDate}_${page}.pdf`;
 
-          const blob = await generateStatisticSearchLogPlatePdfBlob(
+          const blob = await generateStatisticAccessLogPdfBlob(
             buildPdfData(formattedData),
             t,
             i18n
@@ -453,7 +429,7 @@ const StatisticSearchLogPlate = () => {
 
         saveAs(
           zipBlob,
-          `PDF_${t("file-name.statistic-search-log-plate")}_${dayjs().format(
+          `PDF_${t("file-name.statistic-access-log")}_${dayjs().format(
             "YYYY-MM-DD"
           )}.zip`
         );
@@ -461,7 +437,7 @@ const StatisticSearchLogPlate = () => {
         return;
       }
 
-      const res = await searchLprSearchLogs(
+      const res = await searchAccessLogs(
         {},
         {
           limit: REQUEST_LIMIT.toString(),
@@ -470,13 +446,13 @@ const StatisticSearchLogPlate = () => {
         }
       );
 
-      const exportRows = await mapLprSearchLogRows(res.data);
+      const exportRows = await mapAccessLogRows(res.data);
 
       const pdfName = `${t(
-        "file-name.statistic-search-log-plate"
+        "file-name.statistic-access-log"
       )}_${startDate}_${endDate}.pdf`;
 
-      await downloadStatisticSearchLogPlatePdf(
+      await downloadStatisticAccessLogPdf(
         buildPdfData(exportRows),
         pdfName,
         t,
@@ -495,7 +471,7 @@ const StatisticSearchLogPlate = () => {
     }
   };
 
-  const buildPdfData = (logPlate: LprSearchLog[]): SearchLogPlatePdfData => {
+  const buildPdfData = (logUsage: AccessLog[]): LogUsagePdfData => {
     const selectedAgency = agency.find(
       (a) => a.ou_code === formData.agency_id
     );
@@ -508,8 +484,8 @@ const StatisticSearchLogPlate = () => {
         ? t("text.all")
         : selectedAgency
           ? i18n.language === "th"
-            ? selectedAgency.ou_name_th ?? "-"
-            : selectedAgency.ou_name_en ?? "-"
+            ? selectedAgency.ou_abbr_th ?? "-"
+            : selectedAgency.ou_abbr_en ?? "-"
           : "-";
 
     const bhName =
@@ -517,8 +493,8 @@ const StatisticSearchLogPlate = () => {
         ? t("text.all")
         : selectedBh
           ? i18n.language === "th"
-            ? selectedBh.bh_name_th ?? "-"
-            : selectedBh.bh_name_en ?? "-"
+            ? selectedBh.bh_abbr_th ?? "-"
+            : selectedBh.bh_abbr_en ?? "-"
           : "-";
 
     const bkName =
@@ -526,8 +502,8 @@ const StatisticSearchLogPlate = () => {
         ? t("text.all")
         : selectedBk
           ? i18n.language === "th"
-            ? selectedBk.bk_name_th ?? "-"
-            : selectedBk.bk_name_en ?? "-"
+            ? selectedBk.bk_abbr_th ?? "-"
+            : selectedBk.bk_abbr_en ?? "-"
           : "-";
 
     const orgName =
@@ -535,8 +511,8 @@ const StatisticSearchLogPlate = () => {
         ? t("text.all")
         : selectedOrg
           ? i18n.language === "th"
-            ? selectedOrg.org_name_th ?? "-"
-            : selectedOrg.org_name_en ?? "-"
+            ? selectedOrg.org_abbr_th ?? "-"
+            : selectedOrg.org_abbr_en ?? "-"
           : "-";
 
     return {
@@ -550,17 +526,13 @@ const StatisticSearchLogPlate = () => {
       bk_name: bkName,
       org_id: formData.org_id,
       org_name: orgName,
-      plate_group: formData.plate_group || "",
-      plate_number: formData.plate_number || "",
-      province_id: formData.province_id,
-      province_name: provinceOptions.find(option => option.value === formData.province_id)?.label || "",
       start_date: dayjs(formData.start_date_time).format(
         i18n.language === "th" ? "DD/MM/BBBB" : "DD/MM/YYYY"
       ),
       end_date: dayjs(formData.end_date_time).format(
         i18n.language === "th" ? "DD/MM/BBBB" : "DD/MM/YYYY"
       ),
-      logPlate,
+      logUsage,
     };
   };
 
@@ -572,7 +544,7 @@ const StatisticSearchLogPlate = () => {
       const endDate = dayjs(formData.end_date_time).format(dateFormat);
 
       const baseFileName = `${t(
-        "file-name.statistic-search-log-plate"
+        "file-name.statistic-access-log"
       )}_${startDate}_${endDate}`;
 
       const headers = [
@@ -626,7 +598,7 @@ const StatisticSearchLogPlate = () => {
         const totalFiles = Math.ceil(totalData / CHUNK_SIZE);
 
         for (let pageIndex = 1; pageIndex <= totalFiles; pageIndex++) {
-          const res = await searchLprSearchLogs(
+          const res = await searchAccessLogs(
             {},
             {
               limit: CHUNK_SIZE.toString(),
@@ -635,10 +607,10 @@ const StatisticSearchLogPlate = () => {
             }
           );
 
-          const exportRows = await mapLprSearchLogRows(res.data);
+          const exportRows = await mapAccessLogRows(res.data);
 
           const blob = await generateExcelBlob({
-            sheetName: t("file-name.statistic-search-log-plate"),
+            sheetName: t("file-name.statistic-access-log"),
             headers,
             data: exportRows,
             mapRow: (data, index) => [
@@ -669,7 +641,7 @@ const StatisticSearchLogPlate = () => {
 
       setIsLoading(true);
 
-      const res = await searchLprSearchLogs(
+      const res = await searchAccessLogs(
         {},
         {
           limit: REQUEST_LIMIT.toString(),
@@ -678,10 +650,10 @@ const StatisticSearchLogPlate = () => {
         }
       );
 
-      const exportRows = await mapLprSearchLogRows(res.data);
+      const exportRows = await mapAccessLogRows(res.data);
 
       await exportExcel({
-        sheetName: t("file-name.statistic-search-log-plate"),
+        sheetName: t("file-name.statistic-access-log"),
         fileName: `${baseFileName}.xlsx`,
         headers,
         data: exportRows,
@@ -714,7 +686,7 @@ const StatisticSearchLogPlate = () => {
     setRowsPerPage(limit);
   };
 
-  const showLocationDialog = (event: React.MouseEvent<HTMLTableCellElement>, data: LprSearchLog) => {
+  const showLocationDialog = (event: React.MouseEvent<HTMLTableCellElement>, data: AccessLog) => {
     event.preventDefault();
     if (!data.location_webui?.lat || !data.location_webui?.lng) return;
     setSelectedData([{ latitude: data.location_webui.lat, longitude: data.location_webui.lng }, rows.filter((item) => item.location_webui?.lat !== data.location_webui?.lat && item.location_webui?.lng !== data.location_webui?.lng).map((item) => ({ latitude: item.location_webui?.lat, longitude: item.location_webui?.lng }))].flat());
@@ -731,8 +703,6 @@ const StatisticSearchLogPlate = () => {
 
     const pid = data.pid_or_water_mark.trim();
     const name = data.name.trim();
-    const plate_group = data.plate_group.trim();
-    const plate_number = data.plate_number.trim();
 
     if (pid) {
       filters.push(`idcard=${encodeURIComponent(pid)}`);
@@ -740,18 +710,6 @@ const StatisticSearchLogPlate = () => {
 
     if (name) {
       filters.push(`fullname=${encodeURIComponent(name)}`);
-    }
-
-    if (plate_group) {
-      filters.push(`plate_prefix=${encodeURIComponent(plate_group)}`);
-    }
-
-    if (plate_number) {
-      filters.push(`plate_number=${encodeURIComponent(plate_number)}`);
-    }
-
-    if (data.province_id !== "0") {
-      filters.push(`region_code=${data.province_id}`);
     }
 
     if (data.title_id !== "0") {
@@ -797,237 +755,194 @@ const StatisticSearchLogPlate = () => {
   };
 
   return (
-    <section id='statistic-search-log-plate' className="flex flex-col h-full w-full p-2">
+    <section id='statistic-access-log' className="flex flex-col h-full w-full p-2">
       { isLoading && <LoadingScreen /> }
       {/* Main Title */}
-      <MainTitle title={t("pages.statistic-search-log-plate")} />
+      <MainTitle title={t("pages.statistic-access-log")} />
       <div className='p-4 bg-(--main-bg-color)/80 flex flex-1 flex-col gap-4 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-y-auto'>
         {/* Search Filters */}
         <Box 
-          className="flex flex-col border border-(--primary-color) rounded-[10px] p-4 gap-2 bg-(--secondary-color)"
+          className="grid grid-cols-[repeat(9,minmax(0,1fr))_180px] border border-(--primary-color) rounded-[10px] p-4 gap-2 bg-(--secondary-color)"
           sx={{
             boxShadow: "0px 2px 8px rgba(var(--secondary-color-rgb),0.1)"
           }}
         >
-          <Box className="grid grid-cols-6 gap-2">
-            <TextBox
-              sx={{ marginTop: "5px", fontSize: "15px" }}
-              id="plate-group"
-              label={t('component.plate-group')}
-              placeholder={t('placeholder.plate-group')}
-              labelFontSize="14px"
-              value={formData.plate_group}
-              onChange={(event) =>
-                handleTextChange("plate_group", event.target.value)
-              }
-              onKeyPress={handleSearchOnEnter}
-            />
+          <TextBox
+            sx={{ marginTop: "5px", fontSize: "15px" }}
+            id="pid-and-water-mark"
+            label={t('component.pid-and-water-mark')}
+            placeholder={t('placeholder.pid-and-water-mark')}
+            labelFontSize="14px"
+            value={formData.pid_or_water_mark}
+            onChange={(event) =>
+              handleTextChange("pid_or_water_mark", event.target.value)
+            }
+            onKeyPress={handleSearchOnEnter}
+          />
 
-            <TextBox
-              sx={{ marginTop: "5px", fontSize: "15px" }}
-              id="plate-number"
-              label={t('component.plate-number')}
-              placeholder={t('placeholder.plate-number')}
-              labelFontSize="14px"
-              value={formData.plate_number}
-              onChange={(event) =>
-                handleTextChange("plate_number", event.target.value)
-              }
-              onKeyPress={handleSearchOnEnter}
-            />
-
-            <AutoComplete 
-              id="province-select"
-              sx={{ marginTop: "5px" }}
-              value={formData.province_id}
-              onChange={(event, value) => handleDropdownChange(event, "province_id", value)}
-              options={provinceOptions}
-              label={t('component.plate-province')}
-              placeholder={t('placeholder.plate-province')}
-              labelFontSize="14px"
-            />
-
-            <TextBox
-              sx={{ marginTop: "5px", fontSize: "15px" }}
-              id="pid-or-watermark"
-              label={t('component.pid-and-water-mark')}
-              placeholder={t('placeholder.pid-and-water-mark')}
-              labelFontSize="14px"
-              value={formData.pid_or_water_mark}
-              onChange={(event) =>
-                handleTextChange("pid_or_water_mark", event.target.value)
-              }
-              onKeyPress={handleSearchOnEnter}
-            />
-
-            <div className='flex col-span-2 gap-2'>
-              <div className='w-[50%]'>
-                <AutoComplete 
-                  id="title-select"
-                  sx={{ marginTop: "5px" }}
-                  value={formData.title_id}
-                  onChange={(event, value) => handleDropdownChange(event, "title_id", value)}
-                  options={titleOptions}
-                  label={t('component.title')}
-                  placeholder={t('placeholder.title')}
-                  labelFontSize="14px"
-                />
-              </div>
-
-              <TextBox
-                sx={{ marginTop: "5px", fontSize: "15px" }}
-                id="full-name"
-                label={t('component.first-name-last-name')}
-                placeholder={t('placeholder.first-name-last-name')}
+          <div className='flex col-span-2 gap-2'>
+            <div className='w-[60%]'>
+              <AutoComplete 
+                id="title-select"
+                sx={{ marginTop: "5px" }}
+                value={formData.title_id}
+                onChange={(event, value) => handleDropdownChange(event, "title_id", value)}
+                options={titleOptions}
+                label={t('component.title')}
+                placeholder={t('placeholder.title')}
                 labelFontSize="14px"
-                value={formData.name}
-                onChange={(event) =>
-                  handleTextChange("name", event.target.value)
-                }
-                onKeyPress={handleSearchOnEnter}
               />
             </div>
-          </Box>
 
-          <Box className="grid grid-cols-[repeat(6,1fr)_180px] gap-2">
-            <AutoComplete 
-              id="agency-select"
-              sx={{ marginTop: "5px"}}
-              value={formData.agency_id}
-              onChange={(event, value) => handleDropdownChange(event, "agency_id", value)}
-              options={agencyOptions}
-              label={t('component.agency')}
-              placeholder={t('placeholder.agency')}
+            <TextBox
+              sx={{ marginTop: "5px", fontSize: "15px" }}
+              id="full-name"
+              label={t('component.first-name-last-name')}
+              placeholder={t('placeholder.first-name-last-name')}
               labelFontSize="14px"
+              value={formData.name}
+              onChange={(event) =>
+                handleTextChange("name", event.target.value)
+              }
+              onKeyPress={handleSearchOnEnter}
             />
+          </div>
 
-            <AutoComplete 
-              id="bh-select"
-              sx={{ marginTop: "5px" }}
-              value={formData.bh_id}
-              onChange={(event, value) => handleDropdownChange(event, "bh_id", value)}
-              options={bhOptions}
-              label={t('component.bh')}
-              placeholder={t('placeholder.bh')}
-              labelFontSize="14px"
-              disabled={formData.agency_id === "0"}
-            />
+          <DatePickerBuddhist
+            value={formData.start_date_time}
+            sx={{
+              marginTop: "5px",
+              borderRadius: "5px",
+              "& .MuiTextField-root": {
+                height: "fit-content",
+              },
+              "& .MuiOutlinedInput-input": {
+                fontSize: 14,
+              },
+            }}
+            className="w-full"
+            id="start-date-time"
+            onChange={(value) =>
+              handleDateTimeChange("start_date_time", value)
+            }
+            label={t('component.start-date')}
+            labelFontSize="14px"
+          />
 
-            <AutoComplete 
-              id="bk-select"
-              sx={{ marginTop: "5px" }}
-              value={formData.bk_id}
-              onChange={(event, value) => handleDropdownChange(event, "bk_id", value)}
-              options={bkOptions}
-              label={t('component.bk')}
-              placeholder={t('placeholder.bk')}
-              labelFontSize="14px"
-              disabled={formData.agency_id === "0" || formData.bh_id === "0"}
-            />
+          <DatePickerBuddhist
+            value={formData.end_date_time}
+            sx={{
+              marginTop: "5px",
+              borderRadius: "5px",
+              "& .MuiTextField-root": {
+                height: "fit-content",
+              },
+              "& .MuiOutlinedInput-input": {
+                fontSize: 14,
+              },
+            }}
+            className="w-full"
+            id="end-date-time"
+            onChange={(value) =>
+              handleDateTimeChange("end_date_time", value)
+            }
+            label={t('component.end-date')}
+            labelFontSize="14px"
+          />
 
-            <AutoComplete 
-              id="org-select"
-              sx={{ marginTop: "5px" }}
-              value={formData.org_id}
-              onChange={(event, value) => handleDropdownChange(event, "org_id", value)}
-              options={orgOptions}
-              label={t('component.org')}
-              placeholder={t('placeholder.org')}
-              labelFontSize="14px"
-              disabled={formData.agency_id === "0" || formData.bh_id === "0" || formData.bk_id === "0"}
-            />
+          <AutoComplete 
+            id="agency-select"
+            sx={{ marginTop: "5px"}}
+            value={formData.agency_id}
+            onChange={(event, value) => handleDropdownChange(event, "agency_id", value)}
+            options={agencyOptions}
+            label={t('component.agency')}
+            placeholder={t('placeholder.agency')}
+            labelFontSize="14px"
+          />
 
-            <DatePickerBuddhist
-              value={formData.start_date_time}
-              sx={{
-                marginTop: "5px",
-                borderRadius: "5px",
-                backgroundColor: "white",
-                "& .MuiTextField-root": {
-                  height: "fit-content",
+          <AutoComplete 
+            id="bh-select"
+            sx={{ marginTop: "5px" }}
+            value={formData.bh_id}
+            onChange={(event, value) => handleDropdownChange(event, "bh_id", value)}
+            options={bhOptions}
+            label={t('component.bh')}
+            placeholder={t('placeholder.bh')}
+            labelFontSize="14px"
+            disabled={formData.agency_id === "0"}
+          />
+
+          <AutoComplete 
+            id="bk-select"
+            sx={{ marginTop: "5px" }}
+            value={formData.bk_id}
+            onChange={(event, value) => handleDropdownChange(event, "bk_id", value)}
+            options={bkOptions}
+            label={t('component.bk')}
+            placeholder={t('placeholder.bk')}
+            labelFontSize="14px"
+            disabled={formData.agency_id === "0" || formData.bh_id === "0"}
+          />
+
+          <AutoComplete 
+            id="org-select"
+            sx={{ marginTop: "5px" }}
+            value={formData.org_id}
+            onChange={(event, value) => handleDropdownChange(event, "org_id", value)}
+            options={orgOptions}
+            label={t('component.org')}
+            placeholder={t('placeholder.org')}
+            labelFontSize="14px"
+            disabled={formData.agency_id === "0" || formData.bh_id === "0" || formData.bk_id === "0"}
+          />
+
+          <Box className="flex gap-2 items-end">
+            <Button 
+              variant="contained" 
+              startIcon={<img src={ClearIcon} alt="Clear" className="h-6 w-6" />} 
+              sx={{ 
+                backgroundColor: "var(--primary-color)", 
+                fontSize: "14px", 
+                width: t('button.clear-width'),
+                height: "40px",
+                ":hover": {
+                  backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
                 },
-                "& .MuiOutlinedInput-input": {
-                  fontSize: 14,
+                textTransform: "capitalize",
+              }}
+              onClick={handleClear}
+            >
+              {t('button.clear')}
+            </Button>
+            <IconButton 
+              sx={{ 
+                border: "1px solid var(--primary-color)", 
+                width: "40px", 
+                height: "40px", 
+                borderRadius: "5px",
+                "&:hover": {
+                  backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
                 },
               }}
-              className="w-full"
-              id="start-date-time"
-              onChange={(value) =>
-                handleDateTimeChange("start_date_time", value)
-              }
-              label={t('component.start-date')}
-              labelFontSize="14px"
-            />
-
-            <DatePickerBuddhist
-              value={formData.end_date_time}
-              sx={{
-                marginTop: "5px",
+              onClick={handleExportPdf}
+            >
+              <img src={ExportPdfIcon} alt="Export PDF" className="h-6 w-6" />
+            </IconButton>
+            <IconButton 
+              sx={{ 
+                border: "1px solid var(--primary-color)", 
+                width: "40px", 
+                height: "40px", 
                 borderRadius: "5px",
-                backgroundColor: "white",
-                "& .MuiTextField-root": {
-                  height: "fit-content",
-                },
-                "& .MuiOutlinedInput-input": {
-                  fontSize: 14,
+                "&:hover": {
+                  backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
                 },
               }}
-              className="w-full"
-              id="end-date-time"
-              onChange={(value) =>
-                handleDateTimeChange("end_date_time", value)
-              }
-              label={t('component.end-date')}
-              labelFontSize="14px"
-            />
-
-            <Box className="flex gap-2 items-end">
-              <Button 
-                variant="contained" 
-                startIcon={<img src={ClearIcon} alt="Clear" className="h-6 w-6" />} 
-                sx={{ 
-                  backgroundColor: "var(--primary-color)", 
-                  fontSize: "14px", 
-                  width: t('button.clear-width'),
-                  height: "40px",
-                  ":hover": {
-                    backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
-                  },
-                  textTransform: "capitalize",
-                }}
-                onClick={handleClear}
-              >
-                {t('button.clear')}
-              </Button>
-              <IconButton 
-                sx={{ 
-                  border: "1px solid var(--primary-color)", 
-                  width: "40px", 
-                  height: "40px", 
-                  borderRadius: "5px",
-                  "&:hover": {
-                    backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
-                  },
-                }}
-                onClick={handleExportPdf}
-              >
-                <img src={ExportPdfIcon} alt="Export PDF" className="h-6 w-6" />
-              </IconButton>
-              <IconButton 
-                sx={{ 
-                  border: "1px solid var(--primary-color)", 
-                  width: "40px", 
-                  height: "40px", 
-                  borderRadius: "5px",
-                  "&:hover": {
-                    backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
-                  },
-                }}
-                onClick={handleExportExcel}
-              >
-                <img src={ExportExcelIcon} alt="Export CSV" className="h-6 w-6" />
-              </IconButton>
-            </Box>
+              onClick={handleExportExcel}
+            >
+              <img src={ExportExcelIcon} alt="Export CSV" className="h-6 w-6" />
+            </IconButton>
           </Box>
         </Box>
 
@@ -1085,12 +1000,6 @@ const StatisticSearchLogPlate = () => {
                     sx={{ color: "#FFFFFF", minWidth: "200px" }}
                   >
                     {t('table.header.date')}
-                  </TableCell>
-                  <TableCell
-                    align="center"
-                    sx={{ color: "#FFFFFF", minWidth: "600px" }}
-                  >
-                    {t('table.header.detail')}
                   </TableCell>
                   <TableCell
                     align="center"
@@ -1196,18 +1105,6 @@ const StatisticSearchLogPlate = () => {
                         px: 1,
                       }}
                     >
-                      {"-"}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        backgroundColor: "var(--secondary-color)",
-                        color: "var(--tertiary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
-                        textAlign: "center",
-                        py: 1,
-                        px: 1,
-                      }}
-                    >
                       {data.request_ip}
                     </TableCell>
                     <TableCell
@@ -1222,7 +1119,7 @@ const StatisticSearchLogPlate = () => {
                       }}
                       onClick={(event) => showLocationDialog(event, data)}
                     >
-                      <a>{`${data.location_webui?.lat}, ${data.location_webui?.lng}`}</a>
+                      <a>{`${data.location_webui?.lat?.toFixed(5)}, ${data.location_webui?.lng?.toFixed(5)}`}</a>
                     </TableCell>
                     <TableCell
                       sx={{
@@ -1283,7 +1180,7 @@ const StatisticSearchLogPlate = () => {
               <LocationUsage
                 open={locationDialogOpen}
                 handleClose={handleLocationDialogClose}
-                dialogTitle={t('modal.usage-coordinates-search-plate')}
+                dialogTitle={t('modal.usage-coordinates')}
                 data={selectedData}
               />
             )
@@ -1294,4 +1191,4 @@ const StatisticSearchLogPlate = () => {
   )
 }
 
-export default StatisticSearchLogPlate;
+export default StatisticAccessLog;

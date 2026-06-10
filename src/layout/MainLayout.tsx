@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
+import { useSelector } from 'react-redux';
 
 // Components
 import Navbar from "./Navbar";
@@ -12,6 +13,9 @@ import backgroundVideo from "../assets/video/background_video.mp4";
 // i18n
 import { useTranslation } from "react-i18next";
 
+// Store
+import type { RootState } from "../store/store";
+
 const MainLayout = () => {
   // i18n
   const { i18n } = useTranslation();
@@ -20,6 +24,8 @@ const MainLayout = () => {
   const [open, setOpen] = useState(false);
 
   const location = useLocation();
+
+  const user = useSelector((state: RootState) => state.authUser.user);
 
   const hashPid = localStorage.getItem("hash_id") || "NO HASH ID";
   const nsbOu = JSON.parse(localStorage.getItem("nsbOu") || "{}");

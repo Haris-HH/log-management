@@ -1,6 +1,6 @@
 // Types
 import type { 
-  DropdownResponse,
+  AreaResponse,
   ProvinceResponse,
   DistrictResponse,
   SubdistrictResponse,
@@ -9,6 +9,9 @@ import type {
   NsbBkResponse,
   NsbOrgResponse,
   TitleResponse,
+  LprRegionResponse,
+  DeviceStatusResponse,
+  ProjectResponse,
 } from "../../../types/response";
 
 // Api
@@ -24,29 +27,26 @@ import { mockProject } from "../../../mocks/mockProject";
 import { mockProvince } from "../../../mocks/mockProvince";
 import { mockDistrict } from "../../../mocks/mockDistricts";
 import { mockSubdistrict } from "../../../mocks/mockSubDistricts";
-import { mockCheckpointType } from "../../../mocks/mockCheckpointType";
+import { mockDeviceStatus } from "../../../mocks/mockDeviceStatus";
 import { mockTitle } from "../../../mocks/mockTitle";
+import { mockLprRegion } from "../../../mocks/mockLprRegions";
 
 // Env
 const isDev = import.meta.env.VITE_IS_DEV;
 
-export const getArea = async (): Promise<DropdownResponse> => {
+export const getArea = async (): Promise<AreaResponse> => {
   if (isDev) {
-    return {
-      data: mockArea,
-    };
+    return mockArea;
   }
 
-  const res = await fetchClient<DropdownResponse>(
-    "/masterdata/police-stations/get",
+  const res = await fetchClient<AreaResponse>(
+    "/masterdata/police-regions/get",
     {
       method: "GET",
     },
   );
 
-  return {
-    data: res.data,
-  };
+  return res;
 };
 
 export const getAgency = async (): Promise<NsbOuResponse> => {
@@ -109,23 +109,19 @@ export const getOrg = async (): Promise<NsbOrgResponse> => {
   return res;
 };
 
-export const getProject = async (): Promise<DropdownResponse> => {
+export const getProject = async (): Promise<ProjectResponse> => {
   if (isDev) {
-    return {
-      data: mockProject,
-    };
+    return mockProject;
   }
 
-  const res = await fetchClient<DropdownResponse>(
-    "/option/project",
+  const res = await fetchClient<ProjectResponse>(
+    "/core-data/projects/get",
     {
       method: "GET",
     },
   );
 
-  return {
-    data: res.data,
-  };
+  return res;
 };
 
 export const getProvince = async (): Promise<ProvinceResponse> => {
@@ -173,10 +169,19 @@ export const getSubdistrict = async (): Promise<SubdistrictResponse> => {
   return res;
 };
 
-export const getCheckpointType = async (): Promise<DropdownResponse> => {
-  return {
-    data: mockCheckpointType,
-  };
+export const getDeviceStatus = async (): Promise<DeviceStatusResponse> => {
+  if (isDev) {
+    return mockDeviceStatus;
+  }
+
+  const res = await fetchClient<DeviceStatusResponse>(
+    "/masterdata/device-statuses/get",
+    {
+      method: "GET",
+    },
+  );
+
+  return res;
 };
 
 export const getTitle = async (): Promise<TitleResponse> => {
@@ -193,3 +198,19 @@ export const getTitle = async (): Promise<TitleResponse> => {
   
   return res;
 };
+
+export const getLprRegion = async (): Promise<LprRegionResponse> => {
+  if (isDev) {
+    return mockLprRegion;
+  }
+
+  const res = await fetchClient<LprRegionResponse>(
+    "/masterdata/lpr-regions/get",
+    {
+      method: "GET",
+    },
+  );
+  
+  return res;
+};
+

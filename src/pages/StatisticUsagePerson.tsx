@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import dayjs from 'dayjs';
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from 'react-redux';
+import { saveAs } from "file-saver";
+import JSZip from "jszip";
 
 // Material UI
 import Box from "@mui/material/Box";
@@ -31,10 +33,11 @@ import { ROWS_PER_PAGE_OPTIONS } from "../constants/dropdown";
 // PDF
 import {
   downloadStatisticUsagePersonPdf,
+  generateStatisticUsagePersonPdfBlob,
 } from "../pdf/StatisticUsagePersonPdf";
 
 // Types
-import type { AccessLog } from "../types/common";
+import type { UsageLog } from "../types/common";
 import type { PersonUsagePdfData } from "../types/pdf";
 
 // i18n
@@ -48,7 +51,7 @@ import InformationIcon from "../assets/icons/information.png";
 
 // Utils
 import { buildOptions } from "../utils/commonFunctions";
-import { exportExcel } from "../utils/exportData";
+import { exportExcel, generateExcelBlob } from "../utils/exportData";
 import { PopupMessage, PopupMessageWithCancel } from '../utils/popupMessage';
 
 // Hooks
@@ -58,10 +61,11 @@ import usePageTitle from "../hooks/usePageTitle";
 import type { RootState } from "../store/store";
 
 // API
-import { searchAccessLogs } from "../features/usage-data/api/UsageDataApi";
+import { searchUsageLogs } from "../features/usage-data/api/UsageDataApi";
 import { getUserApi } from '../features/users/api/UsersApi';
 
 interface FormData {
+  title_id: string;
   name: string;
   pid_or_water_mark: string;
   agency_id: string;
@@ -82,27 +86,30 @@ const StatisticUsagePerson = () => {
   // State
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchTrigger, setSearchTrigger] = useState(0);
 
   // Data
-  const [rows, setRows] = useState<AccessLog[]>([]);
+  const [rows, setRows] = useState<UsageLog[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [totalUsage, setTotalUsage] = useState(0);
-  const [selectedData, setSelectedData] = useState<AccessLog | null>(null);
+  const [selectedData, setSelectedData] = useState<UsageLog | null>(null);
 
   // Options
   const [agencyOptions, setAgencyOptions] = useState<{ label: string, value: string }[]>([]);
   const [bhOptions, setBhOptions] = useState<{ label: string, value: string }[]>([]);
   const [bkOptions, setBkOptions] = useState<{ label: string, value: string }[]>([]);
   const [orgOptions, setOrgOptions] = useState<{ label: string, value: string }[]>([]);
-
+  const [titleOptions, setTitleOptions] = useState<{ label: string, value: string }[]>([]);
+  
   // Constants
-  const CHUNK_SIZE = 500;
-  const REQUEST_LIMIT = 5000;
+  const CHUNK_SIZE = 1000;
+  const REQUEST_LIMIT = 1000;
 
   // Form Data
   const [formData, setFormData] = useState<FormData>(() => {
     if (location.state?.fromNavigate && location.state?.filters) {
       return {
+        title_id: "0",
         name: "",
         pid_or_water_mark: "",
         agency_id: location.state.filters.agency_id,
@@ -115,6 +122,7 @@ const StatisticUsagePerson = () => {
     }
 
     return {
+      title_id: "0",
       name: "",
       pid_or_water_mark: "",
       agency_id: "0",
@@ -148,6 +156,7 @@ const StatisticUsagePerson = () => {
     const langKeyBh = i18n.language === "th" ? "bh_abbr_th" : "bh_abbr_en";
     const langKeyBk = i18n.language === "th" ? "bk_abbr_th" : "bk_abbr_en";
     const langKeyOrg = i18n.language === "th" ? "org_abbr_th" : "org_abbr_en";
+    const langKeyTitle = i18n.language === "th" ? "title_abbr_th" : "title_abbr_en";
 
     setAgencyOptions(
       buildOptions(agency, t("dropdown.all-agency"), langKeyAgency, "ou_code")
@@ -179,6 +188,10 @@ const StatisticUsagePerson = () => {
     setOrgOptions(
       buildOptions(filteredOrg, t("dropdown.all-org"), langKeyOrg, "org_code")
     );
+
+    setTitleOptions(
+      buildOptions(title, t("dropdown.all-title"), langKeyTitle, "id")
+    );
   }, [
     agency,
     bh,
@@ -192,10 +205,25 @@ const StatisticUsagePerson = () => {
 
   useEffect(() => {
     fetchData(formData);
-  }, [formData, agency, bh, bk, org]);
+  }, [
+    formData.title_id,
+    formData.agency_id,
+    formData.bh_id,
+    formData.bk_id,
+    formData.org_id,
+    formData.start_date_time,
+    formData.end_date_time,
+    page,
+    rowsPerPage,
+    searchTrigger,
+    agency,
+    bh,
+    bk,
+    org,
+  ]);
 
-  const mapAccessLogRows = useCallback(
-    async (data: AccessLog[]): Promise<AccessLog[]> => {
+  const mapUsageLogRows = useCallback(
+    async (data: UsageLog[]): Promise<UsageLog[]> => {
       const rows = await Promise.all(
         data.map(async (item) => {
           const userRes = await getUserApi({
@@ -246,7 +274,7 @@ const StatisticUsagePerson = () => {
 
       return rows;
     },
-    [agency, bh, bk, org, i18n.language]
+    [title, agency, bh, bk, org, i18n.language]
   );
 
   const fetchData = useCallback(
@@ -254,7 +282,7 @@ const StatisticUsagePerson = () => {
       try {
         setIsLoading(true);
 
-        const res = await searchAccessLogs(
+        const res = await searchUsageLogs(
           {},
           {
             groupBy: "user_id",
@@ -265,7 +293,7 @@ const StatisticUsagePerson = () => {
           }
         );
 
-        const updatedRows = await mapAccessLogRows(res.data);
+        const updatedRows = await mapUsageLogRows(res.data);
 
         const totalUsage = res.data.reduce(
           (sum, item) => sum + (item.total ?? 0),
@@ -290,7 +318,7 @@ const StatisticUsagePerson = () => {
         setIsLoading(false);
       }
     }, 
-    [agency, bh, bk, org, i18n.language]
+    [formData, page, title, agency, rowsPerPage, bh, bk, org, i18n.language]
   );
 
   const handleDropdownChange = (
@@ -340,6 +368,7 @@ const StatisticUsagePerson = () => {
 
   const handleClear = () => {
     setFormData({
+      title_id: "0",
       name: "",
       pid_or_water_mark: "",
       agency_id: "0",
@@ -353,7 +382,11 @@ const StatisticUsagePerson = () => {
 
   const handleExportPdf = async () => {
     try {
-      let exportRows = rows;
+      setIsLoading(true);
+
+      const dateFormat = i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD";
+      const startDate = dayjs(formData.start_date_time).format(dateFormat);
+      const endDate = dayjs(formData.end_date_time).format(dateFormat);
 
       if (totalData > CHUNK_SIZE) {
         const isConfirmed = await PopupMessageWithCancel(
@@ -367,30 +400,63 @@ const StatisticUsagePerson = () => {
         );
 
         if (!isConfirmed) return;
-      } 
 
-      setIsLoading(true);
+        const zip = new JSZip();
+        const totalFiles = Math.ceil(totalData / CHUNK_SIZE);
 
-      const res = await searchAccessLogs(
+        for (let page = 1; page <= totalFiles; page++) {
+          const res = await searchUsageLogs(
+            {},
+            {
+              limit: CHUNK_SIZE.toString(),
+              page: page.toString(),
+              ...getFilters(formData),
+            }
+          );
+
+          const formattedData = await mapUsageLogRows(res.data);
+
+          const fileName = `${t(
+            "file-name.statistic-usage-person"
+          )}_${startDate}_${endDate}_${page}.pdf`;
+
+          const blob = await generateStatisticUsagePersonPdfBlob(
+            buildPdfData(formattedData),
+            t,
+            i18n
+          );
+
+          zip.file(fileName, blob);
+
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+
+        saveAs(
+          zipBlob,
+          `PDF_${t("file-name.statistic-usage-person")}_${dayjs().format(
+            "YYYY-MM-DD"
+          )}.zip`
+        );
+
+        return;
+      }
+
+      const res = await searchUsageLogs(
         {},
         {
-          groupBy: "org_code",
           limit: REQUEST_LIMIT.toString(),
           page: "1",
-          orderBy: "org_code",
           ...getFilters(formData),
         }
       );
 
-      exportRows = await mapAccessLogRows(res.data);
+      const exportRows = await mapUsageLogRows(res.data);
 
-      const dateFormat = i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD";
-
-      const pdfName = `${t("file-name.statistic-usage-person")}_${dayjs(
-        formData.start_date_time
-      ).format(dateFormat)}_${dayjs(formData.end_date_time).format(
-        dateFormat
-      )}.pdf`;
+      const pdfName = `${t(
+        "file-name.statistic-usage-person"
+      )}_${startDate}_${endDate}.pdf`;
 
       await downloadStatisticUsagePersonPdf(
         buildPdfData(exportRows),
@@ -398,16 +464,20 @@ const StatisticUsagePerson = () => {
         t,
         i18n
       );
-    }
+    } 
     catch (error) {
-      await PopupMessage(t("popup.export-error-title"), t("popup.export-error-message"), "error");
+      await PopupMessage(
+        t("popup.export-error-title"),
+        t("popup.export-error-message"),
+        "error"
+      );
     } 
     finally {
       setIsLoading(false);
     }
   };
 
-  const buildPdfData = (personUsage: AccessLog[]): PersonUsagePdfData => {
+  const buildPdfData = (personUsage: UsageLog[]): PersonUsagePdfData => {
     const selectedAgency = agency.find(
       (a) => a.ou_code === formData.agency_id
     );
@@ -474,8 +544,38 @@ const StatisticUsagePerson = () => {
 
   const handleExportExcel = async () => {
     try {
-      let exportRows = rows;
-      
+      const dateFormat = i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD";
+
+      const startDate = dayjs(formData.start_date_time).format(dateFormat);
+      const endDate = dayjs(formData.end_date_time).format(dateFormat);
+
+      const baseFileName = `${t(
+        "file-name.statistic-usage-person"
+      )}_${startDate}_${endDate}`;
+
+      const headers = [
+        t('table.header.no'),
+        t('table.header.count'),
+        t('table.header.agency'),
+        t('table.header.bh'),
+        t('table.header.bk'),
+        t('table.header.org'),
+      ];
+
+      const mapRow = (data: any, index: number) => [
+        index + 1,
+        Number(data.total || 0).toLocaleString(),
+        data.ou_name || "-",
+        data.bh_name || "-",
+        data.bk_name || "-",
+        data.org_name || "-",
+      ];
+
+      const columnStyles = {
+        1: { alignment: { horizontal: "center" as const } },
+        2: { alignment: { horizontal: "right" as const } },
+      };
+
       if (totalData > CHUNK_SIZE) {
         const isConfirmed = await PopupMessageWithCancel(
           t("popup.export-chunk-confirm-title"),
@@ -488,10 +588,55 @@ const StatisticUsagePerson = () => {
         );
 
         if (!isConfirmed) return;
+
+        setIsLoading(true);
+
+        const zip = new JSZip();
+        const totalFiles = Math.ceil(totalData / CHUNK_SIZE);
+
+        for (let pageIndex = 1; pageIndex <= totalFiles; pageIndex++) {
+          const res = await searchUsageLogs(
+            {},
+            {
+              groupBy: "user_id",
+              limit: CHUNK_SIZE.toString(),
+              page: pageIndex.toString(),
+              orderBy: "user_id",
+              ...getFilters(formData),
+            }
+          );
+
+          const exportRows = await mapUsageLogRows(res.data);
+
+          const blob = await generateExcelBlob({
+            sheetName: t("file-name.statistic-usage-person"),
+            headers,
+            data: exportRows,
+            mapRow: (data, index) => [
+              (pageIndex - 1) * CHUNK_SIZE + index + 1,
+              Number(data.total || 0).toLocaleString(),
+              data.ou_name || "-",
+              data.bh_name || "-",
+              data.bk_name || "-",
+              data.org_name || "-",
+            ],
+            columnStyles,
+          });
+
+          zip.file(`${baseFileName}_${pageIndex}.xlsx`, blob);
+
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        saveAs(zipBlob, `Excel_${baseFileName}.zip`);
+
+        return;
       }
+
       setIsLoading(true);
 
-      const res = await searchAccessLogs(
+      const res = await searchUsageLogs(
         {},
         {
           groupBy: "user_id",
@@ -502,40 +647,23 @@ const StatisticUsagePerson = () => {
         }
       );
 
-      exportRows = await mapAccessLogRows(res.data);
+      const exportRows = await mapUsageLogRows(res.data);
 
-      const dateFormat = i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD";
       await exportExcel({
-        sheetName: `${t('file-name.statistic-usage-person')}`,
-        fileName: `${t('file-name.statistic-usage-person')}_${dayjs(formData.start_date_time).format(dateFormat)}_${dayjs(formData.end_date_time).format(dateFormat)}.xlsx`,
-        headers: [
-          t('table.header.no'),
-          t('table.header.count'),
-          t('table.header.first-name-last-name'),
-          t('table.header.pid-full'),
-          t('table.header.agency'),
-          t('table.header.bh'),
-          t('table.header.bk'),
-          t('table.header.org'),
-        ],
+        sheetName: t("file-name.statistic-usage-person"),
+        fileName: `${baseFileName}.xlsx`,
+        headers,
         data: exportRows,
-        mapRow: (data, index) => [
-          (page - 1) * rowsPerPage + index + 1,
-          (data.total || 0).toLocaleString(),
-          `${data.title || ""}${data.firstname} ${data.lastname}`,
-          data.idcard,
-          data.ou_name,
-          data.bh_name,
-          data.bk_name,
-          data.org_name,
-        ],
-        columnStyles: {
-          2: { alignment: { horizontal: "center" } },
-        },
+        mapRow,
+        columnStyles,
       });
-    }
+    } 
     catch (error) {
-      await PopupMessage(t("popup.export-error-title"), t("popup.export-error-message"), "error");
+      await PopupMessage(
+        t("popup.export-error-title"),
+        t("popup.export-error-message"),
+        "error"
+      );
     } 
     finally {
       setIsLoading(false);
@@ -555,7 +683,7 @@ const StatisticUsagePerson = () => {
     setRowsPerPage(limit);
   };
 
-  const showDetailDialog = (data: AccessLog) => {
+  const showDetailDialog = (data: UsageLog) => {
     setSelectedData(data);
     setDetailDialogOpen(true);
   };
@@ -589,16 +717,41 @@ const StatisticUsagePerson = () => {
   const getFilters = (data: FormData) => {
     const filters: string[] = [];
 
-    if (data.pid_or_water_mark) filters.push(`idcard=${data.pid_or_water_mark}`);
-    if (data.name) filters.push(`firstname=${data.name}`);
-    if (data.agency_id !== "0") filters.push(`ou_code=${data.agency_id}`);
-    if (data.bh_id !== "0") filters.push(`bh_code=${data.bh_id}`);
-    if (data.bk_id !== "0") filters.push(`bk_code=${data.bk_id}`);
-    if (data.org_id !== "0") filters.push(`org_code=${data.org_id}`);
+    const pid = data.pid_or_water_mark.trim();
+    const name = data.name.trim();
+
+    if (pid) {
+      filters.push(`idcard=${encodeURIComponent(pid)}`);
+    }
+
+    if (name) {
+      filters.push(`fullname=${encodeURIComponent(name)}`);
+    }
+
+    if (data.title_id !== "0") {
+      filters.push(`title_id=${data.title_id}`);
+    }
+
+    if (data.agency_id !== "0") {
+      filters.push(`ou_code=${data.agency_id}`);
+    }
+
+    if (data.bh_id !== "0") {
+      filters.push(`bh_code=${data.bh_id}`);
+    }
+
+    if (data.bk_id !== "0") {
+      filters.push(`bk_code=${data.bk_id}`);
+    }
+
+    if (data.org_id !== "0") {
+      filters.push(`org_code=${data.org_id}`);
+    }
 
     filters.push(
       `log_timestamp>=${dayjs(data.start_date_time).format("YYYY-MM-DD")}`
     );
+
     filters.push(
       `log_timestamp<=${dayjs(data.end_date_time).format("YYYY-MM-DD")}`
     );
@@ -606,6 +759,15 @@ const StatisticUsagePerson = () => {
     return {
       filter: filters.join(","),
     };
+  };
+
+  const handleSearchOnEnter = (
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (event.key === "Enter") {
+      setPage(1);
+      setSearchTrigger((prev) => prev + 1);
+    }
   };
 
   return (
@@ -616,7 +778,7 @@ const StatisticUsagePerson = () => {
       <div className='p-4 bg-(--main-bg-color)/80 flex flex-1 flex-col gap-4 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-y-auto'>
         {/* Search Filters */}
         <Box 
-          className="grid grid-cols-[repeat(8,minmax(0,1fr))_180px] border border-(--primary-color) rounded-[10px] p-4 gap-2 bg-(--secondary-color)"
+          className="grid grid-cols-[repeat(9,minmax(0,1fr))_180px] border border-(--primary-color) rounded-[10px] p-4 gap-2 bg-(--secondary-color)"
           sx={{
             boxShadow: "0px 2px 8px rgba(var(--secondary-color-rgb),0.1)"
           }}
@@ -631,19 +793,36 @@ const StatisticUsagePerson = () => {
             onChange={(event) =>
               handleTextChange("pid_or_water_mark", event.target.value)
             }
+            onKeyPress={handleSearchOnEnter}
           />
 
-          <TextBox
-            sx={{ marginTop: "5px", fontSize: "15px" }}
-            id="full-name"
-            label={t('component.first-name-last-name')}
-            placeholder={t('placeholder.first-name-last-name')}
-            labelFontSize="14px"
-            value={formData.name}
-            onChange={(event) =>
-              handleTextChange("name", event.target.value)
-            }
-          />
+          <div className='flex col-span-2 gap-2'>
+            <div className='w-[60%]'>
+              <AutoComplete 
+                id="title-select"
+                sx={{ marginTop: "5px" }}
+                value={formData.title_id}
+                onChange={(event, value) => handleDropdownChange(event, "title_id", value)}
+                options={titleOptions}
+                label={t('component.title')}
+                placeholder={t('placeholder.title')}
+                labelFontSize="14px"
+              />
+            </div>
+
+            <TextBox
+              sx={{ marginTop: "5px", fontSize: "15px" }}
+              id="full-name"
+              label={t('component.first-name-last-name')}
+              placeholder={t('placeholder.first-name-last-name')}
+              labelFontSize="14px"
+              value={formData.name}
+              onChange={(event) =>
+                handleTextChange("name", event.target.value)
+              }
+              onKeyPress={handleSearchOnEnter}
+            />
+          </div>
 
           <DatePickerBuddhist
             value={formData.start_date_time}

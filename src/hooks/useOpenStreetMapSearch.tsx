@@ -3,7 +3,7 @@ import L, { Map as LeafletMap, LatLngBounds, Polyline } from 'leaflet';
 
 // Types
 import type { SearchResult } from '../types/map';
-import type { OverallMapDetail } from "../types/common";
+import type { Device } from "../types/common";
 
 // Utils
 import { parseCoordinates, parseCoordinatesWith2Param } from '../utils/coordinates';
@@ -112,7 +112,7 @@ export const useMapSearch = (
     }
   }, [map, markerManager]);
 
-  const showOverallWithList = useCallback(async (query: OverallMapDetail[]) => {
+  const showOverallWithList = useCallback(async (query: Device[]) => {
     setSearchResults([])
     if (!map) return
     
@@ -122,7 +122,7 @@ export const useMapSearch = (
     try {
       const coordinatesList = [];
       const bounds = new LatLngBounds([]);
-      const locationList: OverallMapDetail[] = [];
+      const locationList: Device[] = [];
 
       for (const q of query) {
         const coordinates = parseCoordinates(`${q.latitude}, ${q.longitude}`)

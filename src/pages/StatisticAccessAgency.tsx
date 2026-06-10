@@ -17,7 +17,6 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import IconButton from "@mui/material/IconButton";
-import TextBox from "../components/text-box/TextBox";
 
 // Components
 import MainTitle from '../components/main-title/MainTitle';
@@ -32,13 +31,13 @@ import { ROWS_PER_PAGE_OPTIONS } from "../constants/dropdown";
 
 // PDF
 import {
-  downloadStatisticSearchAgencyPlatePdf,
-  generateStatisticSearchAgencyPlatePdfBlob,
-} from "../pdf/StatisticSearchAgencyPlatePdf";
+  downloadStatisticAccessAgencyPdf,
+  generateStatisticAccessAgencyPdfBlob,
+} from "../pdf/StatisticAccessAgencyPdf";
 
 // Types
-import type { LprSearchLog } from "../types/common";
-import type { SearchAgencyPlatePdfData } from "../types/pdf";
+import type { AccessLog } from "../types/common";
+import type { AgencyUsagePdfData } from "../types/pdf";
 
 // i18n
 import { useTranslation } from 'react-i18next';
@@ -61,12 +60,9 @@ import usePageTitle from "../hooks/usePageTitle";
 import type { RootState } from "../store/store";
 
 // API
-import { searchLprSearchLogs } from "../features/usage-search-data/api/UsageSearchDataApi";
+import { searchAccessLogs } from "../features/access-data/api/AccessDataApi";
 
 interface FormData {
-  plate_group: string;
-  plate_number: string;
-  province_id: string;
   agency_id: string;
   bh_id: string;
   bk_id: string;
@@ -74,7 +70,7 @@ interface FormData {
   end_date_time: Date | null;
 }
 
-const StatisticSearchAgencyPlate = () => {
+const StatisticAccessAgency = () => {
   const navigate = useNavigate();
 
   // i18n
@@ -85,16 +81,15 @@ const StatisticSearchAgencyPlate = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   // Data
-  const [rows, setRows] = useState<LprSearchLog[]>([]);
+  const [rows, setRows] = useState<AccessLog[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [totalUsage, setTotalUsage] = useState(0);
-  const [selectedData, setSelectedData] = useState<LprSearchLog | null>(null);
+  const [selectedData, setSelectedData] = useState<AccessLog | null>(null);
 
   // Options
   const [agencyOptions, setAgencyOptions] = useState<{ label: string, value: string }[]>([]);
   const [bhOptions, setBhOptions] = useState<{ label: string, value: string }[]>([]);
   const [bkOptions, setBkOptions] = useState<{ label: string, value: string }[]>([]);
-  const [provinceOptions, setProvinceOptions] = useState<{ label: string, value: string }[]>([]);
 
   // Constants
   const CHUNK_SIZE = 1000;
@@ -102,9 +97,6 @@ const StatisticSearchAgencyPlate = () => {
 
   // Form Data
   const [formData, setFormData] = useState<FormData>({
-    plate_group: "",
-    plate_number: "",
-    province_id: "0",
     agency_id: "0",
     bh_id: "0",
     bk_id: "0",
@@ -125,9 +117,9 @@ const StatisticSearchAgencyPlate = () => {
   );
 
   // Slice
-  const { agency, bh, bk, lprRegion, org } = useSelector((state: RootState) => state.dropdown);
+  const { agency, bh, bk, org } = useSelector((state: RootState) => state.dropdown);
 
-  usePageTitle(t("pages.statistic-search-agency-plate"));
+  usePageTitle(t("pages.statistic-access-agency"));
 
   useEffect(() => {
     const langKeyAgency = i18n.language === "th" ? "ou_abbr_th" : "ou_abbr_en";
@@ -155,19 +147,10 @@ const StatisticSearchAgencyPlate = () => {
     setBkOptions(
       buildOptions(filteredBk, t("dropdown.all-bk"), langKeyBk, "bk_code")
     );
-
-    setProvinceOptions(
-      buildOptions(
-        lprRegion, "", 
-        i18n.language === "th" ? "name_th" : "name_en", 
-        "region_code",
-        false)
-      );
   }, [
     agency,
     bh,
     bk,
-    lprRegion,
     formData.agency_id,
     formData.bh_id,
     t,
@@ -178,8 +161,8 @@ const StatisticSearchAgencyPlate = () => {
     fetchData(formData);
   }, [formData, agency, bh, bk, org]);
 
-  const mapLprSearchLogRows = useCallback(
-    (data: LprSearchLog[]) => {
+  const mapAccessLogRows = useCallback(
+    (data: AccessLog[]) => {
       return data.map((item) => {
         const agencyData = agency.find((a) => a.ou_code === item.ou_code);
         const bhData = bh.find((b) => b.bh_code === item.bh_code);
@@ -195,8 +178,8 @@ const StatisticSearchAgencyPlate = () => {
             : "-",
           bh_name: bhData
             ? i18n.language === "th"
-              ? bhData.bh_name_th
-              : bhData.bh_name_en
+              ? bhData.bh_abbr_th
+              : bhData.bh_abbr_en
             : "-",
           bk_name: bkData
             ? i18n.language === "th"
@@ -219,7 +202,7 @@ const StatisticSearchAgencyPlate = () => {
       try {
         setIsLoading(true);
 
-        const res = await searchLprSearchLogs(
+        const res = await searchAccessLogs(
           {},
           {
             groupBy: "org_code",
@@ -230,10 +213,10 @@ const StatisticSearchAgencyPlate = () => {
           }
         );
 
-        const updatedRows = mapLprSearchLogRows(res.data);
+        const updatedRows = mapAccessLogRows(res.data);
 
         const totalUsage = res.data.reduce(
-          (sum, item) => sum + (item.total || 0),
+          (sum, item) => sum + (item.total ?? 0),
           0
         );
 
@@ -245,6 +228,7 @@ const StatisticSearchAgencyPlate = () => {
       } 
       catch (error) {
         await PopupMessage(t("popup.fetch-error"), "", "error");
+
         setRows([]);
         setTotalUsage(0);
         setTotalItems(0);
@@ -254,13 +238,9 @@ const StatisticSearchAgencyPlate = () => {
       finally {
         setIsLoading(false);
       }
-    }, 
-    [agency, bh, bk, org, i18n.language]
+    },
+    [formData, rowsPerPage, page, mapAccessLogRows, t]
   );
-
-  const handleTextChange = (key: keyof typeof formData, value: string) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
-  };
 
   const handleDropdownChange = (
     event: React.SyntheticEvent,
@@ -305,9 +285,6 @@ const StatisticSearchAgencyPlate = () => {
 
   const handleClear = () => {
     setFormData({
-      plate_group: "",
-      plate_number: "",
-      province_id: "0",
       agency_id: "0",
       bh_id: "0",
       bk_id: "0",
@@ -341,7 +318,7 @@ const StatisticSearchAgencyPlate = () => {
         const totalFiles = Math.ceil(totalData / CHUNK_SIZE);
 
         for (let page = 1; page <= totalFiles; page++) {
-          const res = await searchLprSearchLogs(
+          const res = await searchAccessLogs(
             {},
             {
               groupBy: "org_code",
@@ -352,13 +329,13 @@ const StatisticSearchAgencyPlate = () => {
             }
           );
 
-          const formattedData = await mapLprSearchLogRows(res.data);
+          const formattedData = await mapAccessLogRows(res.data);
 
           const fileName = `${t(
-            "file-name.statistic-search-agency-plate"
+            "file-name.statistic-access-agency"
           )}_${startDate}_${endDate}_${page}.pdf`;
 
-          const blob = await generateStatisticSearchAgencyPlatePdfBlob(
+          const blob = await generateStatisticAccessAgencyPdfBlob(
             buildPdfData(formattedData),
             t,
             i18n
@@ -373,7 +350,7 @@ const StatisticSearchAgencyPlate = () => {
 
         saveAs(
           zipBlob,
-          `PDF_${t("file-name.statistic-search-agency-plate")}_${dayjs().format(
+          `PDF_${t("file-name.statistic-access-agency")}_${dayjs().format(
             "YYYY-MM-DD"
           )}.zip`
         );
@@ -381,7 +358,7 @@ const StatisticSearchAgencyPlate = () => {
         return;
       }
 
-      const res = await searchLprSearchLogs(
+      const res = await searchAccessLogs(
         {},
         {
           groupBy: "org_code",
@@ -392,13 +369,13 @@ const StatisticSearchAgencyPlate = () => {
         }
       );
 
-      const exportRows = await mapLprSearchLogRows(res.data);
+      const exportRows = await mapAccessLogRows(res.data);
 
       const pdfName = `${t(
-        "file-name.statistic-search-agency-plate"
+        "file-name.statistic-access-agency"
       )}_${startDate}_${endDate}.pdf`;
 
-      await downloadStatisticSearchAgencyPlatePdf(
+      await downloadStatisticAccessAgencyPdf(
         buildPdfData(exportRows),
         pdfName,
         t,
@@ -417,7 +394,7 @@ const StatisticSearchAgencyPlate = () => {
     }
   };
 
-  const buildPdfData = (agencyPlate: LprSearchLog[]): SearchAgencyPlatePdfData => {
+  const buildPdfData = (agencyUsage: AccessLog[]): AgencyUsagePdfData => {
     const selectedAgency = agency.find(
       (a) => a.ou_code === formData.agency_id
     );
@@ -429,8 +406,8 @@ const StatisticSearchAgencyPlate = () => {
         ? t("text.all")
         : selectedAgency
           ? i18n.language === "th"
-            ? selectedAgency.ou_name_th ?? "-"
-            : selectedAgency.ou_name_en ?? "-"
+            ? selectedAgency.ou_abbr_th ?? "-"
+            : selectedAgency.ou_abbr_en ?? "-"
           : "-";
 
     const bhName =
@@ -438,8 +415,8 @@ const StatisticSearchAgencyPlate = () => {
         ? t("text.all")
         : selectedBh
           ? i18n.language === "th"
-            ? selectedBh.bh_name_th ?? "-"
-            : selectedBh.bh_name_en ?? "-"
+            ? selectedBh.bh_abbr_th ?? "-"
+            : selectedBh.bh_abbr_en ?? "-"
           : "-";
 
     const bkName =
@@ -447,8 +424,8 @@ const StatisticSearchAgencyPlate = () => {
         ? t("text.all")
         : selectedBk
           ? i18n.language === "th"
-            ? selectedBk.bk_name_th ?? "-"
-            : selectedBk.bk_name_en ?? "-"
+            ? selectedBk.bk_abbr_th ?? "-"
+            : selectedBk.bk_abbr_en ?? "-"
           : "-";
 
     return {
@@ -458,17 +435,13 @@ const StatisticSearchAgencyPlate = () => {
       bh_name: bhName,
       bk_id: formData.bk_id,
       bk_name: bkName,
-      plate_group: formData.plate_group,
-      plate_number: formData.plate_number,
-      province_id: formData.province_id,
-      province_name: provinceOptions.find(option => option.value === formData.province_id)?.label || "",
       start_date: dayjs(formData.start_date_time).format(
         i18n.language === "th" ? "DD/MM/BBBB" : "DD/MM/YYYY"
       ),
       end_date: dayjs(formData.end_date_time).format(
         i18n.language === "th" ? "DD/MM/BBBB" : "DD/MM/YYYY"
       ),
-      agencyPlate,
+      agencyUsage,
     }
   };
 
@@ -480,16 +453,16 @@ const StatisticSearchAgencyPlate = () => {
       const endDate = dayjs(formData.end_date_time).format(dateFormat);
 
       const baseFileName = `${t(
-        "file-name.statistic-search-agency-plate"
+        "file-name.statistic-access-agency"
       )}_${startDate}_${endDate}`;
 
       const headers = [
-        t("table.header.no"),
-        t("table.header.count"),
-        t("table.header.agency"),
-        t("table.header.bh"),
-        t("table.header.bk"),
-        t("table.header.org"),
+        t('table.header.no'),
+        t('table.header.count'),
+        t('table.header.agency'),
+        t('table.header.bh'),
+        t('table.header.bk'),
+        t('table.header.org'),
       ];
 
       const mapRow = (data: any, index: number) => [
@@ -525,7 +498,7 @@ const StatisticSearchAgencyPlate = () => {
         const totalFiles = Math.ceil(totalData / CHUNK_SIZE);
 
         for (let pageIndex = 1; pageIndex <= totalFiles; pageIndex++) {
-          const res = await searchLprSearchLogs(
+          const res = await searchAccessLogs(
             {},
             {
               groupBy: "org_code",
@@ -536,10 +509,10 @@ const StatisticSearchAgencyPlate = () => {
             }
           );
 
-          const exportRows = await mapLprSearchLogRows(res.data);
+          const exportRows = await mapAccessLogRows(res.data);
 
           const blob = await generateExcelBlob({
-            sheetName: t("file-name.statistic-search-agency-plate"),
+            sheetName: t("file-name.statistic-access-agency"),
             headers,
             data: exportRows,
             mapRow: (data, index) => [
@@ -566,7 +539,7 @@ const StatisticSearchAgencyPlate = () => {
 
       setIsLoading(true);
 
-      const res = await searchLprSearchLogs(
+      const res = await searchAccessLogs(
         {},
         {
           groupBy: "org_code",
@@ -577,10 +550,10 @@ const StatisticSearchAgencyPlate = () => {
         }
       );
 
-      const exportRows = await mapLprSearchLogRows(res.data);
+      const exportRows = await mapAccessLogRows(res.data);
 
       await exportExcel({
-        sheetName: t("file-name.statistic-search-agency-plate"),
+        sheetName: t("file-name.statistic-access-agency"),
         fileName: `${baseFileName}.xlsx`,
         headers,
         data: exportRows,
@@ -613,7 +586,7 @@ const StatisticSearchAgencyPlate = () => {
     setRowsPerPage(limit);
   };
 
-  const showDetailDialog = (data: LprSearchLog) => {
+  const showDetailDialog = (data: AccessLog) => {
     setSelectedData(data);
     setDetailDialogOpen(true);
   };
@@ -624,7 +597,7 @@ const StatisticSearchAgencyPlate = () => {
   }
 
   const navigateToPersonUsage = async () => {
-    navigate("/statistic-search-person-plate", {
+    navigate("/statistic-usage-person", {
       state: {
         fromNavigate: true,
         filters: {
@@ -647,9 +620,6 @@ const StatisticSearchAgencyPlate = () => {
     if (data.agency_id !== "0") filters.push(`ou_code=${data.agency_id}`);
     if (data.bh_id !== "0") filters.push(`bh_code=${data.bh_id}`);
     if (data.bk_id !== "0") filters.push(`bk_code=${data.bk_id}`);
-    if (data.plate_group.trim() !== "") filters.push(`plate_group=${data.plate_group.trim()}`);
-    if (data.plate_number.trim() !== "") filters.push(`plate_number=${data.plate_number.trim()}`);
-    if (data.province_id !== "0") filters.push(`region_code=${data.province_id}`);
 
     filters.push(
       `log_timestamp>=${dayjs(data.start_date_time).format("YYYY-MM-DD")}`
@@ -664,14 +634,14 @@ const StatisticSearchAgencyPlate = () => {
   };
 
   return (
-    <section id='statistic-search-agency-plate' className="flex flex-col h-full w-full p-2">
+    <section id='statistic-access-agency' className="flex flex-col h-full w-full p-2">
       { isLoading && <LoadingScreen /> }
       {/* Main Title */}
-      <MainTitle title={t("pages.statistic-search-agency-plate")} />
+      <MainTitle title={t("pages.statistic-access-agency")} />
       <div className='p-4 bg-(--main-bg-color)/80 flex flex-1 flex-col gap-4 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-y-auto'>
         {/* Search Filters */}
         <Box 
-          className="grid grid-cols-8 border border-(--primary-color) rounded-[10px] p-4 gap-2 bg-(--secondary-color)"
+          className="grid grid-cols-6 border border-(--primary-color) rounded-[10px] p-4 gap-2 bg-(--secondary-color)"
           sx={{
             boxShadow: "0px 2px 8px rgba(var(--secondary-color-rgb),0.1)"
           }}
@@ -709,43 +679,6 @@ const StatisticSearchAgencyPlate = () => {
             placeholder={t('placeholder.bk')}
             labelFontSize="14px"
             disabled={formData.agency_id === "0" || formData.bh_id === "0"}
-          />
-
-          <Box className="grid grid-cols-2 gap-2">
-            <TextBox
-              sx={{ marginTop: "5px", fontSize: "15px" }}
-              id="plate-group"
-              label={t('component.plate-group')}
-              placeholder={t('placeholder.plate-group')}
-              labelFontSize="14px"
-              value={formData.plate_group}
-              onChange={(event) =>
-                handleTextChange("plate_group", event.target.value)
-              }
-            />
-
-            <TextBox
-              sx={{ marginTop: "5px", fontSize: "15px" }}
-              id="plate-number"
-              label={t('component.plate-number')}
-              placeholder={t('placeholder.plate-number')}
-              labelFontSize="14px"
-              value={formData.plate_number}
-              onChange={(event) =>
-                handleTextChange("plate_number", event.target.value)
-              }
-            />
-          </Box>
-
-          <AutoComplete 
-            id="province-select"
-            sx={{ marginTop: "5px" }}
-            value={formData.province_id}
-            onChange={(event, value) => handleDropdownChange(event, "province_id", value)}
-            options={provinceOptions}
-            label={t('component.plate-province')}
-            placeholder={t('placeholder.plate-province')}
-            labelFontSize="14px"
           />
 
           <DatePickerBuddhist
@@ -981,7 +914,7 @@ const StatisticSearchAgencyPlate = () => {
               <DetailsDialog
                 open={detailDialogOpen}
                 handleClose={handleDetailsDialogClose}
-                dialogTitle={t('pages.statistic-search-agency-plate')}
+                dialogTitle={t('pages.statistic-access-agency')}
               >
                 <Box className="flex flex-col gap-3 items-center px-4 pt-4">
                   <img src={InformationIcon} alt="Information" className="h-15 w-15" />
@@ -992,19 +925,19 @@ const StatisticSearchAgencyPlate = () => {
 
                     <p>{t('text.agency')}</p>
                     <p>:</p>
-                    <p>{selectedData?.ou_name}</p>
+                    <p>{selectedData?.ou_code}</p>
 
                     <p>{t('text.bh')}</p>
                     <p>:</p>
-                    <p>{selectedData?.bh_name}</p>
+                    <p>{selectedData?.bh_code}</p>
 
                     <p>{t('text.bk')}</p>
                     <p>:</p>
-                    <p>{selectedData?.bk_name}</p>
+                    <p>{selectedData?.bk_code}</p>
 
                     <p>{t('text.org')}</p>
                     <p>:</p>
-                    <p>{selectedData?.org_name}</p>
+                    <p>{selectedData?.org_code}</p>
                   </Box>
                   <Button
                     variant="contained"
@@ -1030,4 +963,4 @@ const StatisticSearchAgencyPlate = () => {
   )
 }
 
-export default StatisticSearchAgencyPlate;
+export default StatisticAccessAgency;

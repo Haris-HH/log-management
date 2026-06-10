@@ -1,61 +1,42 @@
 // Types
-import type { Dropdown } from "../types/common";
+import type { ProjectResponse } from "../types/response";
 
-export const mockProject: Dropdown[] = [
-  {
-    code: "62025",
-    name: "2562 - 25"
+export const mockProject: ProjectResponse = {
+  "endpoint": "/api/v0/<sector>/<action>",
+  "statusCode": 200,
+  "status": "Successful",
+  "success": true,
+  "message": "OK",
+  "pagination": {
+    "page": 1,
+    "maxPage": 22,
+    "limit": 10,
+    "count": 10,
+    "countAll": 211
   },
-  {
-    code: "64138",
-    name: "2564 - 138 N "
-  },
-  {
-    code: "64125",
-    name: "2564 - 125 NE"
-  },
-  {
-    code: "64097",
-    name: "2564 - 97 S"
-  },
-  {
-    code: "64080",
-    name: "2564 - 80"
-  },
-  {
-    code: "64M20",
-    name: "2564 - 20 Mobile"
-  },
-  {
-    code: "65180",
-    name: "2565 - 180 N/NE"
-  },
-  {
-    code: "65175",
-    name: "2565 - 175 C/E"
-  },
-  {
-    code: "65150",
-    name: "2565 - 150 W/S"
-  },
-  {
-    code: "66170",
-    name: "2566 - 170 N/NE"
-  },
-  {
-    code: "66150",
-    name: "2566 - 150 W/S"
-  },
-  {
-    code: "64RY7",
-    name: "2564 - 7 ONCB"
-  },
-  {
-    code: "64F30",
-    name: "2567 - 30 Face"
-  },
-  {
-    code: "67180",
-    name: "2567 - 180 E/S"
-  }
-]
+  "data": [
+    {
+      "project_id": "6863148a-246b-4c8d-8ae8-adfe171c24a0",
+      "customer_id": "eda2c37e-a1f0-44d4-a876-0ac29b5c6710",
+      "project_code": "NSB-2026-DM",
+      "project_name": "NSB 2026 Demo",
+      "subdistrict_code": "100201",
+      "district_code": "1002",
+      "province_code": "10",
+      "police_region_id": 0,
+      "police_station_id": 13,
+      "description": "NSB 2026 Demo",
+      "details": null,
+      "notes": null,
+      "status": "active",
+      "project_start_date": "2026-02-10",
+      "project_test_date": "2026-06-10",
+      "project_migration_date": "2026-09-02",
+      "maintenance_start_date": "2026-09-02",
+      "maintenance_expired_date": "2030-09-01",
+      "timezone": "Asia/Bangkok",
+      "created_at": "2026-06-05T06:15:54.762Z",
+      "updated_at": "2026-06-09T10:06:48.925Z"
+    }
+  ]
+}

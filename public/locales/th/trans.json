@@ -17,6 +17,9 @@
     "statistic-usage-agency": "สถิติการใช้งาน (หน่วยงาน)",
     "statistic-usage-person": "สถิติการใช้งาน (รายบุคคล)",
     "statistic-usage-log": "Log การใช้งาน",
+    "statistic-access-agency": "สถิติการเข้าใช้งาน (หน่วยงาน)",
+    "statistic-access-person": "สถิติการเข้าใช้งาน (รายบุคคล)",
+    "statistic-access-log": "Log การเข้าใช้งาน",
     "statistic-search-agency-plate": "สถิติการค้นป้ายทะเบียน (หน่วยงาน)",
     "statistic-search-person-plate": "สถิติการค้นป้ายทะเบียน (รายบุคคล)",
     "statistic-search-log-plate": "Log การค้นป้ายทะเบียน"
@@ -45,7 +48,8 @@
     "to-date": "ถึงวันที่",
     "month": "เดือน",
     "pid": "หมายเลขบัตรประชาชน",
-    "password": "รหัสผ่าน"
+    "password": "รหัสผ่าน",
+    "title": "คำนำหน้า"
   },
   "placeholder": {
     "agency": "กรุณาเลือกหน่วยงาน",
@@ -64,7 +68,8 @@
     "search-only": "ค้นหา",
     "type": "กรุณาเลือกประเภท",
     "pid": "หมายเลขบัตรประชาชน",
-    "password": "รหัสผ่าน"
+    "password": "รหัสผ่าน",
+    "title": "กรุณาเลือกคำนำหน้า"
   },
   "button": {
     "1-month": "1 เดือน",
@@ -133,6 +138,7 @@
     "home": "หน้าหลัก",
     "internal-chart": "แผนภูมิหน่วยงานภายใน ตร.",
     "overview": "รายงานภาพรวม",
+    "access-statistics": "สถิติการเข้าใช้งาน",
     "statistics": "สถิติการใช้งาน",
     "search-statistics": "สถิติการค้นป้ายทะเบียน"
   },
@@ -147,6 +153,9 @@
     "statistic-usage-agency": "สถิติการใช้งาน (หน่วยงาน)",
     "statistic-usage-person": "สถิติการใช้งาน (รายบุคคล)",
     "statistic-usage-log": "Log การใช้งาน",
+    "statistic-access-agency": "สถิติการเข้าใช้งาน (หน่วยงาน)",
+    "statistic-access-person": "สถิติการเข้าใช้งาน (รายบุคคล)",
+    "statistic-access-log": "Log การเข้าใช้งาน",
     "statistic-search-agency-plate": "สถิติการค้นป้ายทะเบียน (หน่วยงาน)",
     "statistic-search-person-plate": "สถิติการค้นป้ายทะเบียน (รายบุคคล)",
     "statistic-search-log-plate": "Log การค้นป้ายทะเบียน"
@@ -214,7 +223,8 @@
     "all-area": "ทุกพื้นที่",
     "all-province": "ทุกจังหวัด",
     "all-project": "ทุกโครงการ",
-    "all-type": "ทุกประเภท"
+    "all-type": "ทุกประเภท",
+    "all-title": "ทุกคำนำหน้า"
   },
   "status": {
     "disable": "ปิดการใช้งาน",
@@ -227,6 +237,9 @@
     "statistic-usage-agency": "สถิติการใช้งาน (หน่วยงาน)",
     "statistic-usage-person": "สถิติการใช้งาน (รายบุคคล)",
     "statistic-usage-log": "Log การใช้งาน",
+    "statistic-access-agency": "สถิติการเข้าใช้งาน (หน่วยงาน)",
+    "statistic-access-person": "สถิติการเข้าใช้งาน (รายบุคคล)",
+    "statistic-access-log": "Log การเข้าใช้งาน",
     "statistic-search-agency-plate": "สถิติการค้นป้ายทะเบียน (หน่วยงาน)",
     "statistic-search-person-plate": "สถิติการค้นป้ายทะเบียน (รายบุคคล)",
     "statistic-search-log-plate": "Log การค้นป้ายทะเบียน",
@@ -241,6 +254,9 @@
     "statistic-usage-agency": "รายงานสถิติการใช้งาน (หน่วยงาน)",
     "statistic-usage-person": "รายงานสถิติการใช้งาน (รายบุคคล)",
     "statistic-usage-log": "รายงาน Log การใช้งาน",
+    "statistic-access-agency": "สถิติการเข้าใช้งาน (หน่วยงาน)",
+    "statistic-access-person": "สถิติการเข้าใช้งาน (รายบุคคล)",
+    "statistic-access-log": "Log การเข้าใช้งาน",
     "statistic-search-agency-plate": "รายงานสถิติการค้นป้ายทะเบียน (หน่วยงาน)",
     "statistic-search-person-plate": "รายงานสถิติการค้นป้ายทะเบียน (รายบุคคล)",
     "statistic-search-log-plate": "รายงาน Log การค้นป้ายทะเบียน",

@@ -11,6 +11,7 @@ import IconButton from "@mui/material/IconButton";
 import BaseMap from '../components/base-map/BaseMap';
 import AutoComplete from "../components/auto-complete/AutoComplete";
 import TextBox from "../components/text-box/TextBox";
+import LoadingScreen from '../components/loading-screen/LoadingScreen';
 
 // Icons
 import ClearIcon from "../assets/icons/clear.png";
@@ -26,11 +27,14 @@ import type { RootState } from "../store/store";
 // Utils
 import { buildOptions } from "../utils/commonFunctions";
 
-// Mocks
-import { mockOverallMapDetail } from "../mocks/mockOverallMapDetail";
-
 // i18n
 import { useTranslation } from 'react-i18next';
+
+// API
+import { searchDevice } from "../features/device/api/DeviceApi";
+
+// Types
+import type { Device } from "../types/common";
 
 interface FormData {
   search_word: string;
@@ -48,9 +52,11 @@ const OverallMap = () => {
 
   // State
   const [showFilter, setShowFilter] = useState(false);
-
+  const [isLoading, setIsLoading] = useState(false);
+  
   // Data
   const [map, setMap] = useState<LeafletMap | null>(null);
+  const [devices, setDevices] = useState<Device[]>([]);
 
   // Options
   const [areaOptions, setAreaOptions] = useState<{ label: string, value: string }[]>([]);
@@ -71,24 +77,60 @@ const OverallMap = () => {
   } = useMapSearch(map);
 
   // Slice
-  const { area, province, checkpointType } = useSelector((state: RootState) => state.dropdown);
+  const { area, province, deviceStatus } = useSelector((state: RootState) => state.dropdown);
 
   useEffect(() => {
-    if (map) {
-      showOverallWithList(mockOverallMapDetail);
+    fetchData(formData);
+  }, [formData])
+
+  useEffect(() => {
+    if (map && devices) {
+      showOverallWithList(devices);
     }
-  }, [map, formData, t, i18n.language, i18n.isInitialized]);
+  }, [map, t, i18n.language, i18n.isInitialized, devices]);
 
   useEffect(() => {
-    setAreaOptions(buildOptions(area, t('dropdown.all-area')));
+    const langKeyArea = i18n.language === "th" ? "title_th" : "title_en";
+    const langKeyProvince = i18n.language === "th" ? "name_th" : "name_en";
+    const langKeyDeviceStatus = i18n.language === "th" ? "status_th" : "status_en";
+
+    setAreaOptions(
+      buildOptions(area, t("dropdown.all-area"), langKeyArea, "id")
+    );
+
+    const filteredProvince =
+      formData.area_id !== "0"
+        ? province.filter((item) => item.police_region_id === Number(formData.area_id))
+        : province;
     setProvinceOptions(
       buildOptions(
-        province, t('dropdown.all-province'), 
-        i18n.language === "th" ? "name_th" : "name_en",
+        filteredProvince, t('dropdown.all-province'), 
+        langKeyProvince,
         "province_code")
       );
-    setTypeOptions(buildOptions(checkpointType, t('dropdown.all-type')));
-  }, [area, province, checkpointType, t, i18n.language, i18n.isInitialized]);
+    setTypeOptions(buildOptions(deviceStatus, t('dropdown.all-type'), langKeyDeviceStatus, "status_code"));
+  }, [area, province, deviceStatus, t, formData.area_id, i18n.language, i18n.isInitialized]);
+
+  const fetchData = useCallback(
+    async (filterData: FormData = formData) => {
+      try {
+        setIsLoading(true);
+
+        const res = await searchDevice(
+          {
+            ...getFilters(filterData),
+          }
+        );
+        setDevices(res.data);
+      } 
+      catch (error) {
+      } 
+      finally {
+        setIsLoading(false);
+      }
+    }, 
+    [i18n.language]
+  );
 
   const handleMapLoad = useCallback((mapInstance: LeafletMap | null) => {
     setMap(mapInstance)
@@ -117,8 +159,35 @@ const OverallMap = () => {
     clearSearchPlaces();
   }
 
+  const getFilters = useCallback((formData: FormData) => {
+    const filters: Record<string, string> = {
+      groupBy: "device_id",
+      page: "1",
+      limit: "10",
+    };
+
+    if (formData.area_id !== "0") {
+      filters.police_station_id = formData.area_id;
+    }
+
+    if (formData.province_id !== "0") {
+      filters.province_code = formData.province_id;
+    }
+
+    if (formData.type_id !== "0") {
+      filters.device_status_code = formData.type_id;
+    }
+
+    return filters;
+  }, [
+    formData.area_id,
+    formData.province_id,
+    formData.type_id,
+  ]);
+
   return (
     <section id='overall-map'>
+      { isLoading && <LoadingScreen /> }
       <Box className="relative"
         sx={{
           height: "calc(100vh - 64px)",
@@ -157,7 +226,7 @@ const OverallMap = () => {
                   borderRadius: 2,
                   padding: "25px 15px 15px 15px",
                   boxShadow: 3,
-                  width: 650,
+                  width: 700,
                   margin: 1,
                 }}
               >
@@ -169,7 +238,7 @@ const OverallMap = () => {
                 </Box>
                 <Box className="grid grid-cols-[repeat(4,minmax(0,1fr))_40px] items-end gap-2">
                   <TextBox
-                    sx={{ marginTop: "5px", fontSize: "15px" }}
+                    sx={{ marginTop: "5px", fontSize: "14px" }}
                     id="search-word"
                     label={""}
                     placeholder={t('placeholder.search-only')}
@@ -178,6 +247,7 @@ const OverallMap = () => {
                     onChange={(event) =>
                       handleTextChange("search_word", event.target.value)
                     }
+                    minHeight='32px'
                   />
 
                   <AutoComplete 
