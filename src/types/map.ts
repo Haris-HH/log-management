@@ -17,6 +17,7 @@ export interface MapConfig {
   searchFilter?: boolean
   mapStyle?: boolean
   showFilter?: boolean
+  themeMode?: 'light' | 'dark'
   onSearchFilterClick?: () => void
 }
 

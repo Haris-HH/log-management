@@ -11,6 +11,9 @@ import Loading from "../../components/loading-screen/LoadingScreen";
 // i18n
 import { useTranslation } from 'react-i18next';
 
+// Hook
+import { useTheme } from "../../hooks/useTheme";
+
 const BaseMap = ({
   height = DEFAULT_DIMENSIONS.height,
   width = DEFAULT_DIMENSIONS.width,
@@ -26,6 +29,7 @@ const BaseMap = ({
   onSearchFilterClick,
   showFilter,
 }: MapProps) => {
+  const { theme } = useTheme();
 
   // i18n
   const { t } = useTranslation();
@@ -42,6 +46,7 @@ const BaseMap = ({
     searchFilter: searchFilter,
     mapStyle: mapStyle,
     showFilter: showFilter,
+    themeMode: theme.isDark ? "dark" : "light",
   }, onSearchFilterClick);
   const [isFullScreen, setIsFullScreen] = useState(false)
 
@@ -56,9 +61,14 @@ const BaseMap = ({
 
   useEffect(() => {
     if (mapRef.current) {
-      initMap(mapRef.current)
+      initMap(mapRef.current);
     }
-  }, [])
+
+    return () => {
+      mapInstance.current?.remove();
+      mapInstance.current = null;
+    };
+  }, [theme.isDark]);
 
   useEffect(() => {
     if (onMapLoad) {

@@ -18,7 +18,7 @@ export const searchAccessLogs = async (param?: Record<string, string>, body?: Re
   }
 
   const res = await fetchClient<AccessLogResponse>(
-    "/log-management/user-action-logs/search",
+    "/log-management/access-logs/search",
     {
       method: "POST",
       body: JSON.stringify(body),

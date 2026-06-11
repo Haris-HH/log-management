@@ -142,7 +142,6 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
         createToolTip(marker, latLng);
         if (i === 0) {
           createPopup(marker, latLng);
-          marker.openPopup();
         }
       }
 

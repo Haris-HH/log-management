@@ -33,9 +33,10 @@ type Props = {
   handleClose: () => void;
   dialogTitle: string;
   data: any[];
+  onSearch: (start_date_time: Date | null, end_date_time: Date | null) => void;
 }
 
-const LocationUsage = ({ open, handleClose, dialogTitle, data }: Props) => {
+const LocationUsage = ({ open, handleClose, dialogTitle, data, onSearch }: Props) => {
 
   // Data
   const [map, setMap] = useState<LeafletMap | null>(null);
@@ -65,11 +66,36 @@ const LocationUsage = ({ open, handleClose, dialogTitle, data }: Props) => {
     }
   }, [data, map])
 
-  const handleDateTimeChange = (key: keyof typeof formData, date: Date | null) => {
-    setFormData((prevState) => ({
-      ...prevState,
-      [key]: date,
-    }));
+  const handleDateTimeChange = (
+    key: "start_date_time" | "end_date_time",
+    value: Date | null
+  ) => {
+    setFormData((prev) => {
+      const newData = {
+        ...prev,
+        [key]: value,
+      };
+
+      if (!value) return newData;
+
+      if (
+        key === "start_date_time" &&
+        newData.end_date_time &&
+        dayjs(value).isAfter(dayjs(newData.end_date_time))
+      ) {
+        newData.end_date_time = value;
+      }
+
+      if (
+        key === "end_date_time" &&
+        newData.start_date_time &&
+        dayjs(value).isBefore(dayjs(newData.start_date_time))
+      ) {
+        newData.start_date_time = value;
+      }
+
+      return newData;
+    });
   };
 
   const handleMapLoad = useCallback((mapInstance: LeafletMap | null) => {
@@ -81,6 +107,12 @@ const LocationUsage = ({ open, handleClose, dialogTitle, data }: Props) => {
       start_date_time: dayjs().toDate(),
       end_date_time: dayjs().toDate(),
     });
+  }
+
+  const handleSearch = () => {
+    if (onSearch) {
+      onSearch(formData.start_date_time, formData.end_date_time);
+    }
   }
 
   return (
@@ -96,7 +128,7 @@ const LocationUsage = ({ open, handleClose, dialogTitle, data }: Props) => {
         },
         paper: {
           sx: {
-            backgroundColor: "var(--secondary-color)",
+            backgroundColor: "var(--tertiary-color)",
             border: "1px solid var(--primary-color)",
             boxShadow: "2px 2px 2px rgba(0, 0, 0, 0.2)",
           },
@@ -116,7 +148,7 @@ const LocationUsage = ({ open, handleClose, dialogTitle, data }: Props) => {
           <Box 
             className="grid grid-cols-[repeat(2,1fr)_200px] border border-(--primary-color) rounded-[10px] p-4 gap-2"
             sx={{
-              boxShadow: "0px 2px 8px rgba(var(--secondary-color-rgb),0.1)"
+              boxShadow: "0px 2px 8px rgba(var(--tertiary-color-rgb),0.1)"
             }}
           >
             <DatePickerBuddhist
@@ -178,7 +210,7 @@ const LocationUsage = ({ open, handleClose, dialogTitle, data }: Props) => {
                     backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
                   },
                 }}
-                onClick={handleClear}
+                onClick={handleSearch}
               >
                 {t('button.search')}
               </Button>
@@ -188,7 +220,7 @@ const LocationUsage = ({ open, handleClose, dialogTitle, data }: Props) => {
                 sx={{
                   color: "var(--primary-color)",
                   border: "1px solid var(--primary-color)",
-                  backgroundColor: "var(--secondary-color)",
+                  backgroundColor: "var(--tertiary-color)",
                   fontSize: "14px",
                   width: "120px",
                   height: "40px",
@@ -211,7 +243,7 @@ const LocationUsage = ({ open, handleClose, dialogTitle, data }: Props) => {
                   },
 
                   "&:hover": {
-                    backgroundColor: "rgba(var(--tertiary-color-rgb), 0.1)",
+                    backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
                   },
                 }}
                 onClick={handleClear}
@@ -229,7 +261,8 @@ const LocationUsage = ({ open, handleClose, dialogTitle, data }: Props) => {
             <Button
               variant="contained"
               sx={{
-                backgroundColor: "var(--primary-color)"
+                backgroundColor: "var(--primary-color)",
+                color: "var(--tertiary-color)",
               }}
               onClick={handleClose}
             >

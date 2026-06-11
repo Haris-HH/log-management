@@ -265,10 +265,29 @@ const StatisticSearchAgencyPlate = () => {
   const handleDropdownChange = (
     event: React.SyntheticEvent,
     key: keyof typeof formData,
-    value: { value: any ,label: string } | null,
+    value: { value: any; label: string } | null,
   ) => {
     event.preventDefault();
-    setFormData((prev) => ({ ...prev, [key]: value?.value ?? "0" }));
+
+    const selectedValue = value?.value ?? "0";
+
+    setFormData((prev) => {
+      const updated = {
+        ...prev,
+        [key]: selectedValue,
+      };
+
+      if (key === "agency_id") {
+        updated.bh_id = "0";
+        updated.bk_id = "0";
+      }
+
+      if (key === "bh_id") {
+        updated.bk_id = "0";
+      }
+
+      return updated;
+    });
   };
 
   const handleDateTimeChange = (
@@ -642,25 +661,39 @@ const StatisticSearchAgencyPlate = () => {
   }
 
   const getFilters = (data: FormData) => {
-    const filters: string[] = [];
-
-    if (data.agency_id !== "0") filters.push(`ou_code=${data.agency_id}`);
-    if (data.bh_id !== "0") filters.push(`bh_code=${data.bh_id}`);
-    if (data.bk_id !== "0") filters.push(`bk_code=${data.bk_id}`);
-    if (data.plate_group.trim() !== "") filters.push(`plate_group=${data.plate_group.trim()}`);
-    if (data.plate_number.trim() !== "") filters.push(`plate_number=${data.plate_number.trim()}`);
-    if (data.province_id !== "0") filters.push(`region_code=${data.province_id}`);
-
-    filters.push(
-      `log_timestamp>=${dayjs(data.start_date_time).format("YYYY-MM-DD")}`
-    );
-    filters.push(
-      `log_timestamp<=${dayjs(data.end_date_time).format("YYYY-MM-DD")}`
-    );
-
-    return {
-      filter: filters.join(","),
+    const filters: Record<string, string> = {
+      start_time: dayjs(data.start_date_time).format("YYYY-MM-DD"),
+      end_time: dayjs(data.end_date_time).format("YYYY-MM-DD"),
     };
+
+    const plateGroup = data.plate_group.trim();
+    const plateNumber = data.plate_number.trim();
+
+    if (data.agency_id !== "0") {
+      filters.ou_code = data.agency_id;
+    }
+
+    if (data.bh_id !== "0") {
+      filters.bh_code = data.bh_id;
+    }
+
+    if (data.bk_id !== "0") {
+      filters.bk_code = data.bk_id;
+    }
+
+    if (plateGroup) {
+      filters.plate_group = encodeURIComponent(plateGroup);
+    }
+
+    if (plateNumber) {
+      filters.plate_number = encodeURIComponent(plateNumber);
+    }
+
+    if (data.province_id !== "0") {
+      filters.region_code = data.province_id;
+    }
+
+    return filters;
   };
 
   return (

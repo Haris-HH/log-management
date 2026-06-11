@@ -49,7 +49,7 @@ const DetailsDialog = ({ open, handleClose, dialogTitle, children }: Props) => {
       </DialogTitle>
       <DialogContent
         sx={{
-          backgroundColor: "var(--secondary-color)",
+          backgroundColor: "var(--tertiary-color)",
           border: "1px solid var(--primary-color)",
         }}
       >

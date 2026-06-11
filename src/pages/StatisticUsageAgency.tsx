@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import dayjs from 'dayjs';
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useSelector } from 'react-redux';
-import { saveAs } from "file-saver";
-import JSZip from "jszip";
 
 // Material UI
 import Box from "@mui/material/Box";
@@ -25,20 +23,18 @@ import DatePickerBuddhist from "../components/date-picker-buddhist/DatePickerBud
 import PaginationComponent from "../components/pagination/Pagination";
 import DetailsDialog from "../components/details-dialog/DetailsDialog";
 import LoadingScreen from '../components/loading-screen/LoadingScreen';
-import TextBox from "../components/text-box/TextBox";
 
 // Constants
 import { ROWS_PER_PAGE_OPTIONS } from "../constants/dropdown";
 
 // PDF
 import {
-  downloadStatisticSearchPersonPlatePdf,
-  generateStatisticSearchPersonPlatePdfBlob,
-} from "../pdf/StatisticSearchPersonPlatePdf";
+  downloadStatisticUsageAgencyPdf,
+} from "../pdf/StatisticUsageAgencyPdf";
 
 // Types
-import type { LprSearchLog } from "../types/common";
-import type { SearchPersonPlatePdfData } from "../types/pdf";
+import type { AccessLog } from "../types/common";
+import type { AgencyUsagePdfData } from "../types/pdf";
 
 // i18n
 import { useTranslation } from 'react-i18next';
@@ -51,7 +47,7 @@ import InformationIcon from "../assets/icons/information.png";
 
 // Utils
 import { buildOptions } from "../utils/commonFunctions";
-import { exportExcel, generateExcelBlob } from "../utils/exportData";
+import { exportExcel } from "../utils/exportData";
 import { PopupMessage, PopupMessageWithCancel } from '../utils/popupMessage';
 
 // Hooks
@@ -61,26 +57,17 @@ import usePageTitle from "../hooks/usePageTitle";
 import type { RootState } from "../store/store";
 
 // API
-import { searchLprSearchLogs } from "../features/usage-search-data/api/UsageSearchDataApi";
-import { getUserApi } from '../features/users/api/UsersApi';
+import { searchUsageLogs } from "../features/usage-data/api/UsageDataApi";
 
 interface FormData {
-  title_id: string;
-  plate_group: string;
-  plate_number: string;
-  province_id: string;
-  name: string;
-  pid_or_water_mark: string;
   agency_id: string;
   bh_id: string;
   bk_id: string;
-  org_id: string;
   start_date_time: Date | null;
   end_date_time: Date | null;
 }
 
-const StatisticSearchPersonPlate = () => {
-  const location = useLocation();
+const StatisticUsageAgency = () => {
   const navigate = useNavigate();
 
   // i18n
@@ -89,59 +76,29 @@ const StatisticSearchPersonPlate = () => {
   // State
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [searchTrigger, setSearchTrigger] = useState(0);
 
   // Data
-  const [rows, setRows] = useState<LprSearchLog[]>([]);
+  const [rows, setRows] = useState<AccessLog[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [totalUsage, setTotalUsage] = useState(0);
-  const [selectedData, setSelectedData] = useState<LprSearchLog | null>(null);
+  const [selectedData, setSelectedData] = useState<AccessLog | null>(null);
 
   // Options
   const [agencyOptions, setAgencyOptions] = useState<{ label: string, value: string }[]>([]);
   const [bhOptions, setBhOptions] = useState<{ label: string, value: string }[]>([]);
   const [bkOptions, setBkOptions] = useState<{ label: string, value: string }[]>([]);
-  const [orgOptions, setOrgOptions] = useState<{ label: string, value: string }[]>([]);
-  const [provinceOptions, setProvinceOptions] = useState<{ label: string, value: string }[]>([]);
-  const [titleOptions, setTitleOptions] = useState<{ label: string, value: string }[]>([]);
 
   // Constants
-  const CHUNK_SIZE = 1000;
-  const REQUEST_LIMIT = 1000;
+  const CHUNK_SIZE = 500;
+  const REQUEST_LIMIT = 5000;
 
   // Form Data
-  const [formData, setFormData] = useState<FormData>(() => {
-    if (location.state?.fromNavigate && location.state?.filters) {
-      return {
-        title_id: "0",
-        plate_group: "",
-        plate_number: "",
-        province_id: "0",
-        name: "",
-        pid_or_water_mark: "",
-        agency_id: location.state.filters.agency_id,
-        bh_id: location.state.filters.bh_id,
-        bk_id: location.state.filters.bk_id,
-        org_id: location.state.filters.org_id,
-        start_date_time: location.state.filters.start_date,
-        end_date_time: location.state.filters.end_date,
-      };
-    }
-
-    return {
-      title_id: "0",
-      plate_group: "",
-      plate_number: "",
-      province_id: "0",
-      name: "",
-      pid_or_water_mark: "",
-      agency_id: "0",
-      bh_id: "0",
-      bk_id: "0",
-      org_id: "0",
-      start_date_time: dayjs().toDate(),
-      end_date_time: dayjs().toDate(),
-    };
+  const [formData, setFormData] = useState<FormData>({
+    agency_id: "0",
+    bh_id: "0",
+    bk_id: "0",
+    start_date_time: dayjs().toDate(),
+    end_date_time: dayjs().toDate(),
   });
 
   // Pagination
@@ -157,16 +114,14 @@ const StatisticSearchPersonPlate = () => {
   );
 
   // Slice
-  const { agency, bh, bk, org, lprRegion, title } = useSelector((state: RootState) => state.dropdown);
+  const { agency, bh, bk, org } = useSelector((state: RootState) => state.dropdown);
 
-  usePageTitle(t("pages.statistic-search-person-plate"));
+  usePageTitle(t("pages.statistic-usage-agency"));
 
   useEffect(() => {
     const langKeyAgency = i18n.language === "th" ? "ou_abbr_th" : "ou_abbr_en";
     const langKeyBh = i18n.language === "th" ? "bh_abbr_th" : "bh_abbr_en";
     const langKeyBk = i18n.language === "th" ? "bk_abbr_th" : "bk_abbr_en";
-    const langKeyOrg = i18n.language === "th" ? "org_abbr_th" : "org_abbr_en";
-    const langKeyTitle = i18n.language === "th" ? "title_abbr_th" : "title_abbr_en";
 
     setAgencyOptions(
       buildOptions(agency, t("dropdown.all-agency"), langKeyAgency, "ou_code")
@@ -189,34 +144,10 @@ const StatisticSearchPersonPlate = () => {
     setBkOptions(
       buildOptions(filteredBk, t("dropdown.all-bk"), langKeyBk, "bk_code")
     );
-
-    const filteredOrg =
-      formData.bk_id !== "0"
-        ? org.filter((item) => item.bk_code === formData.bk_id)
-        : org;
-
-    setOrgOptions(
-      buildOptions(filteredOrg, t("dropdown.all-org"), langKeyOrg, "org_code")
-    );
-
-    setTitleOptions(
-      buildOptions(title, t("dropdown.all-title"), langKeyTitle, "id")
-    );
-
-    setProvinceOptions(
-      buildOptions(
-        lprRegion, "", 
-        i18n.language === "th" ? "name_th" : "name_en", 
-        "region_code",
-        false)
-      );
   }, [
-    title,
     agency,
     bh,
     bk,
-    org,
-    lprRegion,
     formData.agency_id,
     formData.bh_id,
     t,
@@ -225,49 +156,18 @@ const StatisticSearchPersonPlate = () => {
 
   useEffect(() => {
     fetchData(formData);
-  }, [
-    formData.title_id,
-    formData.agency_id,
-    formData.bh_id,
-    formData.bk_id,
-    formData.org_id,
-    formData.start_date_time,
-    formData.end_date_time,
-    page,
-    rowsPerPage,
-    searchTrigger,
-    agency,
-    bh,
-    bk,
-    org,
-    title,
-    lprRegion,
-  ]);
+  }, [formData, agency, bh, bk, org]);
 
-  const mapLprSearchLogRows = useCallback(
-    async (data: LprSearchLog[]): Promise<LprSearchLog[]> => {
-      const rows = await Promise.all(
-        data.map(async (item) => {
-          const userRes = await getUserApi({
-          filter: `user_id=${item.user_id}`,
-        });
-
-        const user = userRes.data[0];
+  const mapAccessLogRows = useCallback(
+    (data: AccessLog[]) => {
+      return data.map((item) => {
         const agencyData = agency.find((a) => a.ou_code === item.ou_code);
         const bhData = bh.find((b) => b.bh_code === item.bh_code);
         const bkData = bk.find((k) => k.bk_code === item.bk_code);
         const orgData = org.find((o) => o.org_code === item.org_code);
-        const titleData = title.find((t) => t.id === user?.title);
+
         return {
           ...item,
-          idcard: userRes.data[0]?.idcard ?? "-",
-          title:  titleData 
-            ? i18n.language === "th"
-              ? titleData.title_abbr_th
-              : titleData.title_abbr_en
-            : "",
-          firstname: userRes.data[0]?.firstname ?? "-",
-          lastname: userRes.data[0]?.lastname ?? "-",
           ou_name: agencyData
             ? i18n.language === "th"
               ? agencyData.ou_abbr_th
@@ -275,8 +175,8 @@ const StatisticSearchPersonPlate = () => {
             : "-",
           bh_name: bhData
             ? i18n.language === "th"
-              ? bhData.bh_name_th
-              : bhData.bh_name_en
+              ? bhData.bh_abbr_th
+              : bhData.bh_abbr_en
             : "-",
           bk_name: bkData
             ? i18n.language === "th"
@@ -289,12 +189,9 @@ const StatisticSearchPersonPlate = () => {
               : orgData.org_abbr_en
             : "-",
         };
-        })
-      );
-
-      return rows;
+      });
     },
-    [title, agency, bh, bk, org, i18n.language]
+    [agency, bh, bk, org, i18n.language]
   );
 
   const fetchData = useCallback(
@@ -302,17 +199,18 @@ const StatisticSearchPersonPlate = () => {
       try {
         setIsLoading(true);
 
-        const res = await searchLprSearchLogs(
+        const res = await searchUsageLogs(
           {},
           {
-            groupBy: "user_id",
+            groupBy: "org_code",
             limit: rowsPerPage.toString(),
-            page: "1",
-            orderBy: "user_id",
+            page: page.toString(),
+            orderBy: "org_code",
             ...getFilters(filterData),
           }
         );
-        const updatedRows = await mapLprSearchLogRows(res.data);
+
+        const updatedRows = mapAccessLogRows(res.data);
 
         const totalUsage = res.data.reduce(
           (sum, item) => sum + (item.total ?? 0),
@@ -327,6 +225,7 @@ const StatisticSearchPersonPlate = () => {
       } 
       catch (error) {
         await PopupMessage(t("popup.fetch-error"), "", "error");
+
         setRows([]);
         setTotalUsage(0);
         setTotalItems(0);
@@ -336,21 +235,36 @@ const StatisticSearchPersonPlate = () => {
       finally {
         setIsLoading(false);
       }
-    }, 
-    [formData, page, title, agency, rowsPerPage, bh, bk, org, lprRegion, i18n.language]
+    },
+    [formData, rowsPerPage, page, mapAccessLogRows, t]
   );
 
   const handleDropdownChange = (
     event: React.SyntheticEvent,
     key: keyof typeof formData,
-    value: { value: any ,label: string } | null,
+    value: { value: any; label: string } | null,
   ) => {
     event.preventDefault();
-    setFormData((prev) => ({ ...prev, [key]: value?.value ?? "0" }));
-  };
 
-  const handleTextChange = (key: keyof typeof formData, value: string) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
+    const selectedValue = value?.value ?? "0";
+
+    setFormData((prev) => {
+      const updated = {
+        ...prev,
+        [key]: selectedValue,
+      };
+
+      if (key === "agency_id") {
+        updated.bh_id = "0";
+        updated.bk_id = "0";
+      }
+
+      if (key === "bh_id") {
+        updated.bk_id = "0";
+      }
+
+      return updated;
+    });
   };
 
   const handleDateTimeChange = (
@@ -387,16 +301,9 @@ const StatisticSearchPersonPlate = () => {
 
   const handleClear = () => {
     setFormData({
-      title_id: "0",
-      plate_group: "",
-      plate_number: "",
-      province_id: "0",
-      name: "",
-      pid_or_water_mark: "",
       agency_id: "0",
       bh_id: "0",
       bk_id: "0",
-      org_id: "0",
       start_date_time: dayjs().toDate(),
       end_date_time: dayjs().toDate(),
     });
@@ -404,11 +311,7 @@ const StatisticSearchPersonPlate = () => {
 
   const handleExportPdf = async () => {
     try {
-      setIsLoading(true);
-
-      const dateFormat = i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD";
-      const startDate = dayjs(formData.start_date_time).format(dateFormat);
-      const endDate = dayjs(formData.end_date_time).format(dateFormat);
+      let exportRows = rows;
 
       if (totalData > CHUNK_SIZE) {
         const isConfirmed = await PopupMessageWithCancel(
@@ -422,69 +325,31 @@ const StatisticSearchPersonPlate = () => {
         );
 
         if (!isConfirmed) return;
-
-        const zip = new JSZip();
-        const totalFiles = Math.ceil(totalData / CHUNK_SIZE);
-
-        for (let page = 1; page <= totalFiles; page++) {
-          const res = await searchLprSearchLogs(
-            {},
-            {
-              groupBy: "user_id",
-              limit: CHUNK_SIZE.toString(),
-              page: page.toString(),
-              orderBy: "user_id",
-              ...getFilters(formData),
-            }
-          );
-
-          const formattedData = await mapLprSearchLogRows(res.data);
-
-          const fileName = `${t(
-            "file-name.statistic-search-person-plate"
-          )}_${startDate}_${endDate}_${page}.pdf`;
-
-          const blob = await generateStatisticSearchPersonPlatePdfBlob(
-            buildPdfData(formattedData),
-            t,
-            i18n
-          );
-
-          zip.file(fileName, blob);
-
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        }
-
-        const zipBlob = await zip.generateAsync({ type: "blob" });
-
-        saveAs(
-          zipBlob,
-          `PDF_${t("file-name.statistic-search-person-plate")}_${dayjs().format(
-            "YYYY-MM-DD"
-          )}.zip`
-        );
-
-        return;
       }
+      setIsLoading(true);
 
-      const res = await searchLprSearchLogs(
+      const res = await searchUsageLogs(
         {},
         {
-          groupBy: "user_id",
+          groupBy: "org_code",
           limit: REQUEST_LIMIT.toString(),
           page: "1",
-          orderBy: "user_id",
+          orderBy: "org_code",
           ...getFilters(formData),
         }
       );
 
-      const exportRows = await mapLprSearchLogRows(res.data);
+      exportRows = mapAccessLogRows(res.data);
 
-      const pdfName = `${t(
-        "file-name.statistic-search-person-plate"
-      )}_${startDate}_${endDate}.pdf`;
+      const dateFormat = i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD";
 
-      await downloadStatisticSearchPersonPlatePdf(
+      const pdfName = `${t("file-name.statistic-usage-agency")}_${dayjs(
+        formData.start_date_time
+      ).format(dateFormat)}_${dayjs(formData.end_date_time).format(
+        dateFormat
+      )}.pdf`;
+
+      await downloadStatisticUsageAgencyPdf(
         buildPdfData(exportRows),
         pdfName,
         t,
@@ -492,32 +357,27 @@ const StatisticSearchPersonPlate = () => {
       );
     } 
     catch (error) {
-      await PopupMessage(
-        t("popup.export-error-title"),
-        t("popup.export-error-message"),
-        "error"
-      );
+      await PopupMessage(t("popup.export-error-title"), t("popup.export-error-message"), "error");
     } 
     finally {
       setIsLoading(false);
     }
   };
 
-  const buildPdfData = (personPlate: LprSearchLog[]): SearchPersonPlatePdfData => {
+  const buildPdfData = (agencyUsage: AccessLog[]): AgencyUsagePdfData => {
     const selectedAgency = agency.find(
       (a) => a.ou_code === formData.agency_id
     );
     const selectedBh = bh.find((bh) => bh.bh_code === formData.bh_id);
     const selectedBk = bk.find((bk) => bk.bk_code === formData.bk_id);
-    const selectedOrg = org.find((org) => org.org_code === formData.org_id);
 
     const agencyName =
       formData.agency_id === "0"
         ? t("text.all")
         : selectedAgency
           ? i18n.language === "th"
-            ? selectedAgency.ou_name_th ?? "-"
-            : selectedAgency.ou_name_en ?? "-"
+            ? selectedAgency.ou_abbr_th ?? "-"
+            : selectedAgency.ou_abbr_en ?? "-"
           : "-";
 
     const bhName =
@@ -525,8 +385,8 @@ const StatisticSearchPersonPlate = () => {
         ? t("text.all")
         : selectedBh
           ? i18n.language === "th"
-            ? selectedBh.bh_name_th ?? "-"
-            : selectedBh.bh_name_en ?? "-"
+            ? selectedBh.bh_abbr_th ?? "-"
+            : selectedBh.bh_abbr_en ?? "-"
           : "-";
 
     const bkName =
@@ -534,77 +394,30 @@ const StatisticSearchPersonPlate = () => {
         ? t("text.all")
         : selectedBk
           ? i18n.language === "th"
-            ? selectedBk.bk_name_th ?? "-"
-            : selectedBk.bk_name_en ?? "-"
-          : "-";
-
-    const orgName =
-      formData.org_id === "0"
-        ? t("text.all")
-        : selectedOrg
-          ? i18n.language === "th"
-            ? selectedOrg.org_name_th ?? "-"
-            : selectedOrg.org_name_en ?? "-"
+            ? selectedBk.bk_abbr_th ?? "-"
+            : selectedBk.bk_abbr_en ?? "-"
           : "-";
 
     return {
-      pid_or_water_mark: formData.pid_or_water_mark || "-",
-      name: formData.name || "-",
       agency_id: formData.agency_id,
       agency_name: agencyName,
       bh_id: formData.bh_id,
       bh_name: bhName,
       bk_id: formData.bk_id,
       bk_name: bkName,
-      org_id: formData.org_id,
-      org_name: orgName,
-      plate_group: formData.plate_group,
-      plate_number: formData.plate_number,
-      province_id: formData.province_id,
-      province_name: provinceOptions.find(option => option.value === formData.province_id)?.label || "",
       start_date: dayjs(formData.start_date_time).format(
         i18n.language === "th" ? "DD/MM/BBBB" : "DD/MM/YYYY"
       ),
       end_date: dayjs(formData.end_date_time).format(
         i18n.language === "th" ? "DD/MM/BBBB" : "DD/MM/YYYY"
       ),
-      personPlate,
+      agencyUsage,
     }
   };
 
   const handleExportExcel = async () => {
     try {
-      const dateFormat = i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD";
-
-      const startDate = dayjs(formData.start_date_time).format(dateFormat);
-      const endDate = dayjs(formData.end_date_time).format(dateFormat);
-
-      const baseFileName = `${t(
-        "file-name.statistic-search-person-plate"
-      )}_${startDate}_${endDate}`;
-
-      const headers = [
-        t("table.header.no"),
-        t("table.header.count"),
-        t("table.header.agency"),
-        t("table.header.bh"),
-        t("table.header.bk"),
-        t("table.header.org"),
-      ];
-
-      const mapRow = (data: any, index: number) => [
-        index + 1,
-        Number(data.total || 0).toLocaleString(),
-        data.ou_name || "-",
-        data.bh_name || "-",
-        data.bk_name || "-",
-        data.org_name || "-",
-      ];
-
-      const columnStyles = {
-        1: { alignment: { horizontal: "center" as const } },
-        2: { alignment: { horizontal: "right" as const } },
-      };
+      let exportRows = rows;
 
       if (totalData > CHUNK_SIZE) {
         const isConfirmed = await PopupMessageWithCancel(
@@ -618,82 +431,51 @@ const StatisticSearchPersonPlate = () => {
         );
 
         if (!isConfirmed) return;
-
-        setIsLoading(true);
-
-        const zip = new JSZip();
-        const totalFiles = Math.ceil(totalData / CHUNK_SIZE);
-
-        for (let pageIndex = 1; pageIndex <= totalFiles; pageIndex++) {
-          const res = await searchLprSearchLogs(
-            {},
-            {
-              groupBy: "user_id",
-              limit: CHUNK_SIZE.toString(),
-              page: pageIndex.toString(),
-              orderBy: "user_id",
-              ...getFilters(formData),
-            }
-          );
-
-          const exportRows = await mapLprSearchLogRows(res.data);
-
-          const blob = await generateExcelBlob({
-            sheetName: t("file-name.statistic-search-person-plate"),
-            headers,
-            data: exportRows,
-            mapRow: (data, index) => [
-              (pageIndex - 1) * CHUNK_SIZE + index + 1,
-              Number(data.total || 0).toLocaleString(),
-              data.ou_name || "-",
-              data.bh_name || "-",
-              data.bk_name || "-",
-              data.org_name || "-",
-            ],
-            columnStyles,
-          });
-
-          zip.file(`${baseFileName}_${pageIndex}.xlsx`, blob);
-
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        }
-
-        const zipBlob = await zip.generateAsync({ type: "blob" });
-        saveAs(zipBlob, `Excel_${baseFileName}.zip`);
-
-        return;
       }
-
       setIsLoading(true);
 
-      const res = await searchLprSearchLogs(
+      const res = await searchUsageLogs(
         {},
         {
-          groupBy: "user_id",
+          groupBy: "org_code",
           limit: REQUEST_LIMIT.toString(),
           page: "1",
-          orderBy: "user_id",
+          orderBy: "org_code",
           ...getFilters(formData),
         }
       );
 
-      const exportRows = await mapLprSearchLogRows(res.data);
+      exportRows = mapAccessLogRows(res.data);
+
+      const dateFormat = i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD";
 
       await exportExcel({
-        sheetName: t("file-name.statistic-search-person-plate"),
-        fileName: `${baseFileName}.xlsx`,
-        headers,
+        sheetName: `${t('file-name.statistic-usage-agency')}`,
+        fileName: `${t('file-name.statistic-usage-agency')}_${dayjs(formData.start_date_time).format(dateFormat)}_${dayjs(formData.end_date_time).format(dateFormat)}.xlsx`,
+        headers: [
+          t('table.header.no'),
+          t('table.header.count'),
+          t('table.header.agency'),
+          t('table.header.bh'),
+          t('table.header.bk'),
+          t('table.header.org'),
+        ],
         data: exportRows,
-        mapRow,
-        columnStyles,
+        mapRow: (data, index) => [
+          (page - 1) * rowsPerPage + index + 1,
+          (data.total || 0).toLocaleString(),
+          data.ou_name,
+          data.bh_name,
+          data.bk_name,
+          data.org_name,
+        ],
+        columnStyles: {
+          2: { alignment: { horizontal: "center" } },
+        },
       });
-    } 
+    }
     catch (error) {
-      await PopupMessage(
-        t("popup.export-error-title"),
-        t("popup.export-error-message"),
-        "error"
-      );
+      await PopupMessage(t("popup.export-error-title"), t("popup.export-error-message"), "error");
     } 
     finally {
       setIsLoading(false);
@@ -713,7 +495,7 @@ const StatisticSearchPersonPlate = () => {
     setRowsPerPage(limit);
   };
 
-  const showDetailDialog = (data: LprSearchLog) => {
+  const showDetailDialog = (data: AccessLog) => {
     setSelectedData(data);
     setDetailDialogOpen(true);
   };
@@ -723,14 +505,11 @@ const StatisticSearchPersonPlate = () => {
     setDetailDialogOpen(false);
   }
 
-  const navigateToLogUsage = async () => {
-    navigate("/statistic-usage-log", {
+  const navigateToPersonUsage = async () => {
+    navigate("/statistic-usage-person", {
       state: {
         fromNavigate: true,
         filters: {
-          pid: selectedData?.idcard ?? "",
-          name: selectedData?.firstname && selectedData?.lastname ? `${selectedData.firstname} ${selectedData.lastname}` : "",
-          prefix_id: selectedData?.title ?? "",
           agency_id: selectedData?.ou_code ?? 0,
           bh_id: selectedData?.bh_code ?? 0,
           bk_id: selectedData?.bk_code ?? 0,
@@ -745,129 +524,37 @@ const StatisticSearchPersonPlate = () => {
   }
 
   const getFilters = (data: FormData) => {
-    const filters: string[] = [];
-
-    const pid = data.pid_or_water_mark.trim();
-    const name = data.name.trim();
-    const plate_group = data.plate_group.trim();
-    const plate_number = data.plate_number.trim();
-
-    if (pid) {
-      filters.push(`idcard=${encodeURIComponent(pid)}`);
-    }
-
-    if (name) {
-      filters.push(`fullname=${encodeURIComponent(name)}`);
-    }
-
-    if (plate_group) {
-      filters.push(`plate_prefix=${encodeURIComponent(plate_group)}`);
-    }
-
-    if (plate_number) {
-      filters.push(`plate_number=${encodeURIComponent(plate_number)}`);
-    }
-
-    if (data.province_id !== "0") {
-      filters.push(`region_code=${data.province_id}`);
-    }
-
-    if (data.title_id !== "0") {
-      filters.push(`title_id=${data.title_id}`);
-    }
+    const filters: Record<string, string> = {
+      start_time: dayjs(data.start_date_time).format("YYYY-MM-DD"),
+      end_time: dayjs(data.end_date_time).format("YYYY-MM-DD"),
+    };
 
     if (data.agency_id !== "0") {
-      filters.push(`ou_code=${data.agency_id}`);
-    }
-
-    if (data.bh_id !== "0") {
-      filters.push(`bh_code=${data.bh_id}`);
-    }
-
-    if (data.bk_id !== "0") {
-      filters.push(`bk_code=${data.bk_id}`);
-    }
-
-    if (data.org_id !== "0") {
-      filters.push(`org_code=${data.org_id}`);
-    }
-
-    filters.push(
-      `log_timestamp>=${dayjs(data.start_date_time).format("YYYY-MM-DD")}`
-    );
-
-    filters.push(
-      `log_timestamp<=${dayjs(data.end_date_time).format("YYYY-MM-DD")}`
-    );
-
-    return {
-      filter: filters.join(","),
+      filters.ou_code = data.agency_id;
     };
-  };
+    if (data.bh_id !== "0") {
+      filters.bh_code = data.bh_id;
+    };
+    if (data.bk_id !== "0") {
+      filters.bk_code = data.bk_id;
+    };
 
-  const handleSearchOnEnter = (
-    event: React.KeyboardEvent<HTMLInputElement>
-  ) => {
-    if (event.key === "Enter") {
-      setPage(1);
-      setSearchTrigger((prev) => prev + 1);
-    }
+    return filters;
   };
 
   return (
-    <section id='statistic-search-person-plate' className="flex flex-col h-full w-full p-2">
+    <section id='statistic-usage-agency' className="flex flex-col h-full w-full p-2">
       { isLoading && <LoadingScreen /> }
       {/* Main Title */}
-      <MainTitle title={t("pages.statistic-search-person-plate")} />
+      <MainTitle title={t("pages.statistic-usage-agency")} />
       <div className='p-4 bg-(--main-bg-color) flex flex-1 flex-col gap-4 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-y-auto'>
         {/* Search Filters */}
         <Box 
-          className="grid grid-cols-7 border border-(--primary-color) rounded-[10px] p-4 gap-2 bg-(--tertiary-color)"
+          className="grid grid-cols-6 border border-(--primary-color) rounded-[10px] p-4 gap-2 bg-(--tertiary-color)"
           sx={{
             boxShadow: "0px 2px 8px rgba(var(--tertiary-color-rgb),0.1)"
           }}
         >
-          <TextBox
-            sx={{ marginTop: "5px", fontSize: "15px" }}
-            id="pid-and-water-mark"
-            label={t('component.pid-and-water-mark')}
-            placeholder={t('placeholder.pid-and-water-mark')}
-            labelFontSize="14px"
-            value={formData.pid_or_water_mark}
-            onChange={(event) =>
-              handleTextChange("pid_or_water_mark", event.target.value)
-            }
-            onKeyPress={handleSearchOnEnter}
-          />
-
-          <div className='flex col-span-2 gap-2'>
-            <div className='w-[50%]'>
-              <AutoComplete 
-                id="title-select"
-                sx={{ marginTop: "5px" }}
-                value={formData.title_id}
-                onChange={(event, value) => handleDropdownChange(event, "title_id", value)}
-                options={titleOptions}
-                label={t('component.title')}
-                placeholder={t('placeholder.title')}
-                labelFontSize="14px"
-              />
-            </div>
-
-            <TextBox
-              sx={{ marginTop: "5px", fontSize: "15px" }}
-              id="full-name"
-              label={t('component.first-name-last-name')}
-              placeholder={t('placeholder.first-name-last-name')}
-              labelFontSize="14px"
-              value={formData.name}
-              onChange={(event) =>
-                handleTextChange("name", event.target.value)
-              }
-              onKeyPress={handleSearchOnEnter}
-            />
-          </div>
-
           <AutoComplete 
             id="agency-select"
             sx={{ marginTop: "5px"}}
@@ -903,55 +590,6 @@ const StatisticSearchPersonPlate = () => {
             disabled={formData.agency_id === "0" || formData.bh_id === "0"}
           />
 
-          <AutoComplete 
-            id="org-select"
-            sx={{ marginTop: "5px" }}
-            value={formData.org_id}
-            onChange={(event, value) => handleDropdownChange(event, "org_id", value)}
-            options={orgOptions}
-            label={t('component.org')}
-            placeholder={t('placeholder.org')}
-            labelFontSize="14px"
-            disabled={formData.agency_id === "0" || formData.bh_id === "0" || formData.bk_id === "0"}
-          />
-
-          <TextBox
-            sx={{ marginTop: "5px", fontSize: "15px" }}
-            id="plate-group"
-            label={t('component.plate-group')}
-            placeholder={t('placeholder.plate-group')}
-            labelFontSize="14px"
-            value={formData.plate_group}
-            onChange={(event) =>
-              handleTextChange("plate_group", event.target.value)
-            }
-            onKeyPress={handleSearchOnEnter}
-          />
-
-          <TextBox
-            sx={{ marginTop: "5px", fontSize: "15px" }}
-            id="plate-number"
-            label={t('component.plate-number')}
-            placeholder={t('placeholder.plate-number')}
-            labelFontSize="14px"
-            value={formData.plate_number}
-            onChange={(event) =>
-              handleTextChange("plate_number", event.target.value)
-            }
-            onKeyPress={handleSearchOnEnter}
-          />
-
-          <AutoComplete 
-            id="province-select"
-            sx={{ marginTop: "5px" }}
-            value={formData.province_id}
-            onChange={(event, value) => handleDropdownChange(event, "province_id", value)}
-            options={provinceOptions}
-            label={t('component.plate-province')}
-              placeholder={t('placeholder.plate-province')}
-            labelFontSize="14px"
-          />
-
           <DatePickerBuddhist
             value={formData.start_date_time}
             sx={{
@@ -971,7 +609,6 @@ const StatisticSearchPersonPlate = () => {
             }
             label={t('component.start-date')}
             labelFontSize="14px"
-            maxDate={dayjs()}
           />
 
           <DatePickerBuddhist
@@ -993,7 +630,6 @@ const StatisticSearchPersonPlate = () => {
             }
             label={t('component.end-date')}
             labelFontSize="14px"
-            maxDate={dayjs()}
           />
 
           <Box className="flex gap-2 items-end">
@@ -1088,18 +724,6 @@ const StatisticSearchPersonPlate = () => {
                   </TableCell>
                   <TableCell
                     align="center"
-                    sx={{ color: "#FFFFFF", width: "10%" }}
-                  >
-                    {t('table.header.first-name-last-name')}
-                  </TableCell>
-                  <TableCell
-                    align="center"
-                    sx={{ color: "#FFFFFF", width: "10%" }}
-                  >
-                    {t('table.header.pid-full')}
-                  </TableCell>
-                  <TableCell
-                    align="center"
                     sx={{ color: "var(--tertiary-color)", width: "10%" }}
                   >
                     {t('table.header.agency')}
@@ -1159,24 +783,6 @@ const StatisticSearchPersonPlate = () => {
                         borderBottom: "1px solid var(--primary-color)",
                       }}
                     >
-                      {`${data.title || ""}${data.firstname} ${data.lastname}`}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--tertiary-color)",
-                        color: "var(--tertiary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
-                      }}
-                    >
-                      {data.idcard}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--tertiary-color)",
-                        color: "var(--tertiary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
-                      }}
-                    >
                       {data.ou_name}
                     </TableCell>
                     <TableCell
@@ -1218,34 +824,30 @@ const StatisticSearchPersonPlate = () => {
               <DetailsDialog
                 open={detailDialogOpen}
                 handleClose={handleDetailsDialogClose}
-                dialogTitle={t('pages.statistic-search-person-plate')}
+                dialogTitle={t('pages.statistic-usage-agency')}
               >
                 <Box className="flex flex-col gap-3 items-center px-4 pt-4">
                   <img src={InformationIcon} alt="Information" className="h-15 w-15" />
                   <Box className="w-full text-(--primary-color) grid grid-cols-[110px_10px_1fr]">
                     <p>{`${t('text.count')} (${t('text.time')})`}</p>
                     <p>:</p>
-                    <p>{(selectedData?.total || 0).toLocaleString()}</p>
-
-                    <p>{t('text.first-name-last-name')}</p>
-                    <p>:</p>
-                    <p>{`${selectedData?.title || ""}${selectedData?.firstname} ${selectedData?.lastname}`}</p>
+                    <p>{0}</p>
 
                     <p>{t('text.agency')}</p>
                     <p>:</p>
-                    <p>{selectedData?.ou_name}</p>
+                    <p>{selectedData?.ou_code}</p>
 
                     <p>{t('text.bh')}</p>
                     <p>:</p>
-                    <p>{selectedData?.bh_name}</p>
+                    <p>{selectedData?.bh_code}</p>
 
                     <p>{t('text.bk')}</p>
                     <p>:</p>
-                    <p>{selectedData?.bk_name}</p>
+                    <p>{selectedData?.bk_code}</p>
 
                     <p>{t('text.org')}</p>
                     <p>:</p>
-                    <p>{selectedData?.org_name}</p>
+                    <p>{selectedData?.org_code}</p>
                   </Box>
                   <Button
                     variant="contained"
@@ -1257,7 +859,7 @@ const StatisticSearchPersonPlate = () => {
                       borderRadius: "5px",
                       mt: 1,
                     }}
-                    onClick={navigateToLogUsage}
+                    onClick={navigateToPersonUsage}
                   >
                     {t('button.detail')}
                   </Button>
@@ -1271,4 +873,4 @@ const StatisticSearchPersonPlate = () => {
   )
 }
 
-export default StatisticSearchPersonPlate;
+export default StatisticUsageAgency;

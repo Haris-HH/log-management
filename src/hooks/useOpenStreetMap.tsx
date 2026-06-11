@@ -82,7 +82,16 @@ export const useMap = (config: Partial<MapConfig> = {}, onFilterClick?: () => vo
         },
       ];
 
-      let currentLayerIndex = 0;
+      const defaultLayerName = config.themeMode === "dark" ? "Night" : "Light (Default)";
+
+      let currentLayerIndex = tileLayers.findIndex(
+        (item) => item.name === defaultLayerName
+      );
+
+      if (currentLayerIndex === -1) {
+        currentLayerIndex = 0;
+      }
+
       let currentTileLayer = tileLayers[currentLayerIndex].layer;
       currentTileLayer.addTo(map);
 

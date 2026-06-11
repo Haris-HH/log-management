@@ -343,10 +343,35 @@ const StatisticSearchPersonPlate = () => {
   const handleDropdownChange = (
     event: React.SyntheticEvent,
     key: keyof typeof formData,
-    value: { value: any ,label: string } | null,
+    value: { value: any; label: string } | null,
   ) => {
     event.preventDefault();
-    setFormData((prev) => ({ ...prev, [key]: value?.value ?? "0" }));
+
+    const selectedValue = value?.value ?? "0";
+
+    setFormData((prev) => {
+      const updated = {
+        ...prev,
+        [key]: selectedValue,
+      };
+
+      if (key === "agency_id") {
+        updated.bh_id = "0";
+        updated.bk_id = "0";
+        updated.org_id = "0";
+      }
+
+      if (key === "bh_id") {
+        updated.bk_id = "0";
+        updated.org_id = "0";
+      }
+
+      if (key === "bk_id") {
+        updated.org_id = "0";
+      }
+
+      return updated;
+    });
   };
 
   const handleTextChange = (key: keyof typeof formData, value: string) => {
@@ -745,64 +770,53 @@ const StatisticSearchPersonPlate = () => {
   }
 
   const getFilters = (data: FormData) => {
-    const filters: string[] = [];
+    const filters: Record<string, string> = {
+      start_time: dayjs(data.start_date_time).format("YYYY-MM-DD"),
+      end_time: dayjs(data.end_date_time).format("YYYY-MM-DD"),
+    };
 
+    const plateGroup = data.plate_group.trim();
+    const plateNumber = data.plate_number.trim();
     const pid = data.pid_or_water_mark.trim();
     const name = data.name.trim();
-    const plate_group = data.plate_group.trim();
-    const plate_number = data.plate_number.trim();
 
     if (pid) {
-      filters.push(`idcard=${encodeURIComponent(pid)}`);
+      filters.idcard = encodeURIComponent(pid);
     }
 
     if (name) {
-      filters.push(`fullname=${encodeURIComponent(name)}`);
-    }
-
-    if (plate_group) {
-      filters.push(`plate_prefix=${encodeURIComponent(plate_group)}`);
-    }
-
-    if (plate_number) {
-      filters.push(`plate_number=${encodeURIComponent(plate_number)}`);
-    }
-
-    if (data.province_id !== "0") {
-      filters.push(`region_code=${data.province_id}`);
+      filters.fullname = encodeURIComponent(name);
     }
 
     if (data.title_id !== "0") {
-      filters.push(`title_id=${data.title_id}`);
+      filters.title = data.title_id;
     }
 
     if (data.agency_id !== "0") {
-      filters.push(`ou_code=${data.agency_id}`);
+      filters.ou_code = data.agency_id;
     }
 
     if (data.bh_id !== "0") {
-      filters.push(`bh_code=${data.bh_id}`);
+      filters.bh_code = data.bh_id;
     }
 
     if (data.bk_id !== "0") {
-      filters.push(`bk_code=${data.bk_id}`);
+      filters.bk_code = data.bk_id;
     }
 
-    if (data.org_id !== "0") {
-      filters.push(`org_code=${data.org_id}`);
+    if (plateGroup) {
+      filters.plate_group = encodeURIComponent(plateGroup);
     }
 
-    filters.push(
-      `log_timestamp>=${dayjs(data.start_date_time).format("YYYY-MM-DD")}`
-    );
+    if (plateNumber) {
+      filters.plate_number = encodeURIComponent(plateNumber);
+    }
 
-    filters.push(
-      `log_timestamp<=${dayjs(data.end_date_time).format("YYYY-MM-DD")}`
-    );
+    if (data.province_id !== "0") {
+      filters.region_code = data.province_id;
+    }
 
-    return {
-      filter: filters.join(","),
-    };
+    return filters;
   };
 
   const handleSearchOnEnter = (
@@ -851,6 +865,7 @@ const StatisticSearchPersonPlate = () => {
                 label={t('component.title')}
                 placeholder={t('placeholder.title')}
                 labelFontSize="14px"
+                freeSolo={true}
               />
             </div>
 

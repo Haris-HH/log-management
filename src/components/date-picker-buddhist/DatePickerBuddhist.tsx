@@ -121,6 +121,9 @@ const DatePickerBuddhist: React.FC<CustomDatePickerProps> = ({
     value: dayjsValue,
     onChange: handleDateChange,
     slotProps: { 
+      popper: {
+        disablePortal: true,
+      },
       ...props.slotProps,
       textField: textFieldProps,
       toolbar: {

@@ -1,8 +1,6 @@
-// components/layout/DockDrawer.tsx
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
-// Material UI
 import IconButton from "@mui/material/IconButton";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -12,10 +10,8 @@ import MenuList from "@mui/material/MenuList";
 import MenuItem from "@mui/material/MenuItem";
 import Fade from "@mui/material/Fade";
 
-// Icons
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 
-// Hooks
 import { useDockItems } from "../../hooks/useDockItems";
 
 type DockDrawerProps = {
@@ -27,8 +23,28 @@ const DockDrawer = ({ open, setOpen }: DockDrawerProps) => {
   const dockItems = useDockItems();
   const navigate = useNavigate();
 
+  // Data
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [activeSubMenu, setActiveSubMenu] = useState<number | null>(null);
+
+  // Ref
+  const closeTimerRef = useRef<number | null>(null);
+
+  const clearCloseTimer = () => {
+    if (closeTimerRef.current) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  };
+
+  const startCloseTimer = () => {
+    clearCloseTimer();
+
+    closeTimerRef.current = window.setTimeout(() => {
+      setOpen(false);
+      handleSubMenuClose();
+    }, 250);
+  };
 
   const handleSubMenuOpen = (
     event: React.MouseEvent<HTMLElement>,
@@ -43,12 +59,13 @@ const DockDrawer = ({ open, setOpen }: DockDrawerProps) => {
     setActiveSubMenu(null);
   };
 
+  const handleCloseDock = () => {
+    setOpen(false);
+    handleSubMenuClose();
+  };
+
   return (
     <Box
-      onMouseLeave={() => {
-        setOpen(false);
-        handleSubMenuClose();
-      }}
       sx={{
         position: "fixed",
         bottom: 0,
@@ -58,10 +75,15 @@ const DockDrawer = ({ open, setOpen }: DockDrawerProps) => {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
+
+        // Important: outer wrapper will not block other page elements
+        pointerEvents: "none",
       }}
     >
       {/* Drawer Panel */}
       <Box
+        onMouseEnter={clearCloseTimer}
+        onMouseLeave={startCloseTimer}
         sx={{
           mb: 1,
           px: 3,
@@ -90,19 +112,15 @@ const DockDrawer = ({ open, setOpen }: DockDrawerProps) => {
             onMouseEnter={(e) => {
               if (item.subMenu?.length) {
                 handleSubMenuOpen(e, index);
-              } 
-              else {
+              } else {
                 handleSubMenuClose();
               }
             }}
             onClick={() => {
-              if (item.subMenu?.length) {
-                handleSubMenuClose();
-              } 
-              else {
-                navigate(item.path);
-                setOpen(false);
-              }
+              if (item.subMenu?.length) return;
+
+              navigate(item.path);
+              handleCloseDock();
             }}
             sx={{
               display: "flex",
@@ -152,11 +170,20 @@ const DockDrawer = ({ open, setOpen }: DockDrawerProps) => {
         anchorEl={anchorEl}
         placement="top"
         transition
-        sx={{ zIndex: 10000 }}
+        disablePortal={false}
+        sx={{
+          zIndex: 10000,
+          pointerEvents: "auto",
+        }}
       >
         {({ TransitionProps }) => (
           <Fade {...TransitionProps} timeout={250}>
             <Paper
+              onMouseEnter={() => {
+                clearCloseTimer();
+                setOpen(true);
+              }}
+              onMouseLeave={startCloseTimer}
               sx={{
                 mb: 2,
                 borderRadius: "16px",
@@ -166,6 +193,7 @@ const DockDrawer = ({ open, setOpen }: DockDrawerProps) => {
                 border: "1px solid rgba(var(--tertiary-color-rgb),0.15)",
                 minWidth: 180,
                 overflow: "hidden",
+                pointerEvents: "auto",
               }}
             >
               <MenuList>
@@ -175,15 +203,13 @@ const DockDrawer = ({ open, setOpen }: DockDrawerProps) => {
                       key={subIndex}
                       onClick={() => {
                         navigate(subItem.path);
-                        setOpen(false);
-                        handleSubMenuClose();
+                        handleCloseDock();
                       }}
                       sx={{
                         color: "var(--primary-color)",
                         fontSize: "0.8rem",
                         py: 1.2,
                         px: 2,
-                        display: "flex",
                         "&:hover": {
                           backgroundColor:
                             "rgba(var(--primary-color-rgb),0.15)",
@@ -203,6 +229,8 @@ const DockDrawer = ({ open, setOpen }: DockDrawerProps) => {
       <IconButton
         onMouseEnter={() => setOpen(true)}
         sx={{
+          pointerEvents: "auto",
+
           background:
             "linear-gradient(135deg, rgba(var(--tertiary-color-rgb),1), rgba(var(--tertiary-color-rgb),0.8))",
           backdropFilter: "blur(20px)",

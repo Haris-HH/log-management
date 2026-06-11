@@ -129,7 +129,7 @@ function HoverSelectMenu<T>({
                               sx={{
                                 color: groupSelected
                                   ? selectedColor
-                                  : "var(--text-color)",
+                                  : "var(--secondary-color)",
                                 fontSize: "0.82rem",
                                 fontWeight: groupSelected ? 700 : 400,
                               }}
@@ -203,7 +203,7 @@ function HoverSelectMenu<T>({
                                           sx={{
                                             color: isSelected
                                               ? selectedColor
-                                              : "var(--text-color)",
+                                              : "var(--secondary-color)",
                                             fontSize: "0.82rem",
                                             fontWeight: isSelected ? 700 : 400,
                                           }}
@@ -251,7 +251,7 @@ function HoverSelectMenu<T>({
                               sx={{
                                 color: isSelected
                                   ? selectedColor
-                                  : "var(--text-color)",
+                                  : "var(--secondary-color)",
                                 fontSize: "0.82rem",
                                 fontWeight: isSelected ? 700 : 400,
                               }}

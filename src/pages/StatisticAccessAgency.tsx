@@ -245,10 +245,29 @@ const StatisticAccessAgency = () => {
   const handleDropdownChange = (
     event: React.SyntheticEvent,
     key: keyof typeof formData,
-    value: { value: any ,label: string } | null,
+    value: { value: any; label: string } | null,
   ) => {
     event.preventDefault();
-    setFormData((prev) => ({ ...prev, [key]: value?.value ?? "0" }));
+
+    const selectedValue = value?.value ?? "0";
+
+    setFormData((prev) => {
+      const updated = {
+        ...prev,
+        [key]: selectedValue,
+      };
+
+      if (key === "agency_id") {
+        updated.bh_id = "0";
+        updated.bk_id = "0";
+      }
+
+      if (key === "bh_id") {
+        updated.bk_id = "0";
+      }
+
+      return updated;
+    });
   };
 
   const handleDateTimeChange = (
@@ -615,22 +634,22 @@ const StatisticAccessAgency = () => {
   }
 
   const getFilters = (data: FormData) => {
-    const filters: string[] = [];
-
-    if (data.agency_id !== "0") filters.push(`ou_code=${data.agency_id}`);
-    if (data.bh_id !== "0") filters.push(`bh_code=${data.bh_id}`);
-    if (data.bk_id !== "0") filters.push(`bk_code=${data.bk_id}`);
-
-    filters.push(
-      `log_timestamp>=${dayjs(data.start_date_time).format("YYYY-MM-DD")}`
-    );
-    filters.push(
-      `log_timestamp<=${dayjs(data.end_date_time).format("YYYY-MM-DD")}`
-    );
-
-    return {
-      filter: filters.join(","),
+    const filters: Record<string, string> = {
+      start_time: dayjs(data.start_date_time).format("YYYY-MM-DD"),
+      end_time: dayjs(data.end_date_time).format("YYYY-MM-DD"),
     };
+
+    if (data.agency_id !== "0") {
+      filters.ou_code = data.agency_id;
+    };
+    if (data.bh_id !== "0") {
+      filters.bh_code = data.bh_id;
+    };
+    if (data.bk_id !== "0") {
+      filters.bk_code = data.bk_id;
+    };
+
+    return filters;
   };
 
   return (
@@ -852,7 +871,7 @@ const StatisticAccessAgency = () => {
                     <TableCell
                       sx={{
                         backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--tertiary-color)",
-                        color: "var(--tertiary-color)",
+                        color: "var(--primary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                         textAlign: "center",
                       }}
@@ -862,7 +881,7 @@ const StatisticAccessAgency = () => {
                     <TableCell
                       sx={{
                         backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--tertiary-color)",
-                        color: "var(--tertiary-color)",
+                        color: "var(--primary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                         textAlign: "center",
                       }}
@@ -872,7 +891,7 @@ const StatisticAccessAgency = () => {
                     <TableCell
                       sx={{
                         backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--tertiary-color)",
-                        color: "var(--tertiary-color)",
+                        color: "var(--primary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                       }}
                     >
@@ -881,7 +900,7 @@ const StatisticAccessAgency = () => {
                     <TableCell
                       sx={{
                         backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--tertiary-color)",
-                        color: "var(--tertiary-color)",
+                        color: "var(--primary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                       }}
                     >
@@ -890,7 +909,7 @@ const StatisticAccessAgency = () => {
                     <TableCell
                       sx={{
                         backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--tertiary-color)",
-                        color: "var(--tertiary-color)",
+                        color: "var(--primary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                       }}
                     >
@@ -899,7 +918,7 @@ const StatisticAccessAgency = () => {
                     <TableCell
                       sx={{
                         backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--tertiary-color)",
-                        color: "var(--tertiary-color)",
+                        color: "var(--primary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                       }}
                     >
@@ -924,28 +943,29 @@ const StatisticAccessAgency = () => {
                   <Box className="w-full text-(--primary-color) grid grid-cols-[110px_10px_1fr]">
                     <p>{`${t('text.count')} (${t('text.time')})`}</p>
                     <p>:</p>
-                    <p>{0}</p>
+                    <p>{selectedData?.total ?? 0}</p>
 
                     <p>{t('text.agency')}</p>
                     <p>:</p>
-                    <p>{selectedData?.ou_code}</p>
+                    <p>{selectedData?.ou_name}</p>
 
                     <p>{t('text.bh')}</p>
                     <p>:</p>
-                    <p>{selectedData?.bh_code}</p>
+                    <p>{selectedData?.bh_name}</p>
 
                     <p>{t('text.bk')}</p>
                     <p>:</p>
-                    <p>{selectedData?.bk_code}</p>
+                    <p>{selectedData?.bk_name}</p>
 
                     <p>{t('text.org')}</p>
                     <p>:</p>
-                    <p>{selectedData?.org_code}</p>
+                    <p>{selectedData?.org_name}</p>
                   </Box>
                   <Button
                     variant="contained"
                     sx={{ 
                       backgroundColor: "var(--primary-color)", 
+                      color: "var(--tertiary-color)",
                       fontSize: "13px", 
                       width: "120px", 
                       py: 0.35, 

@@ -324,10 +324,35 @@ const StatisticUsagePerson = () => {
   const handleDropdownChange = (
     event: React.SyntheticEvent,
     key: keyof typeof formData,
-    value: { value: any ,label: string } | null,
+    value: { value: any; label: string } | null,
   ) => {
     event.preventDefault();
-    setFormData((prev) => ({ ...prev, [key]: value?.value ?? "0" }));
+
+    const selectedValue = value?.value ?? "0";
+
+    setFormData((prev) => {
+      const updated = {
+        ...prev,
+        [key]: selectedValue,
+      };
+
+      if (key === "agency_id") {
+        updated.bh_id = "0";
+        updated.bk_id = "0";
+        updated.org_id = "0";
+      }
+
+      if (key === "bh_id") {
+        updated.bk_id = "0";
+        updated.org_id = "0";
+      }
+
+      if (key === "bk_id") {
+        updated.org_id = "0";
+      }
+
+      return updated;
+    });
   };
 
   const handleDateTimeChange = (
@@ -715,50 +740,43 @@ const StatisticUsagePerson = () => {
   }
 
   const getFilters = (data: FormData) => {
-    const filters: string[] = [];
+    const filters: Record<string, string> = {
+      start_time: dayjs(data.start_date_time).format("YYYY-MM-DD"),
+      end_time: dayjs(data.end_date_time).format("YYYY-MM-DD"),
+    };
 
     const pid = data.pid_or_water_mark.trim();
     const name = data.name.trim();
 
     if (pid) {
-      filters.push(`idcard=${encodeURIComponent(pid)}`);
+      filters.idcard = encodeURIComponent(pid);
     }
 
     if (name) {
-      filters.push(`fullname=${encodeURIComponent(name)}`);
+      filters.fullname = encodeURIComponent(name);
     }
 
     if (data.title_id !== "0") {
-      filters.push(`title_id=${data.title_id}`);
+      filters.title = data.title_id;
     }
 
     if (data.agency_id !== "0") {
-      filters.push(`ou_code=${data.agency_id}`);
+      filters.ou_code = data.agency_id;
     }
 
     if (data.bh_id !== "0") {
-      filters.push(`bh_code=${data.bh_id}`);
+      filters.bh_code = data.bh_id;
     }
 
     if (data.bk_id !== "0") {
-      filters.push(`bk_code=${data.bk_id}`);
+      filters.bk_code = data.bk_id;
     }
 
     if (data.org_id !== "0") {
-      filters.push(`org_code=${data.org_id}`);
+      filters.org_code = data.org_id;
     }
 
-    filters.push(
-      `log_timestamp>=${dayjs(data.start_date_time).format("YYYY-MM-DD")}`
-    );
-
-    filters.push(
-      `log_timestamp<=${dayjs(data.end_date_time).format("YYYY-MM-DD")}`
-    );
-
-    return {
-      filter: filters.join(","),
-    };
+    return filters;
   };
 
   const handleSearchOnEnter = (
@@ -807,6 +825,7 @@ const StatisticUsagePerson = () => {
                 label={t('component.title')}
                 placeholder={t('placeholder.title')}
                 labelFontSize="14px"
+                freeSolo={true}
               />
             </div>
 

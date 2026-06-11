@@ -287,6 +287,7 @@ const Navbar = () => {
                 width: 34, 
                 height: 34,
                 backgroundColor: "rgba(var(--primary-color-rgb), 0.8)",
+                color: "var(--tertiary-color)",
               }}
             />
           </div>
