@@ -23,7 +23,7 @@ import TextBox from "../components/text-box/TextBox";
 import Loading from "../components/loading-screen/LoadingScreen";
 
 // Icons
-import ClearIcon from "../assets/icons/clear.png";
+import ClearIcon from "../assets/svg/clear.svg?react";
 import ExportExcelIcon from "../assets/icons/export-excel.png";
 import ExportPdfIcon from "../assets/icons/export-pdf.png";
 import DatabaseOnline from "../assets/icons/database-online.png";
@@ -293,12 +293,12 @@ const OverallCheckpoints = () => {
       { isLoading && <Loading /> }
       {/* Main Title */}
       <MainTitle title={t("pages.overall-checkpoints")} />
-      <div className='flex flex-col p-4 bg-(--main-bg-color)/80 flex-1 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-y-auto gap-2'>
+      <div className='flex flex-col p-4 bg-(--main-bg-color) flex-1 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-y-auto gap-2'>
         {/* Search Filters */}
         <Box 
-          className="grid grid-cols-[repeat(5,minmax(0,1fr))_180px] border border-(--primary-color) rounded-[10px] p-4 gap-2 bg-(--secondary-color)"
+          className="grid grid-cols-[repeat(5,minmax(0,1fr))_180px] border border-(--primary-color) rounded-[10px] p-4 gap-2 bg-(--tertiary-color)"
           sx={{
-            boxShadow: "0px 2px 8px rgba(var(--secondary-color-rgb),0.1)",
+            boxShadow: "0px 2px 8px rgba(var(--tertiary-color-rgb),0.1)",
             "& h6": {
               whiteSpace: "nowrap",
               overflow: "hidden",
@@ -356,12 +356,13 @@ const OverallCheckpoints = () => {
           <Box className="flex gap-2 items-end">
             <Button 
               variant="contained" 
-              startIcon={<img src={ClearIcon} alt="Clear" className="h-6 w-6" />} 
+              startIcon={<ClearIcon className="h-6 w-6" style={{ color: "var(--tertiary-color)" }} />} 
               sx={{ 
                 backgroundColor: "var(--primary-color)", 
                 fontSize: "14px", 
                 width: t('button.clear-width'),
                 height: "40px",
+                color: "var(--tertiary-color)",
                 ":hover": {
                   backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
                 },
@@ -421,13 +422,13 @@ const OverallCheckpoints = () => {
             component={Paper}
           >
             <Table
-              sx={{ minWidth: 650, backgroundColor: "var(--secondary-color)", border: "1px solid var(--primary-color)" }}
+              sx={{ minWidth: 650, backgroundColor: "var(--tertiary-color)", border: "1px solid var(--primary-color)" }}
               stickyHeader
             >
               <TableHead
                 sx={{
                   "& .MuiTableCell-head": {
-                    color: "white",
+                    color: "var(--tertiary-color)",
                     backgroundColor: "var(--primary-color)",
                   },
                 }}
@@ -444,14 +445,14 @@ const OverallCheckpoints = () => {
                   ))}
                 </TableRow>
               </TableHead>
-              <TableBody sx={{ backgroundColor: "var(--secondary-color)" }}>
+              <TableBody sx={{ backgroundColor: "var(--tertiary-color)" }}>
                 {rows.map((data, index) => (
                   <TableRow
                     key={index}
                   >
                     <TableCell
                       sx={{
-                        backgroundColor: "var(--secondary-color)",
+                        backgroundColor: "var(--tertiary-color)",
                         color: "var(--tertiary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                         textAlign: "center",
@@ -462,7 +463,7 @@ const OverallCheckpoints = () => {
                     </TableCell>
                     <TableCell
                       sx={{
-                        backgroundColor: "var(--secondary-color)",
+                        backgroundColor: "var(--tertiary-color)",
                         color: "var(--tertiary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                         textAlign: "center",
@@ -476,7 +477,7 @@ const OverallCheckpoints = () => {
                     </TableCell>
                     <TableCell 
                       sx={{
-                        backgroundColor: "var(--secondary-color)",
+                        backgroundColor: "var(--tertiary-color)",
                         color: "var(--tertiary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                         textAlign: "center",
@@ -494,7 +495,7 @@ const OverallCheckpoints = () => {
                         <TableCell 
                           key={col.key}
                           sx={{
-                            backgroundColor: "var(--secondary-color)",
+                            backgroundColor: "var(--tertiary-color)",
                             color: "var(--tertiary-color)",
                             borderBottom: "1px solid var(--primary-color)",
                             textAlign: "center",

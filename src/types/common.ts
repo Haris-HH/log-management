@@ -575,6 +575,7 @@ export interface Device {
   project_id: string;
   center_id: string;
   checkpoint_id: string;
+  checkpoint_name?: string;
   province_code: string;
   district_code: string;
   subdistrict_code: string;
@@ -586,10 +587,13 @@ export interface Device {
   visible: boolean;
   active: boolean;
   alive: boolean;
+  device_status_id?: number;
   device_status_code: string;
+  device_status_name: string;
   maintenance_status_code: string;
   last_online: string;
   last_check: string;
+  lane: string;
   response_ms: number;
   deleted: boolean;
   request_delete: boolean;
@@ -598,4 +602,71 @@ export interface Device {
   updated_at: string;
   deleted_at: string;
   latLng?: LatLngExpression;
+  total?: number;
+}
+
+export interface Checkpoint {
+  checkpoint_id: string;
+  checkpoint_name: string;
+  checkpoint_ip: string;
+  center_id: string;
+  center_ip: string;
+  project_id: string;
+  organization: string;
+  province_code: string;
+  district_code: string;
+  subdistrict_code: string;
+  route: string;
+  address: string;
+  police_region_id: number;
+  police_station_id: number;
+  latitude: number;
+  longitude: number;
+  serial_number: string;
+  license_key: string;
+  officer_title_id: number;
+  officer_firstname: string;
+  officer_lastname: string;
+  officer_position: string;
+  officer_phone: string;
+  visible: boolean;
+  active: boolean;
+  deleted: boolean;
+  alive: boolean;
+  last_online: string;
+  last_check: string;
+  response_ms: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string;
+}
+
+export interface ChartReportStatistic {
+  rank: number;
+  police_region_id: number;
+  police_region: Area;
+  total: number;
+  online: number;
+  offline: number;
+  maintenance: number;
+  suspended: number;
+  others: number;
+}
+
+export interface CameraInCheckpoint {
+  checkpoint_id: string;
+  checkpoint_name: string;
+  province_code: string;
+  province_name: string;
+  district_code: string;
+  district_name: string;
+  subdistrict_code: string;
+  subdistrict_name: string;
+  police_station_id: number;
+  police_station_name: string;
+  latitude: number;
+  longitude: number;
+  cameras: Device[];
+  latLng?: LatLngExpression;
+  total: number;
 }

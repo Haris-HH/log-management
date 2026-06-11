@@ -139,7 +139,7 @@ export const getProvince = async (): Promise<ProvinceResponse> => {
   return res;
 };
 
-export const getDistrict = async (): Promise<DistrictResponse> => {
+export const getDistrict = async (param?: Record<string, string>): Promise<DistrictResponse> => {
   if (isDev) {
     return mockDistrict;
   }
@@ -148,13 +148,14 @@ export const getDistrict = async (): Promise<DistrictResponse> => {
     "/masterdata/districts/get",
     {
       method: "GET",
+      queryParams: param,
     },
   );
 
   return res;
 };
 
-export const getSubdistrict = async (): Promise<SubdistrictResponse> => {
+export const getSubdistrict = async (param?: Record<string, string>): Promise<SubdistrictResponse> => {
   if (isDev) {
     return mockSubdistrict;
   }
@@ -163,6 +164,7 @@ export const getSubdistrict = async (): Promise<SubdistrictResponse> => {
     "/masterdata/subdistricts/get",
     {
       method: "GET",
+      queryParams: param,
     },
   );
 

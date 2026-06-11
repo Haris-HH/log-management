@@ -49,7 +49,7 @@ const DatePickerBuddhist: React.FC<CustomDatePickerProps> = ({
   ...props
 }) => {
   // i18n
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
 
   const dayjsValue = value ? dayjs(value) : null;
 
@@ -85,14 +85,14 @@ const DatePickerBuddhist: React.FC<CustomDatePickerProps> = ({
       '& .MuiPickersInputBase-root': {
         height: '30px',
         fontSize: labelFontSize,
-        backgroundColor: 'var(--secondary-color)',
+        backgroundColor: 'var(--tertiary-color)',
         color: 'var(--primary-color)',
         border: "1px solid var(--primary-color)",
       },
       '& .MuiOutlinedInput-root': {
         height: '30px',
         borderRadius: '5px',
-        backgroundColor: 'var(--secondary-color)',
+        backgroundColor: 'var(--tertiary-color)',
         '& input': {
           padding: '0 14px',
           height: '30px',
@@ -133,10 +133,7 @@ const DatePickerBuddhist: React.FC<CustomDatePickerProps> = ({
           borderRadius: "2px",
 
           "& .MuiPickersLayout-root": {
-            backgroundColor: "var(--secondary-color)",
-            "& .Mui-disabled": {
-              color: "rgba(var(--primary-color-rgb), 0.5)",
-            },
+            backgroundColor: "var(--tertiary-color)",
             "& .Mui-selected": {
               color: "var(--tertiary-color) !important",
               backgroundColor: "var(--primary-color) !important",
@@ -157,6 +154,9 @@ const DatePickerBuddhist: React.FC<CustomDatePickerProps> = ({
 
           "& .MuiPickersCalendarHeader-root": {
             color: "var(--primary-color)",
+            "& .MuiSvgIcon-root": {
+              color: "var(--primary-color)",
+            },
           },
 
           "& .MuiPickersCalendarHeader-label": {
@@ -165,45 +165,41 @@ const DatePickerBuddhist: React.FC<CustomDatePickerProps> = ({
 
           "& .MuiPickersArrowSwitcher-button": {
             color: "var(--primary-color)",
+
+            "&.Mui-disabled": {
+              color: "rgba(var(--secondary-color-rgb), 0.2) !important",
+            },
+
+            "&.Mui-disabled .MuiSvgIcon-root": {
+              color: "rgba(var(--secondary-color-rgb), 0.2) !important",
+            },
           },
 
           "& .MuiDayCalendar-weekDayLabel": {
             color: "var(--primary-color)",
           },
 
-          "& .MuiPickersDay-root": {
-            borderRadius: "8px",
-
-            "& .Mui-selected": {
-              color: "var(--tertiary-color)",
-              backgroundColor: "var(--primary-color)",
-              "&:hover": {
-                backgroundColor: "rgba(var(--primary-color-rgb), 0.4)",
-              },
-            },
-            
-            "&.Mui-disabled": {
-              color: "rgba(var(--primary-color-rgb), 0.35) !important",
-            },
-
-            "&:hover": {
-              backgroundColor: "rgba(var(--primary-color-rgb), 0.2)",
-            },
-          },
-
-          "& .MuiPickersDay-dayOutsideMonth": {
-            color: "rgba(var(--primary-color-rgb), 0.35) !important",
-          },
-
-          "& .MuiDayCalendar-weekContainer .MuiButtonBase-root": {
+          "& .MuiDayCalendar-weekContainer .MuiButtonBase-root:not(.Mui-disabled):not(.MuiPickersDay-dayOutsideMonth)": {
             color: "var(--primary-color)",
           },
 
-          "& .MuiPickerDay-today": {
-            border: "1px solid var(--primary-color)",
+          "& .MuiDayCalendar-weekContainer .MuiButtonBase-root": {
+            "&.MuiPickerDay-root.MuiPickerDay-today": {
+              border: "1px solid var(--primary-color) !important",
+              color: "var(--primary-color) !important",
+            },
+            "&.Mui-disabled": {
+              color: "rgba(var(--secondary-color-rgb), 0.3) !important",
+            }
           },
 
-          "& .MuiButton-root": {
+          "& .MuiMonthCalendar-root .MuiMonthCalendar-button": {
+            "&.Mui-disabled": {
+              color: "rgba(var(--secondary-color-rgb), 0.3) !important",
+            }
+          },
+
+          "& .MuiDialogActions-root .MuiButton-root": {
             color: "var(--primary-color)",
           },
           "& .MuiClock-root, & .MuiClockNumber-root": {

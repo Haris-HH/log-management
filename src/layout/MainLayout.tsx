@@ -25,16 +25,16 @@ const MainLayout = () => {
 
   const location = useLocation();
 
-  const user = useSelector((state: RootState) => state.authUser);
+  const { user } = useSelector((state: RootState) => state.authUser);
 
-  const hashPid = localStorage.getItem("hash_id") || "NO HASH ID";
-  const nsbOu = JSON.parse(localStorage.getItem("nsbOu") || "{}");
+  const hashPid = user?.hash_id || "NO HASH ID";
+  const nsbOu = i18n.language === "th" ? user?.agency.ou_abbr_th || "-" : user?.agency.ou_abbr_en || "-";
 
   return (
     <div className="relative min-h-screen overflow-hidden">
       <Navbar />
 
-      <Watermark text={i18n.language === "th" ? nsbOu.ou_abbr_th : nsbOu.ou_abbr_en} hashPid={hashPid} />
+      <Watermark text={nsbOu} hashPid={hashPid} />
       
       <main
         style={{
@@ -67,7 +67,7 @@ const MainLayout = () => {
           style={{
             position: "absolute",
             inset: 0,
-            backgroundColor: "rgba(var(--secondary-color-rgb),0.35)",
+            backgroundColor: "rgba(var(--secondary-color-rgb),0.2)",
             zIndex: -1,
           }}
         />

@@ -14,7 +14,7 @@ import TextBox from "../components/text-box/TextBox";
 import LoadingScreen from '../components/loading-screen/LoadingScreen';
 
 // Icons
-import ClearIcon from "../assets/icons/clear.png";
+import ClearIcon from "../assets/svg/clear.svg?react";
 import { X } from "lucide-react";
 
 // Hooks
@@ -32,9 +32,14 @@ import { useTranslation } from 'react-i18next';
 
 // API
 import { searchDevice } from "../features/device/api/DeviceApi";
+import { getCheckpoints } from "../features/core-data/api/CoreDataApi";
+import { getDistrict, getSubdistrict } from "../features/dropdown/api/DropdownApi";
 
 // Types
-import type { Device } from "../types/common";
+import type { Device, Checkpoint, CameraInCheckpoint } from "../types/common";
+
+// Constant
+import { DEVICE_STATUS_COLOR } from "../constants/color";
 
 interface FormData {
   search_word: string;
@@ -57,6 +62,8 @@ const OverallMap = () => {
   // Data
   const [map, setMap] = useState<LeafletMap | null>(null);
   const [devices, setDevices] = useState<Device[]>([]);
+  const [checkpoints, setCheckpoints] = useState<Checkpoint[]>([]);
+  const [cameraInCheckpoints, setCameraInCheckpoints] = useState<CameraInCheckpoint[]>([]);
 
   // Options
   const [areaOptions, setAreaOptions] = useState<{ label: string, value: string }[]>([]);
@@ -84,10 +91,10 @@ const OverallMap = () => {
   }, [formData])
 
   useEffect(() => {
-    if (map && devices) {
-      showOverallWithList(devices);
+    if (map && cameraInCheckpoints) {
+      showOverallWithList(cameraInCheckpoints);
     }
-  }, [map, t, i18n.language, i18n.isInitialized, devices]);
+  }, [map, t, i18n.language, i18n.isInitialized, cameraInCheckpoints]);
 
   useEffect(() => {
     const langKeyArea = i18n.language === "th" ? "title_th" : "title_en";
@@ -116,12 +123,52 @@ const OverallMap = () => {
       try {
         setIsLoading(true);
 
-        const res = await searchDevice(
-          {
-            ...getFilters(filterData),
-          }
+        const resCheckpoint = await getCheckpoints();
+        setCheckpoints(resCheckpoint.data);
+
+        const resDevice: CameraInCheckpoint[] = await Promise.all(
+          resCheckpoint.data.map(async (item) => {
+            const res = await searchDevice(
+              {
+                ...getFilters(filterData, item.checkpoint_id),
+              }
+            );
+
+            const resDistrict = await getDistrict({ filter: `province_code=${item.province_code},district_code=${item.district_code}` });
+            const resSubdistrict = await getSubdistrict({ filter: `province_code=${item.province_code},district_code=${item.district_code},subdistrict_code=${item.subdistrict_code}` });
+            const provinceName = province.find((p) => p.province_code === item.province_code);            
+            const areaName = area.find((a) => a.id === Number(formData.area_id));
+
+            const updatedData = res.data.map((device) => {
+              const color = DEVICE_STATUS_COLOR.find((status) => status.code === device.device_status_code);
+              const name = deviceStatus.find((status) => status.status_code === device.device_status_code);
+
+              return {
+                ...device,
+                device_status_id: color?.id,
+                device_status_name: i18n.language === "th" ? name?.status_th ?? "-" : name?.status_en ?? "-",
+              }
+            });
+
+            return {
+              cameras: updatedData,
+              checkpoint_id: item.checkpoint_id,
+              checkpoint_name: item.checkpoint_name,
+              province_code: item.province_code,
+              province_name: i18n.language === "th" ? provinceName?.name_th ?? "-" : provinceName?.name_en ?? "-",
+              district_code: item.district_code,
+              district_name: i18n.language === "th" ? resDistrict.data[0]?.name_th ?? "-" : resDistrict.data[0]?.name_en ?? "-",
+              subdistrict_code: item.subdistrict_code,
+              subdistrict_name: i18n.language === "th" ? resSubdistrict.data[0]?.name_th ?? "-" : resSubdistrict.data[0]?.name_en ?? "-",
+              police_station_id: item.police_station_id,
+              police_station_name: i18n.language === "th" ? areaName?.title_th ?? "-" : areaName?.title_en ?? "-",
+              latitude: item.latitude,
+              longitude: item.longitude,
+              total: res.pagination?.countAll ?? 0,
+            };
+          })
         );
-        setDevices(res.data);
+        setCameraInCheckpoints(resDevice);
       } 
       catch (error) {
       } 
@@ -159,11 +206,12 @@ const OverallMap = () => {
     clearSearchPlaces();
   }
 
-  const getFilters = useCallback((formData: FormData) => {
+  const getFilters = useCallback((formData: FormData, checkpoint_id: string) => {
     const filters: Record<string, string> = {
-      groupBy: "device_id",
       page: "1",
       limit: "10",
+      device_category: "camera",
+      checkpoint_id: checkpoint_id,
     };
 
     if (formData.area_id !== "0") {
@@ -232,6 +280,7 @@ const OverallMap = () => {
               >
                 <Box className="absolute top-2 right-2 flex justify-end items-center w-full">
                   <X 
+                    color="var(--primary-color)" 
                     className="w-4 h-4 cursor-pointer" 
                     onClick={() => setShowFilter(false)}
                   />
@@ -296,7 +345,7 @@ const OverallMap = () => {
                     }}
                     onClick={handleClear}
                   >
-                    <img src={ClearIcon} alt="Clear" className='w-5 h-5' />
+                    <ClearIcon className="h-6 w-6" style={{ color: "var(--tertiary-color)" }} />
                   </IconButton>
                 </Box>
               </Box>

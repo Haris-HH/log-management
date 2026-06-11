@@ -121,11 +121,13 @@ export const useMap = (config: Partial<MapConfig> = {}, onFilterClick?: () => vo
             const button = L.DomUtil.create('a', '', container);
             button.href = '#';
             button.title = tileLayers[currentLayerIndex].name;
+            button.style.backgroundColor = "var(--tertiary-color)";
 
             const iconContainer = L.DomUtil.create('div', '', button);
             iconContainer.innerHTML = tileLayers[currentLayerIndex].icon;;
             iconContainer.style.width = '20px';
             iconContainer.style.height = '20px';
+            iconContainer.style.backgroundColor = "var(--tertiary-color)";
 
             L.DomEvent.disableClickPropagation(button);
 

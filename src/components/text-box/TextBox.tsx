@@ -110,7 +110,7 @@ const TextBox: React.FC<TextBoxProps> = ({
           backgroundColor: "transparent",
 
           "& .MuiOutlinedInput-root": {
-            backgroundColor: "var(--secondary-color)",
+            backgroundColor: "var(--tertiary-color)",
             borderRadius: "5px",
 
             "& fieldset": {
@@ -141,7 +141,7 @@ const TextBox: React.FC<TextBoxProps> = ({
 
             "&:-webkit-autofill": {
               WebkitBoxShadow:
-                "0 0 0 1000px var(--secondary-color) inset !important",
+                "0 0 0 1000px var(--tertiary-color) inset !important",
               WebkitTextFillColor:
                 "var(--primary-color) !important",
               caretColor: "var(--primary-color)",
@@ -150,14 +150,14 @@ const TextBox: React.FC<TextBoxProps> = ({
 
             "&:-webkit-autofill:hover": {
               WebkitBoxShadow:
-                "0 0 0 1000px var(--secondary-color) inset !important",
+                "0 0 0 1000px var(--tertiary-color) inset !important",
               WebkitTextFillColor:
                 "var(--primary-color) !important",
             },
 
             "&:-webkit-autofill:focus": {
               WebkitBoxShadow:
-                "0 0 0 1000px var(--secondary-color) inset !important",
+                "0 0 0 1000px var(--tertiary-color) inset !important",
               WebkitTextFillColor:
                 "var(--primary-color) !important",
             },

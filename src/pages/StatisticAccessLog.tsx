@@ -44,7 +44,7 @@ import type { LogUsagePdfData } from "../types/pdf";
 import { useTranslation } from 'react-i18next';
 
 // Icons
-import ClearIcon from "../assets/icons/clear.png";
+import ClearIcon from "../assets/svg/clear.svg?react";
 import ExportExcelIcon from "../assets/icons/export-excel.png";
 import ExportPdfIcon from "../assets/icons/export-pdf.png";
 
@@ -759,12 +759,12 @@ const StatisticAccessLog = () => {
       { isLoading && <LoadingScreen /> }
       {/* Main Title */}
       <MainTitle title={t("pages.statistic-access-log")} />
-      <div className='p-4 bg-(--main-bg-color)/80 flex flex-1 flex-col gap-4 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-y-auto'>
+      <div className='p-4 bg-(--main-bg-color) flex flex-1 flex-col gap-4 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-y-auto'>
         {/* Search Filters */}
         <Box 
-          className="grid grid-cols-[repeat(9,minmax(0,1fr))_180px] border border-(--primary-color) rounded-[10px] p-4 gap-2 bg-(--secondary-color)"
+          className="grid grid-cols-[repeat(9,minmax(0,1fr))_180px] border border-(--primary-color) rounded-[10px] p-4 gap-2 bg-(--tertiary-color)"
           sx={{
-            boxShadow: "0px 2px 8px rgba(var(--secondary-color-rgb),0.1)"
+            boxShadow: "0px 2px 8px rgba(var(--tertiary-color-rgb),0.1)"
           }}
         >
           <TextBox
@@ -827,6 +827,7 @@ const StatisticAccessLog = () => {
             }
             label={t('component.start-date')}
             labelFontSize="14px"
+            maxDate={dayjs()}
           />
 
           <DatePickerBuddhist
@@ -848,6 +849,7 @@ const StatisticAccessLog = () => {
             }
             label={t('component.end-date')}
             labelFontSize="14px"
+            maxDate={dayjs()}
           />
 
           <AutoComplete 
@@ -900,9 +902,10 @@ const StatisticAccessLog = () => {
           <Box className="flex gap-2 items-end">
             <Button 
               variant="contained" 
-              startIcon={<img src={ClearIcon} alt="Clear" className="h-6 w-6" />} 
+              startIcon={<ClearIcon className="h-6 w-6" style={{ color: "var(--tertiary-color)" }} />} 
               sx={{ 
                 backgroundColor: "var(--primary-color)", 
+                color: "var(--tertiary-color)",
                 fontSize: "14px", 
                 width: t('button.clear-width'),
                 height: "40px",
@@ -961,11 +964,11 @@ const StatisticAccessLog = () => {
           <TableContainer
             component={Paper}
             sx={{
-              backgroundColor: "var(--secondary-color)",
+              backgroundColor: "var(--tertiary-color)",
             }}
           >
             <Table
-              sx={{ minWidth: 650, backgroundColor: "var(--secondary-color)", border: "1px solid var(--primary-color)"}}
+              sx={{ minWidth: 650, backgroundColor: "var(--tertiary-color)", border: "1px solid var(--primary-color)"}}
               stickyHeader
             >
               <TableHead
@@ -1045,14 +1048,14 @@ const StatisticAccessLog = () => {
                   </TableCell>
                 </TableRow>
               </TableHead>
-              <TableBody sx={{ backgroundColor: "var(--secondary-color)" }}>
+              <TableBody sx={{ backgroundColor: "var(--tertiary-color)" }}>
                 {rows.map((data, index) => (
                   <TableRow
                     key={index}
                   >
                     <TableCell
                       sx={{
-                        backgroundColor: "var(--secondary-color)",
+                        backgroundColor: "var(--tertiary-color)",
                         color: "var(--tertiary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                         textAlign: "center",
@@ -1062,7 +1065,7 @@ const StatisticAccessLog = () => {
                     </TableCell>
                     <TableCell
                       sx={{
-                        backgroundColor: "var(--secondary-color)",
+                        backgroundColor: "var(--tertiary-color)",
                         color: "var(--tertiary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                         py: 1,
@@ -1073,7 +1076,7 @@ const StatisticAccessLog = () => {
                     </TableCell>
                     <TableCell
                       sx={{
-                        backgroundColor: "var(--secondary-color)",
+                        backgroundColor: "var(--tertiary-color)",
                         color: "var(--tertiary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                         textAlign: "center",
@@ -1085,7 +1088,7 @@ const StatisticAccessLog = () => {
                     </TableCell>
                     <TableCell
                       sx={{
-                        backgroundColor: "var(--secondary-color)",
+                        backgroundColor: "var(--tertiary-color)",
                         color: "var(--tertiary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                         textAlign: "center",
@@ -1097,7 +1100,7 @@ const StatisticAccessLog = () => {
                     </TableCell>
                     <TableCell
                       sx={{
-                        backgroundColor: "var(--secondary-color)",
+                        backgroundColor: "var(--tertiary-color)",
                         color: "var(--tertiary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                         textAlign: "center",
@@ -1109,7 +1112,7 @@ const StatisticAccessLog = () => {
                     </TableCell>
                     <TableCell
                       sx={{
-                        backgroundColor: "var(--secondary-color)",
+                        backgroundColor: "var(--tertiary-color)",
                         color: data.location_webui?.lat && data.location_webui?.lng ? "var(--hyper-text-color)" : "var(--tertiary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                         py: 1,
@@ -1123,7 +1126,7 @@ const StatisticAccessLog = () => {
                     </TableCell>
                     <TableCell
                       sx={{
-                        backgroundColor: "var(--secondary-color)",
+                        backgroundColor: "var(--tertiary-color)",
                         color: "var(--tertiary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                         py: 1,
@@ -1134,7 +1137,7 @@ const StatisticAccessLog = () => {
                     </TableCell>
                     <TableCell
                       sx={{
-                        backgroundColor: "var(--secondary-color)",
+                        backgroundColor: "var(--tertiary-color)",
                         color: "var(--tertiary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                       }}
@@ -1143,7 +1146,7 @@ const StatisticAccessLog = () => {
                     </TableCell>
                     <TableCell
                       sx={{
-                        backgroundColor: "var(--secondary-color)",
+                        backgroundColor: "var(--tertiary-color)",
                         color: "var(--tertiary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                       }}
@@ -1152,7 +1155,7 @@ const StatisticAccessLog = () => {
                     </TableCell>
                     <TableCell
                       sx={{
-                        backgroundColor: "var(--secondary-color)",
+                        backgroundColor: "var(--tertiary-color)",
                         color: "var(--tertiary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                       }}
@@ -1161,7 +1164,7 @@ const StatisticAccessLog = () => {
                     </TableCell>
                     <TableCell
                       sx={{
-                        backgroundColor: "var(--secondary-color)",
+                        backgroundColor: "var(--tertiary-color)",
                         color: "var(--tertiary-color)",
                         borderBottom: "1px solid var(--primary-color)",
                       }}

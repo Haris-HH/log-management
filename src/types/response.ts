@@ -30,6 +30,7 @@ import type {
   TopUsers,
   DeviceCheckLog,
   Device,
+  Checkpoint,
 } from "../types/common";
 
 export interface UsageChartResponse {
@@ -114,6 +115,8 @@ export interface TopUsersResponse extends BasicResponse<TopUsers[]> {}
 export interface DeviceCheckLogResponse extends BasicResponse<DeviceCheckLog[]> {}
 
 export interface DeviceResponse extends BasicResponse<Device[]> {}
+
+export interface CheckpointResponse extends BasicResponse<Checkpoint[]> {}
 
 export interface BasicResponse<T> {
   endpoint: string;

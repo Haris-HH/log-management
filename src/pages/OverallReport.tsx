@@ -368,20 +368,20 @@ const OverallReport = () => {
       { isLoading && <LoadingScreen /> }
       {/* Main Title */}
       <MainTitle title={t("pages.overall-report")} />
-      <div className='p-4 bg-(--main-bg-color)/80 flex flex-1 flex-col gap-4 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-y-auto'>
+      <div className='p-4 bg-(--main-bg-color) flex flex-1 flex-col gap-4 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-y-auto'>
         {/* Search Filters */}
-        <Box className="flex flex-col gap-4 bg-(--secondary-color) p-4">
+        <Box className="flex flex-col gap-4 bg-(--tertiary-color) p-4">
           <Box className="flex gap-4">
             <Button
               variant="contained"
               sx={{
                 width: 200,
                 height: 38,
-                backgroundColor: reportRange === "day" ? "var(--primary-color)" : "var(--secondary-color)",
+                backgroundColor: reportRange === "day" ? "var(--primary-color)" : "var(--tertiary-color)",
                 color: reportRange === "day" ? "var(--tertiary-color)" : "var(--primary-color)",
                 border: reportRange === "day" ? "none" : "1px solid var(--primary-color)",
                 "&:hover": {
-                  backgroundColor: reportRange === "day" ? "var(--primary-color)" : "var(--range-button-color-hover)",
+                  backgroundColor: reportRange === "day" ? "rgba(var(--primary-color-rgb), 0.5)" : "rgba(var(--primary-color-rgb), 0.2)",
                 },
                 fontWeight: 700,
                 textTransform: "capitalize",
@@ -395,11 +395,11 @@ const OverallReport = () => {
               sx={{
                 width: 200,
                 height: 38,
-                backgroundColor: reportRange === "week" ? "var(--primary-color)" : "var(--secondary-color)",
+                backgroundColor: reportRange === "week" ? "var(--primary-color)" : "var(--tertiary-color)",
                 color: reportRange === "week" ? "var(--tertiary-color)" : "var(--primary-color)",
                 border: reportRange === "week" ? "none" : "1px solid var(--primary-color)",
                 "&:hover": {
-                  backgroundColor: reportRange === "week" ? "var(--primary-color)" : "var(--range-button-color-hover)",
+                  backgroundColor: reportRange === "week" ? "rgba(var(--primary-color-rgb), 0.5)" : "rgba(var(--primary-color-rgb), 0.2)",
                 },
                 fontWeight: 700,
                 textTransform: "capitalize",
@@ -413,11 +413,11 @@ const OverallReport = () => {
               sx={{
                 width: 200,
                 height: 38,
-                backgroundColor: reportRange === "month" ? "var(--primary-color)" : "var(--secondary-color)",
+                backgroundColor: reportRange === "month" ? "var(--primary-color)" : "var(--tertiary-color)",
                 color: reportRange === "month" ? "var(--tertiary-color)" : "var(--primary-color)",
                 border: reportRange === "month" ? "none" : "1px solid var(--primary-color)",
                 "&:hover": {
-                  backgroundColor: reportRange === "month" ? "var(--primary-color)" : "var(--range-button-color-hover)",
+                  backgroundColor: reportRange === "month" ? "rgba(var(--primary-color-rgb), 0.5)" : "rgba(var(--primary-color-rgb), 0.2)",
                 },
                 fontWeight: 700,
                 textTransform: "capitalize",
@@ -428,9 +428,9 @@ const OverallReport = () => {
             </Button>
           </Box>
           <Box 
-            className="border border-(--primary-color) rounded-[10px] p-4 bg-(--secondary-color)"
+            className="border border-(--primary-color) rounded-[10px] p-4 bg-(--tertiary-color)"
             sx={{
-              boxShadow: "0px 2px 8px rgba(var(--secondary-color-rgb),0.1)",
+              boxShadow: "0px 2px 8px rgba(var(--tertiary-color-rgb),0.1)",
               "& h6": {
                 whiteSpace: "nowrap",
                 overflow: "hidden",
@@ -591,11 +591,12 @@ const OverallReport = () => {
                 startIcon={<ClearIcon className="h-6 w-6" style={{ color: "var(--tertiary-color)" }} />} 
                 sx={{ 
                   backgroundColor: "var(--primary-color)", 
+                  color: "var(--tertiary-color)",
                   fontSize: "14px", 
                   width: t('button.clear-width'),
                   height: "40px",
                   ":hover": {
-                    backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
+                    backgroundColor: "rgba(var(--primary-color-rgb), 0.8)",
                   },
                   textTransform: "capitalize",
                   "& .MuiButton-startIcon": {
@@ -639,7 +640,7 @@ const OverallReport = () => {
                 }}
                 sx={{
                   "& .MuiPaper-root": {
-                    backgroundColor: "var(--secondary-color)",
+                    backgroundColor: "var(--tertiary-color)",
                     border: "1px solid var(--primary-color)",
                     borderRadius: "8px",
                     overflow: "hidden",
@@ -681,7 +682,7 @@ const OverallReport = () => {
 
         <Box className="grid grid-cols-2 gap-4">
           {/* Chart */}
-          <Box className="flex flex-col gap-4 bg-(--secondary-color) p-4">
+          <Box className="flex flex-col gap-4 bg-(--tertiary-color) p-4">
             <Box className="flex gap-2">
               <ChartIcon className="w-6 h-6" style={{ color: "var(--primary-color)" }} />
               <Typography variant="body1" sx={{ fontSize: "1.1rem", fontWeight: "semi-bold", color: "var(--primary-color)" }}>
@@ -718,7 +719,7 @@ const OverallReport = () => {
             }
           </Box>
           {/* Table */}
-          <Box className="flex flex-col gap-4 bg-(--secondary-color) p-4">
+          <Box className="flex flex-col gap-4 bg-(--tertiary-color) p-4">
             <Box className="flex gap-2">
               <TableIcon className="w-6 h-6" style={{ color: "var(--primary-color)" }} />
               <Typography variant="body1" sx={{ fontSize: "1.1rem", fontWeight: "semi-bold", color: "var(--primary-color)" }}>
@@ -748,12 +749,12 @@ const OverallReport = () => {
                     sx={{
                       height: 50,
                       "& .MuiTableCell-head": {
-                        color: "white",
+                        color: "var(--tertiary-color)",
                         backgroundColor: "var(--primary-color)",
                       },
                       "& th": {
-                        color: "#FFFFFF",
-                        border: "1px solid #DBDCDE",
+                        color: "var(--tertiary-color)",
+                        border: "1px solid var(--secondary-color)",
                         padding: "6px 8px",
                       },
                     }}

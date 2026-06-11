@@ -99,7 +99,7 @@ const PaginationComponent: React.FC<PaginationProps> = ({
                   ? "rgba(var(--primary-color-rgb), 0.2)"
                   : hasUnchecked
                   ? "var(--has-filter-bg-color)"
-                  : "var(--secondary-color)",
+                  : "var(--tertiary-color)",
 
                 color: openMenu
                   ? "var(--primary-color)"
@@ -135,12 +135,12 @@ const PaginationComponent: React.FC<PaginationProps> = ({
               }}
               sx={{
                 "& .MuiList-root": {
-                  backgroundColor: "var(--secondary-color)",
+                  backgroundColor: "var(--tertiary-color)",
                   border: "1px solid var(--primary-color)",
                 },
                 "& .MuiMenuItem-root": {
                   p: "1px 8px",
-                  backgroundColor: "var(--secondary-color)",
+                  backgroundColor: "var(--tertiary-color)",
                   color: "var(--primary-color)",
                 },
                 "& .MuiTypography-root": {
@@ -148,7 +148,7 @@ const PaginationComponent: React.FC<PaginationProps> = ({
                 },
                 "& .MuiSvgIcon-root": {
                   fontSize: 20,
-                  backgroundColor: "var(--secondary-color)",
+                  backgroundColor: "var(--tertiary-color)",
                   color: "var(--primary-color)",
                 },
               }}
@@ -169,7 +169,7 @@ const PaginationComponent: React.FC<PaginationProps> = ({
               onChange={handleRowsPerPageChange}
               className="h-8.75 min-w-25 w-25"
               sx={{
-                backgroundColor: "var(--secondary-color)",
+                backgroundColor: "var(--tertiary-color)",
                 color: "var(--primary-color)",
                 border: "1px solid var(--primary-color)",
                 "& .MuiSvgIcon-root": {
@@ -199,11 +199,40 @@ const PaginationComponent: React.FC<PaginationProps> = ({
                 className="h-8.75 min-w-25 w-25"
                 size="medium"
                 sx={{
-                  backgroundColor: "var(--secondary-color)",
+                  backgroundColor: "var(--tertiary-color)",
                   color: "var(--primary-color)",
                   border: "1px solid var(--primary-color)",
                   "& .MuiSvgIcon-root": {
                     color: "var(--primary-color)",
+                  },
+                }}
+                MenuProps={{
+                  slotProps: {
+                    paper: {
+                      sx: {
+                        backgroundColor: "var(--tertiary-color)",
+                        border: "1px solid var(--primary-color)",
+
+                        "& .MuiMenuItem-root": {
+                          color: "var(--primary-color)",
+                          backgroundColor: "var(--tertiary-color)",
+
+                          "&:hover": {
+                            backgroundColor: "rgba(var(--primary-color-rgb), 0.15)",
+                          },
+
+                          "&.Mui-selected": {
+                            color: "var(--tertiary-color)",
+                            backgroundColor: "var(--primary-color) !important",
+                          },
+
+                          "&.Mui-selected:hover": {
+                            backgroundColor:
+                              "rgba(var(--primary-color-rgb), 0.8) !important",
+                          },
+                        },
+                      },
+                    },
                   },
                 }}
               >
@@ -223,7 +252,7 @@ const PaginationComponent: React.FC<PaginationProps> = ({
               display: 'flex',
               justifyContent: 'end',
               "& .MuiPaginationItem-page": {
-                color: "var(--secondary-color)",
+                color: "var(--tertiary-color)",
                 backgroundColor: "rgba(var(--primary-color-rgb), 0.4)",
               },
               "& .MuiPaginationItem-page:hover": {

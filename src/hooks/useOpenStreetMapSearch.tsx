@@ -1,9 +1,10 @@
 import { useState, useCallback, useEffect } from 'react';
 import L, { Map as LeafletMap, LatLngBounds, Polyline } from 'leaflet';
+import type { LatLngExpression } from 'leaflet';
 
 // Types
 import type { SearchResult } from '../types/map';
-import type { Device } from "../types/common";
+import type { CameraInCheckpoint } from "../types/common";
 
 // Utils
 import { parseCoordinates, parseCoordinatesWith2Param } from '../utils/coordinates';
@@ -112,7 +113,7 @@ export const useMapSearch = (
     }
   }, [map, markerManager]);
 
-  const showOverallWithList = useCallback(async (query: Device[]) => {
+  const showOverallWithList = useCallback(async (cameraInCheckpoint: CameraInCheckpoint[]) => {
     setSearchResults([])
     if (!map) return
     
@@ -122,14 +123,14 @@ export const useMapSearch = (
     try {
       const coordinatesList = [];
       const bounds = new LatLngBounds([]);
-      const locationList: Device[] = [];
+      const locationList: CameraInCheckpoint[] = [];
 
-      for (const q of query) {
-        const coordinates = parseCoordinates(`${q.latitude}, ${q.longitude}`)
+      for (const cc of cameraInCheckpoint) {
+        const coordinates = parseCoordinates(`${cc.latitude}, ${cc.longitude}`)
         if (coordinates) {
           coordinatesList.push(coordinates);
           locationList.push({
-            ...q,
+            ...cc,
             latLng: coordinates,
           });
           bounds.extend(coordinates);

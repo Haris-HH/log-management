@@ -224,12 +224,12 @@ const ChartTopUsers = () => {
       { isLoading && <LoadingScreen /> }
       {/* Main Title */}
       <MainTitle title={t("pages.chart-top-users")} />
-      <div className='p-2 bg-(--main-bg-color)/80 flex-1 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-hidden'>
+      <div className='p-2 bg-(--main-bg-color) flex-1 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-hidden'>
         {/* Chart */}
         <Box 
-          className="w-full bg-(--secondary-color) p-4 flex flex-col gap-4"
+          className="w-full bg-(--tertiary-color) p-4 flex flex-col gap-4"
           sx={{
-            boxShadow: "-2px 3px 2px rgba(var(--secondary-color-rgb),0.1)"
+            boxShadow: "-2px 3px 2px rgba(var(--tertiary-color-rgb),0.1)"
           }}
         >
           <Box className="flex flex-col gap-2">
@@ -265,7 +265,7 @@ const ChartTopUsers = () => {
               <Box className="-mt-1">
                 <IconButton 
                   sx={{
-                    backgroundColor: displaySettingOpen ? "var(--primary-color)" : "var(--secondary-color)",
+                    backgroundColor: displaySettingOpen ? "var(--primary-color)" : "var(--tertiary-color)",
                     border: "1px solid var(--primary-color)",
                     "&:hover": {
                       backgroundColor: "rgba(var(--primary-color-rgb), 0.2)",
@@ -284,9 +284,9 @@ const ChartTopUsers = () => {
                 <Button
                   variant="contained"
                   sx={{
-                    width: 170,
+                    width: 180,
                     height: 40,
-                    backgroundColor: policeState === "internal" ? "var(--primary-color)" : "var(--secondary-color)",
+                    backgroundColor: policeState === "internal" ? "var(--primary-color)" : "var(--tertiary-color)",
                     color: policeState === "internal" ? "var(--tertiary-color)" : "var(--primary-color)",
                     border: policeState === "internal" ? "none" : "1px solid var(--primary-color)",
                     "&:hover": {
@@ -302,9 +302,9 @@ const ChartTopUsers = () => {
                 <Button
                   variant="contained"
                   sx={{
-                    width: 170,
+                    width: 180,
                     height: 40,
-                    backgroundColor: policeState === "external" ? "var(--primary-color)" : "var(--secondary-color)",
+                    backgroundColor: policeState === "external" ? "var(--primary-color)" : "var(--tertiary-color)",
                     color: policeState === "external" ? "var(--tertiary-color)" : "var(--primary-color)",
                     border: policeState === "external" ? "none" : "1px solid var(--primary-color)",
                     "&:hover": {

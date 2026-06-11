@@ -18,7 +18,7 @@ const LoadingScreen = () => {
     <div 
       className="fixed inset-0 z-9999 flex items-center justify-center overflow-hidden"
       style={{
-        backgroundColor: "rgba(var(--primary-color-rgb), 0.9)"
+        backgroundColor: "rgba(var(--tertiary-color-rgb), 0.9)"
       }}
     >
       <motion.div

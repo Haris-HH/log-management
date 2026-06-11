@@ -129,7 +129,7 @@ const AutoComplete: React.FC<AutoCompleteProps> = ({
         }
         sx={{
           borderRadius: "5px",
-          backgroundColor: "var(--secondary-color)",
+          backgroundColor: "var(--tertiary-color)",
           border: "1px solid var(--primary-color)",
           "& .MuiInputBase-root": {
             minHeight: "30px",
@@ -139,7 +139,7 @@ const AutoComplete: React.FC<AutoCompleteProps> = ({
             "& .MuiInputBase-input": {
               height: "25px",
               padding: "0 !important",
-              backgroundColor: "var(--secondary-color) !important",
+              backgroundColor: "var(--tertiary-color) !important",
               "&.Mui-disabled": {
                 color: "rgba(var(--primary-color-rgb), 0.5) !important",
                 WebkitTextFillColor: "rgba(var(--primary-color-rgb), 0.4) !important",
@@ -184,18 +184,18 @@ const AutoComplete: React.FC<AutoCompleteProps> = ({
         slotProps={{
           paper: {
             sx: {
-              backgroundColor: "var(--secondary-color) !important",
+              backgroundColor: "var(--tertiary-color) !important",
               color: "var(--primary-color) !important",
               border: "1px solid var(--primary-color)",
 
               "& .MuiAutocomplete-listbox": {
-                backgroundColor: "var(--secondary-color) !important",
+                backgroundColor: "var(--tertiary-color) !important",
                 padding: 0,
               },
 
               "& .MuiAutocomplete-option": {
                 color: "var(--primary-color) !important",
-                backgroundColor: "var(--secondary-color) !important",
+                backgroundColor: "var(--tertiary-color) !important",
               },
 
               "& .MuiAutocomplete-option:hover": {
@@ -215,7 +215,7 @@ const AutoComplete: React.FC<AutoCompleteProps> = ({
           popper: {
             sx: {
               "& .MuiPaper-root": {
-                backgroundColor: "var(--secondary-color) !important",
+                backgroundColor: "var(--tertiary-color) !important",
               },
             },
           },

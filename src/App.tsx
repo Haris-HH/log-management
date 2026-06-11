@@ -74,7 +74,7 @@ function App() {
       const theme = JSON.parse(savedTheme);
 
       document.documentElement.style.setProperty(
-        "--primary-color",
+        "--theme-accent",
         theme.primary
       );
 

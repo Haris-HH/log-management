@@ -72,10 +72,10 @@ const DockDrawer = ({ open, setOpen }: DockDrawerProps) => {
           backdropFilter: "blur(20px)",
           WebkitBackdropFilter: "blur(20px)",
           background:
-            "linear-gradient(135deg, rgba(var(--primary-color-rgb),0.8), rgba(var(--primary-color-rgb),0.5))",
-          border: "1px solid rgba(var(--primary-color-rgb),0.18)",
+            "linear-gradient(135deg, rgba(var(--tertiary-color-rgb),1), rgba(var(--tertiary-color-rgb),0.8))",
+          border: "1px solid rgba(var(--tertiary-color-rgb),0.18)",
           boxShadow:
-            "0 8px 32px rgba(var(--secondary-color-rgb),0.35), inset 0 1px 0 rgba(var(--primary-color-rgb),0.25)",
+            "0 8px 32px rgba(var(--secondary-color-rgb),0.35), inset 0 1px 0 rgba(var(--tertiary-color-rgb),0.25)",
           transform: open
             ? "translateY(0) scale(1)"
             : "translateY(120%) scale(0.9)",
@@ -121,10 +121,10 @@ const DockDrawer = ({ open, setOpen }: DockDrawerProps) => {
                 height: 56,
                 color: "white",
                 background:
-                  "linear-gradient(135deg, rgba(var(--primary-color-rgb),0.25), rgba(var(--primary-color-rgb),0.1))",
+                  "linear-gradient(135deg, rgba(var(--tertiary-color-rgb),1), rgba(var(--tertiary-color-rgb),0.8))",
                 backdropFilter: "blur(10px)",
-                border: "1px solid rgba(var(--primary-color-rgb),0.15)",
-                boxShadow: "0 4px 14px rgba(var(--secondary-color-rgb),0.25)",
+                border: "1px solid rgba(var(--tertiary-color-rgb),0.15)",
+                boxShadow: "0 2px 12px rgba(var(--secondary-color-rgb),0.25)",
               }}
             >
               {item.icon}
@@ -133,9 +133,9 @@ const DockDrawer = ({ open, setOpen }: DockDrawerProps) => {
             <Typography
               variant="caption"
               sx={{
-                color: "var(--tertiary-color)",
+                color: "var(--primary-color)",
                 mt: 0.8,
-                fontSize: "0.7rem",
+                fontSize: "0.8rem",
                 textAlign: "center",
                 maxWidth: 90,
               }}
@@ -162,8 +162,8 @@ const DockDrawer = ({ open, setOpen }: DockDrawerProps) => {
                 borderRadius: "16px",
                 backdropFilter: "blur(20px)",
                 background:
-                  "linear-gradient(135deg, rgba(var(--primary-color-rgb),0.8), rgba(var(--primary-color-rgb),0.3))",
-                border: "1px solid rgba(var(--primary-color-rgb),0.15)",
+                  "linear-gradient(135deg, rgba(var(--tertiary-color-rgb),1), rgba(var(--tertiary-color-rgb),0.8))",
+                border: "1px solid rgba(var(--tertiary-color-rgb),0.15)",
                 minWidth: 180,
                 overflow: "hidden",
               }}
@@ -179,7 +179,7 @@ const DockDrawer = ({ open, setOpen }: DockDrawerProps) => {
                         handleSubMenuClose();
                       }}
                       sx={{
-                        color: "var(--tertiary-color)",
+                        color: "var(--primary-color)",
                         fontSize: "0.8rem",
                         py: 1.2,
                         px: 2,
@@ -204,15 +204,15 @@ const DockDrawer = ({ open, setOpen }: DockDrawerProps) => {
         onMouseEnter={() => setOpen(true)}
         sx={{
           background:
-            "linear-gradient(135deg, rgba(var(--primary-color-rgb),0.8), rgba(var(--primary-color-rgb),0.5))",
+            "linear-gradient(135deg, rgba(var(--tertiary-color-rgb),1), rgba(var(--tertiary-color-rgb),0.8))",
           backdropFilter: "blur(20px)",
           borderRadius: "14px 14px 0 0",
           width: "160px",
           height: "15px",
-          border: "1px solid rgba(var(--primary-color-rgb),0.15)",
+          border: "1px solid rgba(var(--tertiary-color-rgb),0.15)",
         }}
       >
-        <KeyboardArrowUpIcon sx={{ color: "white" }} />
+        <KeyboardArrowUpIcon sx={{ color: "var(--primary-color)" }} />
       </IconButton>
     </Box>
   );

@@ -59,21 +59,26 @@ const PaginationBelowTableComponent: React.FC<PaginationProps> = ({
             slotProps: {
               paper: {
                 sx: {
-                  backgroundColor: "var(--secondary-color)",
-                  color: "var(--primary-color)",
+                  backgroundColor: "var(--tertiary-color)",
                   border: "1px solid var(--primary-color)",
 
                   "& .MuiMenuItem-root": {
                     color: "var(--primary-color)",
-                  },
+                    backgroundColor: "var(--tertiary-color)",
 
-                  "& .MuiMenuItem-root:hover": {
-                    backgroundColor: "rgba(var(--primary-color-rgb), 0.15)",
-                  },
+                    "&:hover": {
+                      backgroundColor: "rgba(var(--primary-color-rgb), 0.15)",
+                    },
 
-                  "& .Mui-selected": {
-                    backgroundColor:
-                      "rgba(var(--primary-color-rgb), 0.25) !important",
+                    "&.Mui-selected": {
+                      color: "var(--tertiary-color)",
+                      backgroundColor: "var(--primary-color) !important",
+                    },
+
+                    "&.Mui-selected:hover": {
+                      backgroundColor:
+                        "rgba(var(--primary-color-rgb), 0.8) !important",
+                    },
                   },
                 },
               },

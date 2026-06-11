@@ -51,8 +51,7 @@ const LocationUsage = ({ open, handleClose, dialogTitle, data }: Props) => {
 
   const { 
     searchPlaceWithList, 
-    clearSearchPlaces, 
-    isSearching 
+    clearSearchPlaces,
   } = useMapSearch(map);
 
   useEffect(() => {
@@ -234,7 +233,7 @@ const LocationUsage = ({ open, handleClose, dialogTitle, data }: Props) => {
               }}
               onClick={handleClose}
             >
-              ยกเลิก
+              {t('button.cancel')}
             </Button>
           </Box>
         </Box>

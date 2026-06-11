@@ -49,6 +49,7 @@ body .swal2-backdrop-show {
 }
 
 .custom-zoom-control a {
+  background-color: var(--tertiary-color) !important;
   color: var(--primary-color) !important;
   border-bottom: 1px solid var(--primary-color) !important;
 }
@@ -61,6 +62,7 @@ body .swal2-backdrop-show {
 }
 
 .custom-fullscreen-control a {
+  background-color: var(--tertiary-color) !important;
   display: flex !important;
   align-items: center;
   justify-content: center;
@@ -97,7 +99,7 @@ body .swal2-backdrop-show {
 }
 
 .custom-location-control {
-  background: white;
+  background: var(--tertiary-color);
   width: 34px;
   height: 34px;
   cursor: pointer;
@@ -126,7 +128,7 @@ body .swal2-backdrop-show {
 }
 
 .custom-search-filter-control {
-  background: white;
+  background: var(--tertiary-color);
   width: 34px;
   height: 34px;
   cursor: pointer;
@@ -168,6 +170,7 @@ body .swal2-backdrop-show {
 }
 
 .custom-style-control {
+  background-color: var(--tertiary-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -231,8 +234,8 @@ body .swal2-backdrop-show {
 .custom-swal-popup {
   border: 1px solid var(--primary-color);
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(var(--secondary-color-rgb),0.25);
-  background-color: var(--secondary-color);
+  box-shadow: 0 4px 15px rgba(var(--tertiary-color-rgb),0.25);
+  background-color: var(--tertiary-color);
   color: var(--primary-color);
 }
 
@@ -244,7 +247,7 @@ body .swal2-backdrop-show {
 .custom-cancel-button {
   border: 1px solid var(--primary-color);
   color: var(--primary-color); 
-  background-color: var(--secondary-color);
+  background-color: var(--tertiary-color);
 }
 
 .custom-confirm-button:hover {
@@ -252,5 +255,5 @@ body .swal2-backdrop-show {
 }
 
 .custom-cancel-button:hover {
-  background-color: rgba(var(--secondary-color-rgb),0.1);
+  background-color: rgba(var(--tertiary-color-rgb),0.1);
 }
