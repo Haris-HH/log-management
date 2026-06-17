@@ -11,7 +11,8 @@ export const mockOverallReport: OverallReportResponse = {
 		"offline": 211,
 		"maintenance": 22,
 		"suspended": 15,
-		"others": 80
+		"others": 80,
+		"availability_pct": 80
 	},
 	"series": [
 		{
@@ -21,7 +22,8 @@ export const mockOverallReport: OverallReportResponse = {
 			"offline": 211,
 			"maintenance": 22,
 			"suspended": 15,
-			"others": 79
+			"others": 79,
+			"availability_pct": 80
 		}
 	],
 	"pagination": {
@@ -50,7 +52,8 @@ export const mockOverallReport: OverallReportResponse = {
 			"offline": 20,
 			"maintenance": 5,
 			"suspended": 2,
-			"others": 3
+			"others": 3,
+			"availability_pct": 80
 		}
 	]
 };

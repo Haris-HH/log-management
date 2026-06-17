@@ -9,7 +9,6 @@ import type {
   PersonUsage,
   SearchLog,
   OverallCheckpointType,
-  OverallReportType,
   OverallReportDetail,
   OverallWeekReportType,
   User,
@@ -32,7 +31,7 @@ import type {
   Device,
   Checkpoint,
   PoliceStation,
-  OverallReport,
+  OverallReportType,
   Pagination,
   Summary,
   Series,
@@ -128,7 +127,7 @@ export interface PoliceStationResponse extends BasicResponse<PoliceStation[]> {}
 
 export interface OverallProblemReportResponse extends ProblemReportResponse<OverallProblemReport[]> {}
 
-export interface OverallReportResponse extends ReportResponse<OverallReport[]> {}
+export interface OverallReportResponse extends ReportResponse<OverallReportType[]> {}
 
 export interface BasicResponse<T> {
   endpoint: string;

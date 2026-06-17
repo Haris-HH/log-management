@@ -692,7 +692,7 @@ export interface PoliceStation {
   district_code: string;
 }
 
-export interface OverallReport {
+export interface OverallReportType {
   rank: number;
   police_region_id: number;
   remark: string;

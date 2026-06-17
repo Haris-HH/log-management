@@ -1,7 +1,7 @@
 // Types
 import type { 
   OverallProblemReport,
-  OverallReport,
+  OverallReportType,
   AccessLog,
   LprSearchLog,
   Summary,
@@ -126,7 +126,7 @@ export interface OverallReportPdfData {
   area: string;
   province: string;
   project: string;
-  overallReport: OverallReport[];
+  overallReport: OverallReportType[];
   summary: Summary;
   overallReportDetail: OverallProblemReport[];
 }
