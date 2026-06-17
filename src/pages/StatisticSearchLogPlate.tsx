@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import dayjs from 'dayjs';
 import { useLocation } from "react-router-dom";
 import { useSelector } from 'react-redux';
@@ -103,14 +103,6 @@ const StatisticSearchLogPlate = () => {
     percent: 0,
   });
 
-  // Options
-  const [agencyOptions, setAgencyOptions] = useState<{ label: string, value: string }[]>([]);
-  const [bhOptions, setBhOptions] = useState<{ label: string, value: string }[]>([]);
-  const [bkOptions, setBkOptions] = useState<{ label: string, value: string }[]>([]);
-  const [orgOptions, setOrgOptions] = useState<{ label: string, value: string }[]>([]);
-  const [provinceOptions, setProvinceOptions] = useState<{ label: string, value: string }[]>([]);
-  const [titleOptions, setTitleOptions] = useState<{ label: string, value: string }[]>([]);
-
   // Constants
   const CHUNK_SIZE = 1000;
   const REQUEST_LIMIT = 1000;
@@ -166,68 +158,80 @@ const StatisticSearchLogPlate = () => {
 
   usePageTitle(t("pages.statistic-search-log-plate"));
 
-  useEffect(() => {
+  const agencyOptions = useMemo(() => {
     const langKeyAgency = i18n.language === "th" ? "ou_abbr_th" : "ou_abbr_en";
-    const langKeyBh = i18n.language === "th" ? "bh_abbr_th" : "bh_abbr_en";
-    const langKeyBk = i18n.language === "th" ? "bk_abbr_th" : "bk_abbr_en";
-    const langKeyOrg = i18n.language === "th" ? "org_abbr_th" : "org_abbr_en";
-    const langKeyTitle = i18n.language === "th" ? "title_abbr_th" : "title_abbr_en";
-    const langKeyProvince = i18n.language === "th" ? "name_th" : "name_en";
-    
-    setAgencyOptions(
-      buildOptions(agency, t("dropdown.all-agency"), langKeyAgency, "ou_code")
-    );
+    return buildOptions(agency, t("dropdown.all-agency"), langKeyAgency, "ou_code");
+  }, [agency, t, i18n.language]);
 
+  const bhOptions = useMemo(() => {
+    const langKeyBh = i18n.language === "th" ? "bh_abbr_th" : "bh_abbr_en";
     const filteredBh =
       formData.agency_id !== "0"
         ? bh.filter((item) => item.ou_code === formData.agency_id)
         : bh;
 
-    setBhOptions(
-      buildOptions(filteredBh, t("dropdown.all-bh"), langKeyBh, "bh_code")
-    );
+    return buildOptions(filteredBh, t("dropdown.all-bh"), langKeyBh, "bh_code")
+  }, [bh, t, i18n.language]);
 
+  const bkOptions = useMemo(() => {
+    const langKeyBk = i18n.language === "th" ? "bk_abbr_th" : "bk_abbr_en";
     const filteredBk =
       formData.bh_id !== "0"
         ? bk.filter((item) => item.bh_code === formData.bh_id)
         : bk;
 
-    setBkOptions(
-      buildOptions(filteredBk, t("dropdown.all-bk"), langKeyBk, "bk_code")
-    );
+    return buildOptions(filteredBk, t("dropdown.all-bk"), langKeyBk, "bk_code")
+  }, [bk, t, i18n.language]);
 
+  const orgOptions = useMemo(() => {
+    const langKeyOrg = i18n.language === "th" ? "org_abbr_th" : "org_abbr_en";
     const filteredOrg =
       formData.bk_id !== "0"
         ? org.filter((item) => item.bk_code === formData.bk_id)
         : org;
 
-    setOrgOptions(
-      buildOptions(filteredOrg, t("dropdown.all-org"), langKeyOrg, "org_code")
-    );
+    return buildOptions(filteredOrg, t("dropdown.all-org"), langKeyOrg, "org_code")
+  }, [org, t, i18n.language]);
 
-    setTitleOptions(
-      buildOptions(title, t("dropdown.all-title"), langKeyTitle, "id")
-    );
+  const titleOptions = useMemo(() => {
+    const langKeyTitle = i18n.language === "th" ? "title_abbr_th" : "title_abbr_en";
 
-    setProvinceOptions(
-      buildOptions(
-        lprRegion, "", 
-        langKeyProvince, 
-        "region_code",
-        false)
-      );
-  }, [
-    title,
-    agency,
-    bh,
-    bk,
-    org,
-    lprRegion,
-    formData.agency_id,
-    formData.bh_id,
-    t,
-    i18n.language,
-  ]);
+    return buildOptions(title, t("dropdown.all-title"), langKeyTitle, "id")
+  }, [title, t, i18n.language]);
+
+  const provinceOptions = useMemo(() => {
+    const langKeyProvince = i18n.language === "th" ? "name_th" : "name_en";
+    return buildOptions(
+      lprRegion, "", 
+      langKeyProvince, 
+      "region_code",
+      false);
+  }, [lprRegion, t, i18n.language]);
+
+  // Map
+  const agencyMap = new Map(
+    agency.map(item => [item.ou_code, item])
+  );
+
+  const bhMap = new Map(
+    bh.map(item => [item.bh_code, item])
+  );
+
+  const bkMap = new Map(
+    bk.map(item => [item.bk_code, item])
+  );
+
+  const orgMap = new Map(
+    org.map(item => [item.org_code, item])
+  );
+
+  const titleMap = new Map(
+    title.map(item => [item.id, item])
+  );
+
+  const provinceMap = new Map(
+    lprRegion.map(item => [item.region_code, item])
+  );
 
   useEffect(() => {
     fetchData(formData);
@@ -253,55 +257,66 @@ const StatisticSearchLogPlate = () => {
 
   const mapLprSearchLogRows = useCallback(
     async (data: LprSearchLog[]): Promise<LprSearchLog[]> => {
-      const rows = await Promise.all(
-        data.map(async (item) => {
-          const userRes = await getUserApi({
-          filter: `user_id=${item.user_id}`,
-        });
+      const userIds = [...new Set(data.map((item) => item.user_id))];
 
-        const user = userRes.data[0];
-        const agencyData = agency.find((a) => a.ou_code === item.ou_code);
-        const bhData = bh.find((b) => b.bh_code === item.bh_code);
-        const bkData = bk.find((k) => k.bk_code === item.bk_code);
-        const orgData = org.find((o) => o.org_code === item.org_code);
-        const titleData = title.find((t) => t.id === user?.title);
+      const usersRes = await getUserApi({
+        filter: `user_id=in(${userIds.join(",")})`,
+      });
+
+      const userMap = new Map(
+        usersRes.data?.map((user) => [user.user_id, user]) ?? []
+      );
+
+      const rows = data.map((item) => {
+        const user = userMap.get(item.user_id);
+
+        const agencyData = agencyMap.get(item.ou_code);
+        const bhData = bhMap.get(item.bh_code);
+        const bkData = bkMap.get(item.bk_code);
+        const orgData = orgMap.get(item.org_code);
+        const titleData = titleMap.get(user?.title_id);
+
         return {
           ...item,
-          idcard: userRes.data[0]?.idcard ?? "-",
-          title:  titleData 
-            ? i18n.language === "th"
-              ? titleData.title_abbr_th
-              : titleData.title_abbr_en
-            : "",
-          firstname: userRes.data[0]?.firstname ?? "-",
-          lastname: userRes.data[0]?.lastname ?? "-",
-          ou_name: agencyData
-            ? i18n.language === "th"
-              ? agencyData.ou_abbr_th
-              : agencyData.ou_abbr_en
-            : "-",
-          bh_name: bhData
-            ? i18n.language === "th"
-              ? bhData.bh_name_th
-              : bhData.bh_name_en
-            : "-",
-          bk_name: bkData
-            ? i18n.language === "th"
-              ? bkData.bk_abbr_th
-              : bkData.bk_abbr_en
-            : "-",
-          org_name: orgData
-            ? i18n.language === "th"
-              ? orgData.org_abbr_th
-              : orgData.org_abbr_en
-            : "-",
+          idcard: user?.idcard ?? "-",
+          title:
+            titleData
+              ? i18n.language === "th"
+                ? titleData.title_abbr_th
+                : titleData.title_abbr_en
+              : "",
+          firstname: user?.firstname ?? "-",
+          lastname: user?.lastname ?? "-",
+          ou_name:
+            agencyData
+              ? i18n.language === "th"
+                ? agencyData.ou_abbr_th
+                : agencyData.ou_abbr_en
+              : "-",
+          bh_name:
+            bhData
+              ? i18n.language === "th"
+                ? bhData.bh_abbr_th
+                : bhData.bh_abbr_en
+              : "-",
+          bk_name:
+            bkData
+              ? i18n.language === "th"
+                ? bkData.bk_abbr_th
+                : bkData.bk_abbr_en
+              : "-",
+          org_name:
+            orgData
+              ? i18n.language === "th"
+                ? orgData.org_abbr_th
+                : orgData.org_abbr_en
+              : "-",
         };
-        })
-      );
+      });
 
       return rows;
     },
-    [title, agency, bh, bk, org, i18n.language]
+    [formData, page, title, agency, rowsPerPage, bh, bk, org, lprRegion, i18n.language, i18n.isInitialized]
   );
 
   const fetchData = useCallback(
@@ -342,7 +357,11 @@ const StatisticSearchLogPlate = () => {
         setIsLoading(false);
       }
     }, 
-    [formData, page, title, agency, rowsPerPage, bh, bk, org, lprRegion, i18n.language, i18n.isInitialized]
+    [
+      mapLprSearchLogRows, 
+      page, 
+      rowsPerPage
+    ]
   );
 
   const handleDropdownChange = (
@@ -544,12 +563,11 @@ const StatisticSearchLogPlate = () => {
   };
 
   const buildPdfData = (logPlate: LprSearchLog[]): SearchLogPlatePdfData => {
-    const selectedAgency = agency.find(
-      (a) => a.ou_code === formData.agency_id
-    );
-    const selectedBh = bh.find((bh) => bh.bh_code === formData.bh_id);
-    const selectedBk = bk.find((bk) => bk.bk_code === formData.bk_id);
-    const selectedOrg = org.find((org) => org.org_code === formData.org_id);
+    const selectedAgency = agencyMap.get(formData.agency_id);
+    const selectedBh = bhMap.get(formData.bh_id);
+    const selectedBk = bkMap.get(formData.bk_id);
+    const selectedOrg = orgMap.get(formData.org_id);
+    const selectedProvince = provinceMap.get(formData.province_id);
 
     const agencyName =
       formData.agency_id === "0"
@@ -587,6 +605,15 @@ const StatisticSearchLogPlate = () => {
             : selectedOrg.org_name_en ?? "-"
           : "-";
 
+    const provinceName = 
+      formData.province_id === "0"
+        ? t("text.all")
+        : selectedProvince
+          ? i18n.language === "th"
+            ? selectedProvince.name_th ?? "-"
+            : selectedProvince.name_en ?? "-"
+          : "-";
+
     return {
       pid_or_water_mark: formData.pid_or_water_mark || "-",
       name: formData.name || "-",
@@ -601,7 +628,7 @@ const StatisticSearchLogPlate = () => {
       plate_group: formData.plate_group || "",
       plate_number: formData.plate_number || "",
       province_id: formData.province_id,
-      province_name: provinceOptions.find(option => option.value === formData.province_id)?.label || "",
+      province_name: provinceName,
       start_date: dayjs(formData.start_date_time).format(
         i18n.language === "th" ? "DD/MM/BBBB" : "DD/MM/YYYY"
       ),
@@ -904,7 +931,7 @@ const StatisticSearchLogPlate = () => {
               onChange={(event) =>
                 handleTextChange("plate_group", event.target.value)
               }
-              onKeyPress={handleSearchOnEnter}
+              onKeyDown={handleSearchOnEnter}
             />
 
             <TextBox
@@ -917,7 +944,7 @@ const StatisticSearchLogPlate = () => {
               onChange={(event) =>
                 handleTextChange("plate_number", event.target.value)
               }
-              onKeyPress={handleSearchOnEnter}
+              onKeyDown={handleSearchOnEnter}
             />
 
             <AutoComplete 
@@ -941,7 +968,7 @@ const StatisticSearchLogPlate = () => {
               onChange={(event) =>
                 handleTextChange("pid_or_water_mark", event.target.value)
               }
-              onKeyPress={handleSearchOnEnter}
+              onKeyDown={handleSearchOnEnter}
             />
 
             <div className='flex col-span-2 gap-2'>
@@ -969,7 +996,7 @@ const StatisticSearchLogPlate = () => {
                 onChange={(event) =>
                   handleTextChange("name", event.target.value)
                 }
-                onKeyPress={handleSearchOnEnter}
+                onKeyDown={handleSearchOnEnter}
               />
             </div>
           </Box>
@@ -1260,7 +1287,7 @@ const StatisticSearchLogPlate = () => {
                         textAlign: "center",
                       }}
                     >
-                      {"-"}
+                      {data.details}
                     </TableCell>
                     <TableCell
                       sx={{
@@ -1289,6 +1316,21 @@ const StatisticSearchLogPlate = () => {
                     </TableCell>
                   </TableRow>
                 ))}
+                {rows.length === 0 && (
+                  <TableRow
+                    sx={{
+                      "& .MuiTableCell-root": {
+                        backgroundColor: "var(--tertiary-color)",
+                        color: "var(--secondary-color)",
+                        borderBottom: "1px solid var(--primary-color)",
+                      },
+                    }}
+                  >
+                    <TableCell colSpan={12} align="center">
+                      {t("text.data-not-found")}
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </TableContainer>
@@ -1301,6 +1343,8 @@ const StatisticSearchLogPlate = () => {
                 handleClose={handleLocationDialogClose}
                 dialogTitle={t('modal.usage-coordinates-search-plate')}
                 data={selectedData}
+                start_date_time={formData.start_date_time}
+                end_date_time={formData.end_date_time}
                 onSearch={handleLocationSearch}
               />
             )

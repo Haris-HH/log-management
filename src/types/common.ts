@@ -469,6 +469,7 @@ export interface LprSearchLog {
   region_code: string;
   search_result: string;
   total?: number;
+  details: string;
 }
 
 export interface Title {

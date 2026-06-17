@@ -33,18 +33,28 @@ type Props = {
   handleClose: () => void;
   dialogTitle: string;
   data: any[];
+  start_date_time: Date | null;
+  end_date_time: Date | null;
   onSearch: (start_date_time: Date | null, end_date_time: Date | null) => void;
 }
 
-const LocationUsage = ({ open, handleClose, dialogTitle, data, onSearch }: Props) => {
+const LocationUsage = ({ 
+  open, 
+  handleClose,
+  dialogTitle, 
+  data, 
+  onSearch,
+  start_date_time,
+  end_date_time,
+}: Props) => {
 
   // Data
   const [map, setMap] = useState<LeafletMap | null>(null);
 
   // Form Data
   const [formData, setFormData] = useState<FormData>({
-    start_date_time: dayjs().toDate(),
-    end_date_time: dayjs().toDate(),
+    start_date_time: start_date_time,
+    end_date_time: end_date_time,
   });
 
   // i18n

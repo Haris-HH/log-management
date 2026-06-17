@@ -11,7 +11,7 @@ type TextBoxProps = {
   id?: string
   value?: string | number
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void
-  onKeyPress?: (event: React.KeyboardEvent<HTMLInputElement>) => void
+  onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void
   onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void
   label: string
   placeholder?: string
@@ -35,7 +35,7 @@ const TextBox: React.FC<TextBoxProps> = ({
   id,
   value,
   onChange,
-  onKeyPress,
+  onKeyDown,
   label,
   placeholder,
   labelFontSize = "14px",
@@ -76,12 +76,6 @@ const TextBox: React.FC<TextBoxProps> = ({
     }
   }
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (onKeyPress) {
-      onKeyPress(event)
-    }
-  }
-
   return (
     <div className="flex flex-col w-full">
       <Typography sx={{ fontSize: labelFontSize || undefined, color:'var(--primary-color)' }} variant='subtitle1'>
@@ -95,7 +89,7 @@ const TextBox: React.FC<TextBoxProps> = ({
         value={value}
         type={actualType}
         onChange={handleChange}
-        onKeyDown={handleKeyDown}
+        onKeyDown={onKeyDown}
         onBlur={onBlur}
         placeholder={placeholder || ""}
         disabled={disabled}

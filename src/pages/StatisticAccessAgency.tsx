@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import dayjs from 'dayjs';
 import { useNavigate } from "react-router-dom";
 import { useSelector } from 'react-redux';
@@ -94,11 +94,6 @@ const StatisticAccessAgency = () => {
     percent: 0,
   });
 
-  // Options
-  const [agencyOptions, setAgencyOptions] = useState<{ label: string, value: string }[]>([]);
-  const [bhOptions, setBhOptions] = useState<{ label: string, value: string }[]>([]);
-  const [bkOptions, setBkOptions] = useState<{ label: string, value: string }[]>([]);
-
   // Constants
   const CHUNK_SIZE = 1000;
   const REQUEST_LIMIT = 1000;
@@ -128,41 +123,47 @@ const StatisticAccessAgency = () => {
 
   usePageTitle(t("pages.statistic-access-agency"));
 
-  useEffect(() => {
+  const agencyOptions = useMemo(() => {
     const langKeyAgency = i18n.language === "th" ? "ou_abbr_th" : "ou_abbr_en";
+    return buildOptions(agency, t("dropdown.all-agency"), langKeyAgency, "ou_code");
+  }, [agency, t, i18n.language]);
+
+  const bhOptions = useMemo(() => {
     const langKeyBh = i18n.language === "th" ? "bh_abbr_th" : "bh_abbr_en";
-    const langKeyBk = i18n.language === "th" ? "bk_abbr_th" : "bk_abbr_en";
-
-    setAgencyOptions(
-      buildOptions(agency, t("dropdown.all-agency"), langKeyAgency, "ou_code")
-    );
-
     const filteredBh =
       formData.agency_id !== "0"
         ? bh.filter((item) => item.ou_code === formData.agency_id)
         : bh;
 
-    setBhOptions(
-      buildOptions(filteredBh, t("dropdown.all-bh"), langKeyBh, "bh_code")
-    );
+    return buildOptions(filteredBh, t("dropdown.all-bh"), langKeyBh, "bh_code")
+  }, [bh, t, i18n.language]);
 
+  const bkOptions = useMemo(() => {
+    const langKeyBk = i18n.language === "th" ? "bk_abbr_th" : "bk_abbr_en";
     const filteredBk =
       formData.bh_id !== "0"
         ? bk.filter((item) => item.bh_code === formData.bh_id)
         : bk;
 
-    setBkOptions(
-      buildOptions(filteredBk, t("dropdown.all-bk"), langKeyBk, "bk_code")
-    );
-  }, [
-    agency,
-    bh,
-    bk,
-    formData.agency_id,
-    formData.bh_id,
-    t,
-    i18n.language,
-  ]);
+    return buildOptions(filteredBk, t("dropdown.all-bk"), langKeyBk, "bk_code")
+  }, [bk, t, i18n.language]);
+
+  // Map
+  const agencyMap = new Map(
+    agency.map(item => [item.ou_code, item])
+  );
+
+  const bhMap = new Map(
+    bh.map(item => [item.bh_code, item])
+  );
+
+  const bkMap = new Map(
+    bk.map(item => [item.bk_code, item])
+  );
+
+  const orgMap = new Map(
+    org.map(item => [item.org_code, item])
+  );
 
   useEffect(() => {
     fetchData(formData);
@@ -171,10 +172,10 @@ const StatisticAccessAgency = () => {
   const mapAccessLogRows = useCallback(
     (data: AccessLog[]) => {
       return data.map((item) => {
-        const agencyData = agency.find((a) => a.ou_code === item.ou_code);
-        const bhData = bh.find((b) => b.bh_code === item.bh_code);
-        const bkData = bk.find((k) => k.bk_code === item.bk_code);
-        const orgData = org.find((o) => o.org_code === item.org_code);
+        const agencyData = agencyMap.get(item.ou_code);
+        const bhData = bhMap.get(item.bh_code);
+        const bkData = bkMap.get(item.bk_code);
+        const orgData = orgMap.get(item.org_code);
 
         return {
           ...item,
@@ -246,7 +247,11 @@ const StatisticAccessAgency = () => {
         setIsLoading(false);
       }
     },
-    [formData, rowsPerPage, page, mapAccessLogRows, t]
+    [
+      mapAccessLogRows,
+      page, 
+      rowsPerPage, 
+    ]
   );
 
   const handleDropdownChange = (
@@ -435,11 +440,9 @@ const StatisticAccessAgency = () => {
   };
 
   const buildPdfData = (agencyUsage: AccessLog[]): AgencyUsagePdfData => {
-    const selectedAgency = agency.find(
-      (a) => a.ou_code === formData.agency_id
-    );
-    const selectedBh = bh.find((bh) => bh.bh_code === formData.bh_id);
-    const selectedBk = bk.find((bk) => bk.bk_code === formData.bk_id);
+    const selectedAgency = agencyMap.get(formData.agency_id);
+    const selectedBh = bhMap.get(formData.bh_id);
+    const selectedBk = bkMap.get(formData.bk_id);
 
     const agencyName =
       formData.agency_id === "0"
@@ -939,6 +942,21 @@ const StatisticAccessAgency = () => {
                     </TableCell>
                   </TableRow>
                 ))}
+                {rows.length === 0 && (
+                  <TableRow
+                    sx={{
+                      "& .MuiTableCell-root": {
+                        backgroundColor: "var(--tertiary-color)",
+                        color: "var(--secondary-color)",
+                        borderBottom: "1px solid var(--primary-color)",
+                      },
+                    }}
+                  >
+                    <TableCell colSpan={6} align="center">
+                      {t("text.data-not-found")}
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </TableContainer>

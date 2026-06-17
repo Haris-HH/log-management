@@ -173,7 +173,7 @@ const OverallMap = () => {
               subdistrict_code: item.subdistrict_code,
               subdistrict_name: i18n.language === "th" ? resSubdistrict.data[0]?.name_th ?? "-" : resSubdistrict.data[0]?.name_en ?? "-",
               police_station_id: item.police_station_id,
-              police_station_name: i18n.language === "th" ? areaName?.title_th ?? "-" : areaName?.title_en ?? "-",
+              police_station_name: i18n.language === "th" ? areaName?.title_abbr_th ?? "-" : areaName?.title_abbr_en ?? "-",
               latitude: item.latitude,
               longitude: item.longitude,
               total: res.pagination?.countAll ?? 0,
@@ -327,7 +327,7 @@ const OverallMap = () => {
                       handleTextChange("search_word", event.target.value)
                     }
                     minHeight='32px'
-                    onKeyPress={handleSearchOnEnter}
+                    onKeyDown={handleSearchOnEnter}
                   />
 
                   <AutoComplete 

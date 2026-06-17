@@ -139,7 +139,7 @@ const PaginationBelowTableComponent: React.FC<PaginationProps> = ({
               width: '100px',
             }}
             value={pageInput}
-            onKeyPress={handlePageInputKeyDown}
+            onKeyDown={handlePageInputKeyDown}
             onChange={handlePageInputChange}
           />
         </div>

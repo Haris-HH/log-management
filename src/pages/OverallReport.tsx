@@ -37,7 +37,7 @@ import TableIcon from "../assets/svg/table.svg?react";
 
 // Types
 import type { OverallPieChart } from "../types/chart";
-import type { OverallReport, OverallReportDetail, Summary, Series } from "../types/common";
+import type { OverallReportType, Summary, Series } from "../types/common";
 import type { OverallReportPdfData } from "../types/pdf"
 
 // Utils
@@ -92,7 +92,7 @@ const OverallReport = () => {
 
   // Data
   const [reportRange, setReportRange] = useState<ReportRange>("day");
-  const [reportData, setReportData] = useState<OverallReport[]>([]);
+  const [reportData, setReportData] = useState<OverallReportType[]>([]);
   const [summaryValue, setSummaryValue] = useState<Summary | null>(null);
   const [dayReport, setDayReport] = useState<OverallPieChart[]>([]);
   const [weekReport, setWeekReport] = useState<Series[]>([]);
@@ -195,7 +195,7 @@ const OverallReport = () => {
           ...getFilters(filterData, range),
         });
 
-        const updated = res.data.map((item: OverallReport) => ({
+        const updated = res.data.map((item: OverallReportType) => ({
           ...item,
           online_percent: getPercent(item.online ?? 0, item.total ?? 0),
           offline_percent: getPercent(item.offline ?? 0, item.total ?? 0),

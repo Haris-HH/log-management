@@ -91,7 +91,7 @@ export interface UsageLogResponse extends BasicResponse<UsageLog[]> {}
 
 export interface LprSearchLogResponse extends BasicResponse<LprSearchLog[]> {}
 
-export interface UserResponse extends BasicResponse<User> {}
+export interface UserResponse extends BasicResponse<User[]> {}
 
 export interface NsbOuResponse extends BasicResponse<NsbOu[]> {}
 
