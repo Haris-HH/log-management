@@ -242,6 +242,11 @@ const AutoComplete: React.FC<AutoCompleteProps> = ({
                 backgroundColor: "var(--primary-color) !important",
                 color: "var(--tertiary-color) !important",
               },
+
+              "& .MuiAutocomplete-noOptions": {
+                color: "var(--primary-color) !important",
+                backgroundColor: "var(--tertiary-color) !important",
+              },
             },
           },
         }}

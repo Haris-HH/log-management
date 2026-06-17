@@ -3,9 +3,10 @@ import dayjs from 'dayjs';
 
 // Material UI
 import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
 
 // Types
-import type { OverallLineChart } from "../../types/chart";
+import type { Series } from "../../types/common";
 
 // Hooks
 import { useStatusOptions } from '../../hooks/useStatusOptions';
@@ -14,19 +15,22 @@ import { useStatusOptions } from '../../hooks/useStatusOptions';
 import { useTranslation } from 'react-i18next';
 
 type Props = {
-  data: OverallLineChart[];
+  data: Series[];
   isMonth?: boolean;
 }
 
 const LineChartComponent = ({ data, isMonth = false }: Props) => {
   // i18n
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const statusOptions = useStatusOptions();
+  const filterStatusOptions = statusOptions.filter((so) => so.key !== "suspended");
 
   const STATUS_MAP = Object.fromEntries(
-    statusOptions.map(item => [item.key, item])
+    statusOptions.filter((so) => so.key !== "suspended").map(item => [item.key, item])
   );
+
+  const hasData = data.length > 0;
 
   const CustomLegend = () => {
     return (
@@ -37,7 +41,7 @@ const LineChartComponent = ({ data, isMonth = false }: Props) => {
         paddingTop: "12px",
         fontSize: "16px",
       }}>
-        {statusOptions.map((item) => (
+        {filterStatusOptions.map((item) => (
           <div
             key={item.key}
             style={{
@@ -128,53 +132,78 @@ const LineChartComponent = ({ data, isMonth = false }: Props) => {
 
   return (
     <Box className="flex justify-center items-center">
-      <LineChart
-        style={{ width: '100%', maxWidth: '850px', height: '100%', maxHeight: '80vh', aspectRatio: 1.618 }}
-        responsive
-        data={data}
-        margin={{
-          top: 5,
-          right: 50,
-          left: 20,
-          bottom: 5,
-        }}
-      >
-        <CartesianGrid stroke="rgba(var(--primary-color-rgb), 0.5)" horizontal vertical/>
-        <XAxis 
-          dataKey="date" 
-          stroke="var(--primary-color)" 
-          strokeWidth={0}
-          tick={{
-            fontSize: 14,
-          }}
-          interval={0}
-          tickFormatter={(value) => isMonth ? dayjs(value).locale(i18n.language === "th" ? "th" : "en").format("D") : dayjs(value).locale(i18n.language === "th" ? "th" : "en").format(i18n.language === "th" ? "ddDD/MM/BB" : "ddDD/MM/YY")}
-        />
-        <YAxis 
-          width="auto" 
-          stroke="var(--primary-color)" 
-          strokeWidth={0} 
-          tick={{
-            fontSize: 12,
-            fontWeight: 600,
-          }}
-        />
-        <Tooltip
-          cursor={{ stroke: "var(--color-border-2)" }}
-          content={<CustomTooltip />}
-        />
-        <Legend content={<CustomLegend />} />
-        {statusOptions.map((item) => (
-          <Line
-            key={item.key}
-            type="monotone"
-            dataKey={item.key}
-            stroke={item.color}
-            dot={{ fill: item.color }}
-            activeDot={{ r: 8, stroke: item.color }}
-          />
-        ))}
-      </LineChart>
+      {
+        hasData ? (
+          <LineChart
+            style={{ width: '100%', maxWidth: '850px', height: '100%', maxHeight: '80vh', aspectRatio: 1.618 }}
+            responsive
+            data={data}
+            margin={{
+              top: 5,
+              right: 50,
+              left: 20,
+              bottom: 5,
+            }}
+          >
+            <CartesianGrid stroke="rgba(var(--primary-color-rgb), 0.5)" horizontal vertical/>
+            <XAxis 
+              dataKey="date" 
+              stroke="var(--primary-color)" 
+              strokeWidth={0}
+              tick={{
+                fontSize: 14,
+              }}
+              interval={0}
+              tickFormatter={(value) => isMonth ? dayjs(value).locale(i18n.language === "th" ? "th" : "en").format("D") : dayjs(value).locale(i18n.language === "th" ? "th" : "en").format(i18n.language === "th" ? "ddDD/MM/BB" : "ddDD/MM/YY")}
+            />
+            <YAxis 
+              width="auto" 
+              stroke="var(--primary-color)" 
+              strokeWidth={0} 
+              tick={{
+                fontSize: 12,
+                fontWeight: 600,
+              }}
+            />
+            <Tooltip
+              cursor={{ stroke: "var(--color-border-2)" }}
+              content={<CustomTooltip />}
+            />
+            <Legend content={<CustomLegend />} />
+            {filterStatusOptions.map((item) => (
+              <Line
+                key={item.key}
+                type="monotone"
+                dataKey={item.key}
+                stroke={item.color}
+                dot={{ fill: item.color }}
+                activeDot={{ r: 8, stroke: item.color }}
+              />
+            ))}
+          </LineChart>
+        ) : (
+          <Box
+            className="flex flex-col gap-4 items-center justify-center"
+            sx={{
+              width: "100%",
+              minHeight: "43vh",
+              border: "1px dashed var(--primary-color)",
+              borderRadius: "8px",
+              backgroundColor: "rgba(var(--secondary-color-rgb), 0.03)",
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: 18,
+                fontWeight: 500,
+                color: "var(--primary-color)",
+              }}
+            >
+              {t("text.data-not-found")}
+            </Typography>
+          </Box>
+        )
+      }
     </Box>
   )
 }

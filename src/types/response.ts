@@ -31,6 +31,12 @@ import type {
   DeviceCheckLog,
   Device,
   Checkpoint,
+  PoliceStation,
+  OverallReport,
+  Pagination,
+  Summary,
+  Series,
+  OverallProblemReport,
 } from "../types/common";
 
 export interface UsageChartResponse {
@@ -118,6 +124,12 @@ export interface DeviceResponse extends BasicResponse<Device[]> {}
 
 export interface CheckpointResponse extends BasicResponse<Checkpoint[]> {}
 
+export interface PoliceStationResponse extends BasicResponse<PoliceStation[]> {}
+
+export interface OverallProblemReportResponse extends ProblemReportResponse<OverallProblemReport[]> {}
+
+export interface OverallReportResponse extends ReportResponse<OverallReport[]> {}
+
 export interface BasicResponse<T> {
   endpoint: string;
   message: string;
@@ -128,10 +140,25 @@ export interface BasicResponse<T> {
   data: T;
 }
 
-export interface Pagination {
-  page: number;
-  maxPage: number;
-  limit: number | string;
-  count: number;
-  countAll: number;
+export interface ProblemReportResponse<T> {
+  endpoint: string;
+  message: string;
+  statusCode: number;
+  status: string;
+  success: boolean;
+  pagination?: Pagination;
+  report_range?: "day" | "week" | "month";
+  start_date?: string;
+  end_date?: string;
+  data: T;
+}
+
+export interface ReportResponse<T> {
+  success: boolean;
+  pagination?: Pagination;
+  report_range: "day" | "week" | "month";
+  period: string;
+  data: T;
+  summary: Summary;
+  series: Series[];
 }

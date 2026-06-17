@@ -1,9 +1,8 @@
 // Types
 import type { 
-  OverallCheckpointResponse,
-  OverallDayReportResponse,
-  OverallLineChartReportResponse,
-  OverallReportDetailResponse,
+  OverallProblemReportResponse,
+  OverallReportResponse,
+  DeviceResponse,
 } from "../../../types/response";
 
 // Api
@@ -11,97 +10,63 @@ import { fetchClient } from "../../../api/fetchClient";
 
 // Mocks
 import {
-  mockOverallCheckpoint
-} from "../../../mocks/mockOverallCheckpoint";
+  mockDevice
+} from "../../../mocks/mockDevice";
 import { 
-  mockOverallDayReport, 
-  mockOverallWeekReport,
-  mockOverallMonthReport,
+  mockOverallReport,
 } from "../../../mocks/mockOverallReport";
 import {
-  mockOverallReportDetail
-} from "../../../mocks/mockOverallReportDetail";
+  mockOverallProblemReport
+} from "../../../mocks/mockOverallProblemReport";
 
 // Env
 const isDev = import.meta.env.VITE_IS_DEV;
 
-export const getOverallCheckpoint = async (): Promise<OverallCheckpointResponse> => {
+export const getOverallCheckpoint = async (): Promise<DeviceResponse> => {
   if (isDev) {
-    return {
-      data: mockOverallCheckpoint,
-    };
+    return mockDevice;
   }
 
-  const res = await fetchClient<OverallCheckpointResponse>(
-    "/overview/checkpoint",
+  const res = await fetchClient<DeviceResponse>(
+    "/ops-management/devices/search",
     {
       method: "POST",
       body: JSON.stringify({}),
     },
   );
 
-  return {
-    data: res.data,
-  };
+  return res;
 };
 
-export const getOverallDayReport = async (): Promise<OverallDayReportResponse> => {
+export const getOverallReport = async (body? : Record<string, string>): Promise<OverallReportResponse> => {
   if (isDev) {
-    return {
-      data: mockOverallDayReport,
-    };
+    return mockOverallReport;
   }
 
-  const res = await fetchClient<OverallDayReportResponse>(
-    "/overview/daily-report",
+  const res = await fetchClient<OverallReportResponse>(
+    "/log-management/device-check-logs/statistics/chart-data",
     {
       method: "POST",
-      body: JSON.stringify({}),
+      body: JSON.stringify(body),
     },
   );
 
-  return {
-    data: res.data,
-  };
-};
-
-export const getOverallReport = async (reportRange: "week" | "month"): Promise<OverallLineChartReportResponse> => {
-  if (isDev) {
-    return {
-      data: reportRange === "week" ? mockOverallWeekReport : mockOverallMonthReport,
-    };
-  }
-
-  const res = await fetchClient<OverallLineChartReportResponse>(
-    reportRange === "week" ? "/overview/weekly-report" : "/overview/monthly-report",
-    {
-      method: "POST",
-      body: JSON.stringify({}),
-    },
-  );
-
-  return {
-    data: res.data,
-  };
+  return res;
 };
 
 
-export const getOverallReportDetail = async (): Promise<OverallReportDetailResponse> => {
+export const searchOverallProblemReport = async (body? : Record<string, string>): Promise<OverallProblemReportResponse> => {
   if (isDev) {
-    return {
-      data: mockOverallReportDetail,
-    };
+    return mockOverallProblemReport
   }
 
-  const res = await fetchClient<OverallReportDetailResponse>(
-    "/overview/report-detail",
+  const res = await fetchClient<OverallProblemReportResponse>(
+    "/ops-management/devices/statistics/problem-report",
     {
       method: "POST",
-      body: JSON.stringify({}),
+      body: JSON.stringify(body),
     },
   );
 
-  return {
-    data: res.data,
-  };
+  return res;
 };

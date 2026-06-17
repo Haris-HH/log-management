@@ -66,7 +66,7 @@ const Home = () => {
                     }}
                     className="absolute inset-0 z-0"
                     style={{
-                      background: "rgba(var(--secondary-color-rgb), 0.8)",
+                      background: "rgba(var(--secondary-color-rgb), 0.1)",
                     }}
                   />
                 )}
@@ -123,15 +123,17 @@ const Home = () => {
                           delay: subIndex * 0.08,
                         }}
                         className="
-                          rounded-xl border border-(--primary-color)/20
-                          bg-white/10 px-4 py-3
+                          rounded-xl border border-(--primary-color)
+                          bg-(--tertiary-bg-color)/10 px-4 py-3
                           backdrop-blur-sm
-                          hover:bg-(--primary-color)/20
+                          text-(--secondary-color)
+                          hover:bg-(--primary-color)
+                          hover:text-(--tertiary-color)
                           transition-all duration-300
                         "
                         onClick={() => navigate(sub.path)}
                       >
-                        <span className="text-sm md:text-base font-medium text-white">
+                        <span className="text-sm md:text-base font-medium">
                           {sub.label}
                         </span>
                       </motion.div>

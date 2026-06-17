@@ -58,7 +58,8 @@ const OverallMap = () => {
   // State
   const [showFilter, setShowFilter] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+  const [searchTrigger, setSearchTrigger] = useState(0);
+
   // Data
   const [map, setMap] = useState<LeafletMap | null>(null);
   const [devices, setDevices] = useState<Device[]>([]);
@@ -88,7 +89,18 @@ const OverallMap = () => {
 
   useEffect(() => {
     fetchData(formData);
-  }, [formData])
+  }, [
+    area, 
+    province, 
+    deviceStatus,
+    formData.area_id,
+    formData.province_id,
+    formData.type_id,
+    searchTrigger,
+    t,
+    i18n.language,
+    i18n.isInitialized,
+  ])
 
   useEffect(() => {
     if (map && cameraInCheckpoints) {
@@ -137,7 +149,7 @@ const OverallMap = () => {
             const resDistrict = await getDistrict({ filter: `province_code=${item.province_code},district_code=${item.district_code}` });
             const resSubdistrict = await getSubdistrict({ filter: `province_code=${item.province_code},district_code=${item.district_code},subdistrict_code=${item.subdistrict_code}` });
             const provinceName = province.find((p) => p.province_code === item.province_code);            
-            const areaName = area.find((a) => a.id === Number(formData.area_id));
+            const areaName = area.find((a) => a.id === Number(item.police_region_id));
 
             const updatedData = res.data.map((device) => {
               const color = DEVICE_STATUS_COLOR.find((status) => status.code === device.device_status_code);
@@ -176,7 +188,17 @@ const OverallMap = () => {
         setIsLoading(false);
       }
     }, 
-    [i18n.language]
+    [
+    area, 
+    province, 
+    deviceStatus, 
+    formData.area_id,
+    formData.province_id,
+    formData.type_id,
+    searchTrigger,
+    t,
+    i18n.language,
+    i18n.isInitialized,]
   );
 
   const handleMapLoad = useCallback((mapInstance: LeafletMap | null) => {
@@ -232,6 +254,14 @@ const OverallMap = () => {
     formData.province_id,
     formData.type_id,
   ]);
+
+  const handleSearchOnEnter = (
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (event.key === "Enter") {
+      setSearchTrigger((prev) => prev + 1);
+    }
+  };
 
   return (
     <section id='overall-map'>
@@ -297,6 +327,7 @@ const OverallMap = () => {
                       handleTextChange("search_word", event.target.value)
                     }
                     minHeight='32px'
+                    onKeyPress={handleSearchOnEnter}
                   />
 
                   <AutoComplete 

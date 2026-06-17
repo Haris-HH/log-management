@@ -2,7 +2,6 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 // Types
 import type { 
-  DropdownResponse,
   ProvinceResponse,
   DistrictResponse,
   SubdistrictResponse,
@@ -15,6 +14,7 @@ import type {
   AreaResponse,
   DeviceStatusResponse,
   ProjectResponse,
+  PoliceStationResponse,
 } from "../../../types/response";
 
 // API
@@ -31,6 +31,7 @@ import {
   getDeviceStatus,
   getTitle,
   getLprRegion,
+  getPoliceStation,
 } from "./DropdownApi";
 
 interface DropdownState {
@@ -46,6 +47,7 @@ interface DropdownState {
   deviceStatus: DeviceStatusResponse["data"];
   title: TitleResponse["data"];
   lprRegion: LprRegionResponse["data"];
+  policeStation: PoliceStationResponse["data"];
   loading: boolean;
   error: string | null;
 }
@@ -64,6 +66,7 @@ const initialState: DropdownState = {
   deviceStatus: [],
   title: [],
   lprRegion: [],
+  policeStation: [],
   loading: false,
   error: null,
 };
@@ -213,6 +216,18 @@ export const fetchLprRegion = createAsyncThunk(
   }
 );
 
+export const fetchPoliceStation = createAsyncThunk(
+  "dropdown/fetchPoliceStation",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await getPoliceStation();
+      return res.data;
+    } catch (err: any) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
 // Slice
 const dropdownSlice = createSlice({
   name: "dropdown",
@@ -318,6 +333,20 @@ const dropdownSlice = createSlice({
         state.error = action.payload as string;
       })
 
+      // LPR Region
+      .addCase(fetchLprRegion.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchLprRegion.fulfilled, (state, action) => {
+        state.loading = false;
+        state.lprRegion = action.payload;
+      })
+      .addCase(fetchLprRegion.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+
       // CHECKPOINT TYPE
       .addCase(fetchDeviceStatus.pending, (state) => {
         state.loading = true;
@@ -342,6 +371,20 @@ const dropdownSlice = createSlice({
         state.title = action.payload;
       })
       .addCase(fetchTitle.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+
+      // POLICE STATION
+      .addCase(fetchPoliceStation.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchPoliceStation.fulfilled, (state, action) => {
+        state.loading = false;
+        state.policeStation = action.payload;
+      })
+      .addCase(fetchPoliceStation.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

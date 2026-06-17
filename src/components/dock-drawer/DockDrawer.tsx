@@ -237,7 +237,7 @@ const DockDrawer = ({ open, setOpen }: DockDrawerProps) => {
           borderRadius: "14px 14px 0 0",
           width: "160px",
           height: "15px",
-          border: "1px solid rgba(var(--tertiary-color-rgb),0.15)",
+          border: "1px solid rgba(var(--primary-color-rgb),0.30)",
         }}
       >
         <KeyboardArrowUpIcon sx={{ color: "var(--primary-color)" }} />

@@ -39,6 +39,7 @@ import {
   fetchDeviceStatus,
   fetchTitle,
   fetchLprRegion,
+  fetchPoliceStation,
 } from "./features/dropdown/api/DropdownSlice";
 
 // i18n
@@ -98,6 +99,7 @@ function App() {
     dispatch(fetchDeviceStatus());
     dispatch(fetchTitle());
     dispatch(fetchLprRegion());
+    dispatch(fetchPoliceStation());
   }, [user, dispatch])
 
   const enabled = Boolean(localStorage.getItem("accessToken") ?? false);

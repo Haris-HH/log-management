@@ -14,9 +14,9 @@ const AnimatedText = ({
 }) => {
   return (
     <div 
-      className={`flex overflow-hidden text-(--tertiary-color) ${className}`}
+      className={`flex overflow-hidden text-(--primary-color) ${className}`}
       style={{
-        textShadow: "1px 3px 2px var(--primary-color)"
+        textShadow: "1px 3px 2px var(--tertiary-color)"
       }}
     >
       {text.split("").map((char, index) => (
@@ -86,7 +86,7 @@ const CinematicTitle = ({ skipIntro = false }: { skipIntro?: boolean }) => {
         transition={{
           delay: skipIntro ? 0.2 : 2,
         }}
-        className="text-(--tertiary-color)"
+        className="text-(--primary-color)"
       >
         <AnimatedText
           text={t('project.title')}

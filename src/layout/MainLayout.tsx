@@ -67,7 +67,7 @@ const MainLayout = () => {
           style={{
             position: "absolute",
             inset: 0,
-            backgroundColor: "rgba(var(--secondary-color-rgb),0.2)",
+            backgroundColor: "rgba(var(--tertiary-color-rgb),0.8)",
             zIndex: -1,
           }}
         />

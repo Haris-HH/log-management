@@ -34,7 +34,7 @@ import WifiIcon from "../assets/svg/wifi.svg?react";
 import { ROWS_PER_PAGE_OPTIONS } from "../constants/dropdown";
 
 // Types
-import type { OverallCheckpointType, ColumnOption } from "../types/common";
+import type { Device, ColumnOption } from "../types/common";
 import type { OverallCheckpointsPdfData } from "../types/pdf";
 
 // Utils
@@ -58,6 +58,7 @@ import type { RootState } from "../store/store";
 
 // API
 import { getOverallCheckpoint } from "../features/overall/api/OverallApi";
+import { getDistrict, getSubdistrict } from "../features/dropdown/api/DropdownApi";
 
 // i18n
 import { useTranslation } from 'react-i18next';
@@ -81,8 +82,8 @@ const OverallCheckpoints = () => {
   // Data
   const [totalItems, setTotalItems] = useState(0);
   const [totalUsage, setTotalUsage] = useState(0);
-  const [rows, setRows] = useState<OverallCheckpointType[]>([]);
-  const [selectedData, setSelectedData] = useState<OverallCheckpointType | null>(null);
+  const [rows, setRows] = useState<Device[]>([]);
+  const [selectedData, setSelectedData] = useState<Device | null>(null);
 
   // Options
   const [areaOptions, setAreaOptions] = useState<{ label: string, value: string }[]>([]);
@@ -109,19 +110,19 @@ const OverallCheckpoints = () => {
   });
 
   const columnKeyMap: Record<string, keyof typeof rows[0]> = {
-    camera: "name_display",
-    station: "police_checkpoint",
-    area: "police_station",
-    province: "province",
-    district: "district",
-    subdistrict: "sub_district",
+    camera: "device_name",
+    station: "police_station_name",
+    area: "police_region_name",
+    province: "province_name",
+    district: "district_name",
+    subdistrict: "subdistrict_name",
     road: "route",
     route: "lane",
     project: "project_name",
   };
 
   // Slice
-  const { area, province, project } = useSelector((state: RootState) => state.dropdown);
+  const { area, province, project, policeStation } = useSelector((state: RootState) => state.dropdown);
 
   usePageTitle(t("pages.overall-checkpoints"));
 
@@ -165,7 +166,29 @@ const OverallCheckpoints = () => {
       try {
         setIsLoading(true);
         const res = await getOverallCheckpoint();
-        setRows(res.data);
+        const updated = await Promise.all(
+          res.data.map(async (item) => {
+            const resDistrict = await getDistrict({ filter: `province_code=${item.province_code},district_code=${item.district_code}` });
+            const resSubdistrict = await getSubdistrict({ filter: `province_code=${item.province_code},district_code=${item.district_code},subdistrict_code=${item.subdistrict_code}` });
+            const provinceData = province.find((p) => p.province_code === item.province_code);            
+            const areaData = area.find((a) => a.id === Number(item.police_region_id));
+            const policeStationData = policeStation.find((p) => p.id === Number(item.police_station_id));
+            const projectData = project.find((p) => p.project_id === item.project_id);
+
+            return {
+              ...item,
+              province_name: i18n.language === "th" ? provinceData?.name_th ?? "-" : provinceData?.name_en ?? "-",
+              district_name: i18n.language === "th" ? resDistrict.data[0]?.name_th ?? "-" : resDistrict.data[0]?.name_en ?? "-",
+              subdistrict_name: i18n.language === "th" ? resSubdistrict.data[0]?.name_th ?? "-" : resSubdistrict.data[0]?.name_en ?? "-",
+              police_region_name: i18n.language === "th" ? areaData?.title_th ?? "-" : areaData?.title_en ?? "-",
+              checkpoint_name: item.checkpoint_name,
+              police_station_name: policeStationData?.station_name ?? "-",
+              project_name: projectData?.project_name ?? "-",
+            }
+          })
+        )
+
+        setRows(updated);
       }
       catch (error) {
         await PopupMessage(t("popup.fetch-error"), "", "error");
@@ -222,13 +245,13 @@ const OverallCheckpoints = () => {
       data: rows,
       mapRow: (data, index) => [
         (page - 1) * rowsPerPage + index + 1,
-        data.name_display,
-        data.police_checkpoint,
-        data.police_station,
-        data.police_division_name,
-        data.province,
-        data.district,
-        data.sub_district,
+        data.device_name,
+        data.checkpoint_name,
+        data.police_station_name,
+        data.police_region_name,
+        data.province_name,
+        data.district_name,
+        data.subdistrict_name,
         data.route,
         data.lane,
         data.project_name,
@@ -243,14 +266,14 @@ const OverallCheckpoints = () => {
     const pdfName = `${t('file-name.overall-checkpoints')}_${dayjs().format(i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD")}.pdf`;
     const pdfData: OverallCheckpointsPdfData[] = rows.map((data) => ({
       ...data,
-      id: data.id,
-      checkpoint_name: data.police_checkpoint,
-      camera_name: data.name_display,
-      station_name: data.police_station,
-      area_name: data.police_division_name,
-      province_name: data.province,
-      district_name: data.district,
-      subdistrict_name: data.sub_district,
+      id: data.device_id,
+      checkpoint_name: data.checkpoint_name,
+      camera_name: data.device_name,
+      station_name: data.police_station_name,
+      area_name: data.police_region_name,
+      province_name: data.province_name,
+      district_name: data.district_name,
+      subdistrict_name: data.subdistrict_name,
       road: data.route,
       route: data.lane,
       project: data.project_name,
@@ -449,57 +472,52 @@ const OverallCheckpoints = () => {
                 {rows.map((data, index) => (
                   <TableRow
                     key={index}
+                    sx={{
+                      "& .MuiTableCell-root": {
+                        backgroundColor: "var(--tertiary-color)",
+                        color: "var(--secondary-color)",
+                        borderBottom: "1px solid var(--primary-color)",
+                        p: "8px 1px",
+                      }
+                    }}
                   >
                     <TableCell
                       sx={{
-                        backgroundColor: "var(--tertiary-color)",
-                        color: "var(--tertiary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
                         textAlign: "center",
-                        p: "8px 1px",
                       }}
                     >
                       {((page - 1) * rowsPerPage) + index + 1}
                     </TableCell>
                     <TableCell
                       sx={{
-                        backgroundColor: "var(--tertiary-color)",
-                        color: "var(--tertiary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
                         textAlign: "center",
-                        p: "8px 1px",
                       }}
                     >
                       <Box className="flex items-center justify-center gap-2">
-                        <img src={data.data_status === "online" ? DatabaseOnline : DatabaseOffline} alt="Database Status" className="h-6 w-6" />
-                        <WifiIcon className="h-6 w-6" color={data.network_status === "online" ? "#2FA534" : "#DD2025"} />
+                        <img src={data.device_status_code === "online" ? DatabaseOnline : DatabaseOffline} alt="Database Status" className="h-6 w-6" />
+                        <WifiIcon className="h-6 w-6" color={data.alive ? "#2FA534" : "#DD2025"} />
                       </Box>
                     </TableCell>
                     <TableCell 
                       sx={{
-                        backgroundColor: "var(--tertiary-color)",
-                        color: "var(--tertiary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
                         textAlign: "center",
-                        p: "8px 1px",
                       }}
                     >
-                      {data.name_display}
+                      {data.device_name}
                     </TableCell>
                     {visibleColumns.map((col) => {
                       const field = columnKeyMap[col.key];
 
-                      let value = data[field];
+                      let value = data[field] ?? "-";
+                      if (field === "lane") {
+                        value = value === "1" ? t('text.exit') : t('text.in')
+                      }
 
                       return (
                         <TableCell 
                           key={col.key}
                           sx={{
-                            backgroundColor: "var(--tertiary-color)",
-                            color: "var(--tertiary-color)",
-                            borderBottom: "1px solid var(--primary-color)",
                             textAlign: "center",
-                            p: "8px 1px",
                           }}
                         >
                           {value}

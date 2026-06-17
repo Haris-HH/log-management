@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import dayjs from 'dayjs';
 import { useNavigate } from "react-router-dom";
 import { useSelector } from 'react-redux';
+import { saveAs } from "file-saver";
+import JSZip from "jszip";
 
 // Material UI
 import Box from "@mui/material/Box";
@@ -23,6 +25,7 @@ import DatePickerBuddhist from "../components/date-picker-buddhist/DatePickerBud
 import PaginationComponent from "../components/pagination/Pagination";
 import DetailsDialog from "../components/details-dialog/DetailsDialog";
 import LoadingScreen from '../components/loading-screen/LoadingScreen';
+import ExportLoadingScreen from '../components/loading-screen/ExportLoadingScreen';
 
 // Constants
 import { ROWS_PER_PAGE_OPTIONS } from "../constants/dropdown";
@@ -30,6 +33,7 @@ import { ROWS_PER_PAGE_OPTIONS } from "../constants/dropdown";
 // PDF
 import {
   downloadStatisticUsageAgencyPdf,
+  generateStatisticUsageAgencyPdfBlob,
 } from "../pdf/StatisticUsageAgencyPdf";
 
 // Types
@@ -47,7 +51,7 @@ import InformationIcon from "../assets/icons/information.png";
 
 // Utils
 import { buildOptions } from "../utils/commonFunctions";
-import { exportExcel } from "../utils/exportData";
+import { exportExcel, generateExcelBlob } from "../utils/exportData";
 import { PopupMessage, PopupMessageWithCancel } from '../utils/popupMessage';
 
 // Hooks
@@ -76,12 +80,19 @@ const StatisticUsageAgency = () => {
   // State
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
 
   // Data
   const [rows, setRows] = useState<AccessLog[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [totalUsage, setTotalUsage] = useState(0);
   const [selectedData, setSelectedData] = useState<AccessLog | null>(null);
+  const [exportProgress, setExportProgress] = useState({
+    text: "",
+    current: 0,
+    total: 0,
+    percent: 0,
+  });
 
   // Options
   const [agencyOptions, setAgencyOptions] = useState<{ label: string, value: string }[]>([]);
@@ -103,7 +114,6 @@ const StatisticUsageAgency = () => {
 
   // Pagination
   const [page, setPage] = useState(1);
-  const [pageInput, setPageInput] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalData, setTotalData] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(
@@ -311,7 +321,11 @@ const StatisticUsageAgency = () => {
 
   const handleExportPdf = async () => {
     try {
-      let exportRows = rows;
+      setExportLoading(true);
+      
+      const dateFormat = i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD";
+      const startDate = dayjs(formData.start_date_time).format(dateFormat);
+      const endDate = dayjs(formData.end_date_time).format(dateFormat);
 
       if (totalData > CHUNK_SIZE) {
         const isConfirmed = await PopupMessageWithCancel(
@@ -325,8 +339,64 @@ const StatisticUsageAgency = () => {
         );
 
         if (!isConfirmed) return;
+
+        const zip = new JSZip();
+        const totalFiles = Math.ceil(totalData / CHUNK_SIZE);
+
+        setExportProgress({
+          text: t("text.export-pdf"),
+          current: 0,
+          total: totalFiles,
+          percent: 0,
+        });
+
+        for (let page = 1; page <= totalFiles; page++) {
+          const res = await searchUsageLogs(
+            {},
+            {
+              groupBy: "org_code",
+              limit: CHUNK_SIZE.toString(),
+              page: page.toString(),
+              orderBy: "org_code",
+              ...getFilters(formData),
+            }
+          );
+
+          const formattedData = await mapAccessLogRows(res.data);
+
+          const fileName = `${t(
+            "file-name.statistic-usage-agency"
+          )}_${startDate}_${endDate}_${page}.pdf`;
+
+          const blob = await generateStatisticUsageAgencyPdfBlob(
+            buildPdfData(formattedData),
+            t,
+            i18n
+          );
+
+          zip.file(fileName, blob);
+
+          setExportProgress({
+            text: t("text.export-excel"),
+            current: page,
+            total: totalFiles,
+            percent: Math.round((page / totalFiles) * 100),
+          });
+
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+
+        saveAs(
+          zipBlob,
+          `PDF_${t("file-name.statistic-usage-agency")}_${dayjs().format(
+            "YYYY-MM-DD"
+          )}.zip`
+        );
+
+        return;
       }
-      setIsLoading(true);
 
       const res = await searchUsageLogs(
         {},
@@ -339,15 +409,11 @@ const StatisticUsageAgency = () => {
         }
       );
 
-      exportRows = mapAccessLogRows(res.data);
+      const exportRows = await mapAccessLogRows(res.data);
 
-      const dateFormat = i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD";
-
-      const pdfName = `${t("file-name.statistic-usage-agency")}_${dayjs(
-        formData.start_date_time
-      ).format(dateFormat)}_${dayjs(formData.end_date_time).format(
-        dateFormat
-      )}.pdf`;
+      const pdfName = `${t(
+        "file-name.statistic-usage-agency"
+      )}_${startDate}_${endDate}.pdf`;
 
       await downloadStatisticUsageAgencyPdf(
         buildPdfData(exportRows),
@@ -357,10 +423,14 @@ const StatisticUsageAgency = () => {
       );
     } 
     catch (error) {
-      await PopupMessage(t("popup.export-error-title"), t("popup.export-error-message"), "error");
+      await PopupMessage(
+        t("popup.export-error-title"),
+        t("popup.export-error-message"),
+        "error"
+      );
     } 
     finally {
-      setIsLoading(false);
+      setExportLoading(false);
     }
   };
 
@@ -417,7 +487,38 @@ const StatisticUsageAgency = () => {
 
   const handleExportExcel = async () => {
     try {
-      let exportRows = rows;
+      setExportLoading(true);
+      const dateFormat = i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD";
+
+      const startDate = dayjs(formData.start_date_time).format(dateFormat);
+      const endDate = dayjs(formData.end_date_time).format(dateFormat);
+
+      const baseFileName = `${t(
+        "file-name.statistic-usage-agency"
+      )}_${startDate}_${endDate}`;
+
+      const headers = [
+        t('table.header.no'),
+        t('table.header.count'),
+        t('table.header.agency'),
+        t('table.header.bh'),
+        t('table.header.bk'),
+        t('table.header.org'),
+      ];
+
+      const mapRow = (data: any, index: number) => [
+        index + 1,
+        Number(data.total || 0).toLocaleString(),
+        data.ou_name || "-",
+        data.bh_name || "-",
+        data.bk_name || "-",
+        data.org_name || "-",
+      ];
+
+      const columnStyles = {
+        1: { alignment: { horizontal: "center" as const } },
+        2: { alignment: { horizontal: "right" as const } },
+      };
 
       if (totalData > CHUNK_SIZE) {
         const isConfirmed = await PopupMessageWithCancel(
@@ -431,8 +532,63 @@ const StatisticUsageAgency = () => {
         );
 
         if (!isConfirmed) return;
+
+        const zip = new JSZip();
+        const totalFiles = Math.ceil(totalData / CHUNK_SIZE);
+
+        setExportProgress({
+          text: t("text.export-excel"),
+          current: 0,
+          total: totalFiles,
+          percent: 0,
+        });
+
+        for (let pageIndex = 1; pageIndex <= totalFiles; pageIndex++) {
+          const res = await searchUsageLogs(
+            {},
+            {
+              groupBy: "org_code",
+              limit: CHUNK_SIZE.toString(),
+              page: pageIndex.toString(),
+              orderBy: "org_code",
+              ...getFilters(formData),
+            }
+          );
+
+          const exportRows = await mapAccessLogRows(res.data);
+
+          const blob = await generateExcelBlob({
+            sheetName: t("file-name.statistic-usage-agency"),
+            headers,
+            data: exportRows,
+            mapRow: (data, index) => [
+              (pageIndex - 1) * CHUNK_SIZE + index + 1,
+              Number(data.total || 0).toLocaleString(),
+              data.ou_name || "-",
+              data.bh_name || "-",
+              data.bk_name || "-",
+              data.org_name || "-",
+            ],
+            columnStyles,
+          });
+
+          zip.file(`${baseFileName}_${pageIndex}.xlsx`, blob);
+
+          setExportProgress({
+            text: t("text.export-excel"),
+            current: pageIndex,
+            total: totalFiles,
+            percent: Math.round((pageIndex / totalFiles) * 100),
+          });
+
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        saveAs(zipBlob, `Excel_${baseFileName}.zip`);
+
+        return;
       }
-      setIsLoading(true);
 
       const res = await searchUsageLogs(
         {},
@@ -445,40 +601,26 @@ const StatisticUsageAgency = () => {
         }
       );
 
-      exportRows = mapAccessLogRows(res.data);
-
-      const dateFormat = i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD";
+      const exportRows = await mapAccessLogRows(res.data);
 
       await exportExcel({
-        sheetName: `${t('file-name.statistic-usage-agency')}`,
-        fileName: `${t('file-name.statistic-usage-agency')}_${dayjs(formData.start_date_time).format(dateFormat)}_${dayjs(formData.end_date_time).format(dateFormat)}.xlsx`,
-        headers: [
-          t('table.header.no'),
-          t('table.header.count'),
-          t('table.header.agency'),
-          t('table.header.bh'),
-          t('table.header.bk'),
-          t('table.header.org'),
-        ],
+        sheetName: t("file-name.statistic-usage-agency"),
+        fileName: `${baseFileName}.xlsx`,
+        headers,
         data: exportRows,
-        mapRow: (data, index) => [
-          (page - 1) * rowsPerPage + index + 1,
-          (data.total || 0).toLocaleString(),
-          data.ou_name,
-          data.bh_name,
-          data.bk_name,
-          data.org_name,
-        ],
-        columnStyles: {
-          2: { alignment: { horizontal: "center" } },
-        },
+        mapRow,
+        columnStyles,
       });
-    }
+    } 
     catch (error) {
-      await PopupMessage(t("popup.export-error-title"), t("popup.export-error-message"), "error");
+      await PopupMessage(
+        t("popup.export-error-title"),
+        t("popup.export-error-message"),
+        "error"
+      );
     } 
     finally {
-      setIsLoading(false);
+      setExportLoading(false);
     }
   };
 
@@ -545,6 +687,15 @@ const StatisticUsageAgency = () => {
   return (
     <section id='statistic-usage-agency' className="flex flex-col h-full w-full p-2">
       { isLoading && <LoadingScreen /> }
+      {
+        exportLoading &&
+        <ExportLoadingScreen
+          text={exportProgress.text}
+          current={exportProgress.current}
+          total={exportProgress.total}
+          percent={exportProgress.percent}
+        />
+      }
       {/* Main Title */}
       <MainTitle title={t("pages.statistic-usage-agency")} />
       <div className='p-4 bg-(--main-bg-color) flex flex-1 flex-col gap-4 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-y-auto'>
@@ -706,43 +857,38 @@ const StatisticUsageAgency = () => {
                   "& .MuiTableCell-head": {
                     color: "var(--tertiary-color)",
                     backgroundColor: "var(--primary-color)",
+                    textAlign: "center",
                   },
                 }}
               >
                 <TableRow>
                   <TableCell
-                    align="center"
-                    sx={{ color: "var(--tertiary-color)", width: "2%" }}
+                    sx={{ width: "2%" }}
                   >
                     {t('table.header.no')}
                   </TableCell>
                   <TableCell
-                    align="center"
-                    sx={{ color: "var(--tertiary-color)", width: "10%" }}
+                    sx={{ width: "10%" }}
                   >
                     {t('table.header.count')}
                   </TableCell>
                   <TableCell
-                    align="center"
-                    sx={{ color: "var(--tertiary-color)", width: "10%" }}
+                    sx={{ width: "10%" }}
                   >
                     {t('table.header.agency')}
                   </TableCell>
                   <TableCell
-                    align="center"
-                    sx={{ color: "var(--tertiary-color)", width: "10%" }}
+                    sx={{ width: "10%" }}
                   >
                     {t('table.header.bh')}
                   </TableCell>
                   <TableCell
-                    align="center"
-                    sx={{ color: "var(--tertiary-color)", width: "10%" }}
+                    sx={{ width: "10%" }}
                   >
                     {t('table.header.bk')}
                   </TableCell>
                   <TableCell
-                    align="center"
-                    sx={{ color: "var(--tertiary-color)", width: "10%" }}
+                    sx={{ width: "10%" }}
                   >
                     {t('table.header.org')}
                   </TableCell>
@@ -755,12 +901,16 @@ const StatisticUsageAgency = () => {
                     onClick={() => {
                       showDetailDialog(data);
                     }}
+                    sx={{
+                      "& .MuiTableCell-root": {
+                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--tertiary-color)",
+                        color: "var(--secondary-color)",
+                        borderBottom: "1px solid var(--primary-color)",
+                      }
+                    }}
                   >
                     <TableCell
                       sx={{
-                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--tertiary-color)",
-                        color: "var(--tertiary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
                         textAlign: "center",
                       }}
                     >
@@ -768,48 +918,21 @@ const StatisticUsageAgency = () => {
                     </TableCell>
                     <TableCell
                       sx={{
-                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--tertiary-color)",
-                        color: "var(--tertiary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
                         textAlign: "center",
                       }}
                     >
                       {(data.total || 0).toLocaleString()}
                     </TableCell>
-                    <TableCell
-                      sx={{
-                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--tertiary-color)",
-                        color: "var(--tertiary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
-                      }}
-                    >
+                    <TableCell>
                       {data.ou_name}
                     </TableCell>
-                    <TableCell
-                      sx={{
-                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--tertiary-color)",
-                        color: "var(--tertiary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
-                      }}
-                    >
+                    <TableCell>
                       {data.bh_name}
                     </TableCell>
-                    <TableCell
-                      sx={{
-                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--tertiary-color)",
-                        color: "var(--tertiary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
-                      }}
-                    >
+                    <TableCell>
                       {data.bk_name}
                     </TableCell>
-                    <TableCell
-                      sx={{
-                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--tertiary-color)",
-                        color: "var(--tertiary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
-                      }}
-                    >
+                    <TableCell>
                       {data.org_name}
                     </TableCell>
                   </TableRow>

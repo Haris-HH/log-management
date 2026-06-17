@@ -1,7 +1,3 @@
-export const formatNumber = (price: number) => {
-  return new Intl.NumberFormat('en-US').format(price)
-}
-
 export const loadFont = async (fontPath: string): Promise<string> => {
   const response = await fetch(fontPath);
   const arrayBuffer = await response.arrayBuffer();
@@ -53,4 +49,22 @@ export const buildOptions = (
   return isAll
     ? [{ label: defaultLabel, value: "0" }, ...options]
     : options;
+};
+
+export const getPercent = (value: number, total: number) => {
+  if (total === 0) return 0;
+  return (value / total) * 100;
+}
+
+export const toNumber = (value: unknown) => {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : 0;
+};
+
+export const formatNumber = (value: unknown) => {
+  return toNumber(value).toLocaleString();
+};
+
+export const formatPercent = (value: unknown) => {
+  return toNumber(value).toFixed(1);
 };

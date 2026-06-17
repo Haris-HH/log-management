@@ -132,7 +132,10 @@
     "weekly-performance-report": "Weekly Performance Report at",
     "monthly-performance-report": "Monthly Performance Report at",
     "all-checkpoint": "All Checkpoints",
-    "app-version": "App Version"
+    "app-version": "App Version",
+    "export-excel": "Exporting Excel...",
+    "export-pdf": "Exporting PDF...",
+    "complete": "Complete"
   },
   "dock": {
     "home": "Home",
@@ -207,7 +210,8 @@
       "device-outage": "Device Outage",
       "normal-status": "Normal Status",
       "percenter-readiness": "% Readiness",
-      "problem-date-with-space": "Problem Date"
+      "problem-date-with-space": "Problem Date",
+      "total": "Total"
     }
   },
   "modal": {
@@ -231,7 +235,8 @@
     "network-outage": "Network Outage",
     "device-outage": "Device Outage",
     "normal-status": "Normal Status",
-    "device-disable": "Device Disable"
+    "device-disable": "Device Disable",
+    "suspend": "Suspend"
   },
   "file-name": {
     "statistic-usage-agency": "Statistic Usage Agency",
@@ -293,6 +298,8 @@
     "logout-message": "Are you sure you want to logout?",
     "fetch-error": "Failed to fetch data, please try again",
     "export-chunk-confirm-title": "Confirm Export Large Data",
-    "export-chunk-confirm-message": "Total data count {{totalData}} items\nMay cause delay in exporting data\nDo you want to confirm export data?"
+    "export-chunk-confirm-message": "Total data count {{totalData}} items\nMay cause delay in exporting data\nDo you want to confirm export data?",
+    "export-error-title": "Error",
+    "export-error-message": "Failed to export data, please try again"
   }
 }

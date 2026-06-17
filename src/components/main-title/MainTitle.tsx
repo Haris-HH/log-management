@@ -3,17 +3,11 @@ import { motion } from "framer-motion";
 // Material UI
 import Typography from "@mui/material/Typography";
 
-// Hooks
-import { useTheme } from "../../hooks/useTheme";
-
 type Props = {
   title: string;
 };
 
 const MainTitle = ({ title }: Props) => {
-  // Theme
-  const { theme } = useTheme();
-
   return (
     <Typography
       component="div"
@@ -23,8 +17,8 @@ const MainTitle = ({ title }: Props) => {
         display: "inline-block",
         fontSize: "1.4rem",
         fontWeight: "bold",
-        color: theme.isDark ? "var(--primary-color)" : "var(--tertiary-color)",
-        textShadow: `5px 3px 5px ${theme.isDark ? "var(--tertiary-color)" : "var(--primary-color)"}`,
+        color: "var(--primary-color)",
+        textShadow: `5px 3px 5px var(--tertiary-color)`,
         overflow: "hidden",
         width: "fit-content",
       }}

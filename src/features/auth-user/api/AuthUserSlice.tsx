@@ -7,6 +7,7 @@ export interface AuthUser {
   title_name_en: string;
   first_name: string;
   last_name: string;
+  image_url: string;
   agency?: {
     ou_code: string;
     ou_abbr_th?: string;

@@ -12,6 +12,7 @@ import type {
   LprRegionResponse,
   DeviceStatusResponse,
   ProjectResponse,
+  PoliceStationResponse,
 } from "../../../types/response";
 
 // Api
@@ -30,6 +31,7 @@ import { mockSubdistrict } from "../../../mocks/mockSubDistricts";
 import { mockDeviceStatus } from "../../../mocks/mockDeviceStatus";
 import { mockTitle } from "../../../mocks/mockTitle";
 import { mockLprRegion } from "../../../mocks/mockLprRegions";
+import { mockPoliceStations } from "../../../mocks/mockPoliceStations";
 
 // Env
 const isDev = import.meta.env.VITE_IS_DEV;
@@ -216,3 +218,17 @@ export const getLprRegion = async (): Promise<LprRegionResponse> => {
   return res;
 };
 
+export const getPoliceStation = async (): Promise<PoliceStationResponse> => {
+  if (isDev) {
+    return mockPoliceStations;
+  }
+
+  const res = await fetchClient<PoliceStationResponse>(
+    "/masterdata/police-stations/get",
+    {
+      method: "GET",
+    },
+  );
+
+  return res;
+};

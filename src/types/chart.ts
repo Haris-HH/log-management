@@ -8,8 +8,10 @@ export interface OverallPieChart {
 
 export interface OverallLineChart {
   date: string;
-  normal: number;
-  device: number;
-  network: number;
-  disable: number;
+  maintenance: number;
+  offline: number;
+  online: number;
+  others: number;
+  suspended: number;
+  total: number;
 }

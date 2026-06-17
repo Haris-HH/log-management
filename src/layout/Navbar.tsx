@@ -282,7 +282,7 @@ const Navbar = () => {
 
             <Avatar
               alt="User"
-              src="/avatars/user1.png"
+              src={user?.image_url}
               sx={{ 
                 width: 34, 
                 height: 34,

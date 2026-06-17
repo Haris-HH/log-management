@@ -132,7 +132,10 @@
     "weekly-performance-report": "รายงานประสิทธิภาพเชิงพื้นที่ (รายสัปดาห์) วันที่",
     "monthly-performance-report": "รายงานประสิทธิภาพเชิงพื้นที่ (รายเดือน)",
     "all-checkpoint": "จุดตรวจทั้งหมด",
-    "app-version": "App Version"
+    "app-version": "App Version",
+    "export-excel": "กำลังสร้างไฟล์ Excel...",
+    "export-pdf": "กำลังสร้างไฟล์ PDF...",
+    "complete": "ทำเสร็จ"
   },
   "dock": {
     "home": "หน้าหลัก",
@@ -207,7 +210,8 @@
       "device-outage": "อุปกรณ์ขัดข้อง",
       "normal-status": "สถานะปกติ",
       "percenter-readiness": "ความพร้อม (%)",
-      "problem-date-with-space": "วันที่มี ปัญหา"
+      "problem-date-with-space": "วันที่มี ปัญหา",
+      "total": "รวมทั้งหมด"
     }
   },
   "modal": {
@@ -231,7 +235,8 @@
     "network-outage": "เครือข่ายขัดข้อง",
     "device-outage": "อุปกรณ์ขัดข้อง",
     "normal-status": "สถานะปกติ",
-    "device-disable": "อุปกรณ์ปิดใช้งาน"
+    "device-disable": "อุปกรณ์ปิดใช้งาน",
+    "suspend": "ถูกระงับ"
   },
   "file-name": {
     "statistic-usage-agency": "สถิติการใช้งาน (หน่วยงาน)",

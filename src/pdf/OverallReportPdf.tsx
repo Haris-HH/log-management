@@ -1,12 +1,15 @@
 import pdfMake from "pdfmake/build/pdfmake";
 import { saveAs } from "file-saver";
 import dayjs from "dayjs";
-import type { TDocumentDefinitions, TableCell } from "pdfmake/interfaces";
-import type { OverallReportPdfData } from "../types/pdf";
 import buddhistEra from "dayjs/plugin/buddhistEra";
+import type { TDocumentDefinitions, TableCell, Content } from "pdfmake/interfaces";
+
+// Types
+import type { OverallReportPdfData } from "../types/pdf";
 
 // Utils
 import { getConfiguredPdfMake } from "../utils/loadFontPdf";
+import { formatNumber, formatPercent } from "../utils/commonFunctions";
 
 dayjs.extend(buddhistEra);
 
@@ -19,150 +22,206 @@ export const generateOverallReportPdfBlob = async (
 
   const overallReport: TableCell[][] = [
     [
-      { text: t('table.header.area'), style: "tableHeader" },
-      { text: t('table.header.all-checkpoint'), style: "tableHeader" },
-      { text: t('table.header.normal-status'), style: "tableHeader" },
-      { text: t('table.header.device-outage'), style: "tableHeader" },
-      { text: t('table.header.network-outage'), style: "tableHeader" },
-      { text: t('table.header.disable'), style: "tableHeader" },
-      { text: t('table.header.percenter-readiness'), style: "tableHeader" },
+      { text: t("table.header.area"), style: "tableHeader" },
+      { text: t("table.header.all-checkpoint"), style: "tableHeader" },
+      { text: t("table.header.normal-status"), style: "tableHeader" },
+      { text: t("table.header.device-outage"), style: "tableHeader" },
+      { text: t("table.header.network-outage"), style: "tableHeader" },
+      { text: t("table.header.disable"), style: "tableHeader" },
+      { text: t("table.header.percenter-readiness"), style: "tableHeader" },
     ],
-    ...data.overallReport.map((item, index, arr) => {
-      const isLast = index === arr.length - 1;
-
-      const cellStyle = isLast ? { style: "totalSum" } : {};
+    ...(data.overallReport ?? []).map((item) => {
+      const policeRegion =
+        i18n.language === "th"
+          ? item.police_region?.title_abbr_th ?? "-"
+          : item.police_region?.title_abbr_en ?? "-";
 
       return [
-        { text: item.police_division_name, ...cellStyle },
-        { text: item.total.toLocaleString(), ...cellStyle, alignment: "right"},
-        { text: `${item.normal.toLocaleString()} (${item.normal_percent.toFixed(1)}%)`, ...cellStyle, alignment: "right" },
-        { text: `${item.device.toLocaleString()} (${item.device_percent.toFixed(1)}%)`, ...cellStyle, alignment: "right" },
-        { text: `${item.network.toLocaleString()} (${item.network_percent.toFixed(1)}%)`, ...cellStyle, alignment: "right" },
-        { text: `${item.disable.toLocaleString()} (${item.disable_percent.toFixed(1)}%)`, ...cellStyle, alignment: "right" },
-        { text: item.ready_percent.toFixed(1), ...cellStyle, alignment: "right" },
+        { text: policeRegion },
+        {
+          text: formatNumber(item.total),
+          alignment: "right",
+        },
+        {
+          text: `${formatNumber(item.online)} (${formatPercent(
+            item.online_percent
+          )}%)`,
+          alignment: "right",
+        },
+        {
+          text: `${formatNumber(item.offline)} (${formatPercent(
+            item.offline_percent
+          )}%)`,
+          alignment: "right",
+        },
+        {
+          text: `${formatNumber(item.others)} (${formatPercent(
+            item.others_percent
+          )}%)`,
+          alignment: "right",
+        },
+        {
+          text: `${formatNumber(item.maintenance)} (${formatPercent(
+            item.maintenance_percent
+          )}%)`,
+          alignment: "right",
+        },
+        {
+          text: formatPercent(item.availability_pct),
+          alignment: "right",
+        },
       ] as TableCell[];
     }),
   ];
 
+  overallReport.push([
+    { text: t("table.header.total"), style: "totalSum" },
+    {
+      text: formatNumber(data.summary.total),
+      style: "totalSum",
+      alignment: "right",
+    },
+    {
+      text: `${formatNumber(data.summary.online)} (${formatPercent(
+        data.summary.online_percent
+      )}%)`,
+      style: "totalSum",
+      alignment: "right",
+    },
+    {
+      text: `${formatNumber(data.summary.offline)} (${formatPercent(
+        data.summary.offline_percent
+      )}%)`,
+      style: "totalSum",
+      alignment: "right",
+    },
+    {
+      text: `${formatNumber(data.summary.others)} (${formatPercent(
+        data.summary.others_percent
+      )}%)`,
+      style: "totalSum",
+      alignment: "right",
+    },
+    {
+      text: `${formatNumber(data.summary.maintenance)} (${formatPercent(
+        data.summary.maintenance_percent
+      )}%)`,
+      style: "totalSum",
+      alignment: "right",
+    },
+    {
+      text: formatPercent(data.summary.availability_pct),
+      style: "totalSum",
+      alignment: "right",
+    },
+  ]);
+
   const overallReportDetail: TableCell[][] = [
     [
-      { text: t('table.header.no'), style: "tableHeader" },
-      { text: t('table.header.camera-checkpoint'), style: "tableHeader" },
-      { text: t('table.header.checkpoint'), style: "tableHeader" },
-      { text: t('table.header.station'), style: "tableHeader" },
-      { text: t('table.header.area'), style: "tableHeader" },
-      { text: t('table.header.province'), style: "tableHeader" },
-      { text: t('table.header.project'), style: "tableHeader" },
-      { text: t('table.header.status'), style: "tableHeader" },
-      { text: t('table.header.problem-date'), style: "tableHeader" },
-      { text: t('table.header.problem-percent'), style: "tableHeader" },
-      { text: t('table.header.remark'), style: "tableHeader" },
+      { text: t("table.header.no"), style: "tableHeader" },
+      { text: t("table.header.camera-checkpoint"), style: "tableHeader" },
+      { text: t("table.header.checkpoint"), style: "tableHeader" },
+      { text: t("table.header.station"), style: "tableHeader" },
+      { text: t("table.header.area"), style: "tableHeader" },
+      { text: t("table.header.province"), style: "tableHeader" },
+      { text: t("table.header.project"), style: "tableHeader" },
+      { text: t("table.header.status"), style: "tableHeader" },
+      { text: t("table.header.problem-date-with-space"), style: "tableHeader" },
+      { text: t("table.header.problem-percent"), style: "tableHeader" },
+      { text: t("table.header.remark"), style: "tableHeader" },
     ],
     ...data.overallReportDetail.map((item, index) => [
-      { text: index + 1, alignment: "center" } as TableCell,
-      { text: item.checkpoint_name } as TableCell,
-      { text: item.camera_name } as TableCell,
-      { text: item.station_name } as TableCell,
-      { text: item.area_name } as TableCell,
-      { text: item.province_name } as TableCell,
-      { text: item.project, alignment: "center" } as TableCell,
-      { text: item.status_id === 1 ? t('text.enable') : t('text.disable'), alignment: "center" } as TableCell,
-      { text: item.date_count_error, alignment: "center" } as TableCell,
-      { text: item.date_count_error_percent.toFixed(1), alignment: "center" } as TableCell,
-      { text: item.remark } as TableCell,
-    ]),
+      { text: index + 1, alignment: "center" },
+      { text: item.device_name ?? "-" },
+      { text: item.checkpoint_name ?? "-" },
+      { text: item.station_name ?? "-" },
+      { text: item.police_region ?? "-" },
+      { text: item.province_name ?? "-" },
+      { text: item.project_name ?? "-", alignment: "center" },
+      {
+        text:
+          item.device_status_code === "online"
+            ? t("text.enable")
+            : t("text.disable"),
+        alignment: "center",
+      },
+      { text: formatNumber(item.problem_days), alignment: "center" },
+      { text: `${formatPercent(item.problem_pct)}%`, alignment: "center" },
+      { text: item.remark ?? "-" },
+    ] as TableCell[]),
   ];
 
   const lastOverallReportRowIndex = overallReport.length - 1;
 
-  const docDefinition: TDocumentDefinitions = {
-    pageSize: "A4",
-    pageMargins: [10, 30, 10, 30],
-    pageOrientation: "landscape",
-    defaultStyle: {
-      font: "Sarabun",
-      fontSize: 10,
+  const content: Content[] = [
+    {
+      text: data.title,
+      alignment: "center",
+      style: "header",
+      color: "#000000",
+      margin: [0, 0, 0, 30],
     },
-    header: () => ({
+    {
+      alignment: "center",
       columns: [
         {
-          text: data.title,
-          alignment: "left",
-          color: "#ACACAC",
+          margin: [0, 0, 20, 0],
+          columns: [
+            { text: t("table.header.date"), width: 50 },
+            { text: data.date, bold: true },
+          ],
         },
         {
-          text: `${t('text.export-date')}: ${dayjs().format(i18n.language === "th" ? "DD/MM/BBBB HH:mm:ss" : "DD/MM/YYYY HH:mm:ss")}`,
-          alignment: "right",
-          color: "#ACACAC",
+          margin: [10, 0, 10, 0],
+          columns: [
+            { text: t("table.header.area"), width: 50 },
+            { text: data.area, bold: true },
+          ],
+        },
+        {
+          margin: [10, 0, 10, 0],
+          columns: [
+            { text: t("table.header.province"), width: 50 },
+            { text: data.province, bold: true },
+          ],
+        },
+        {
+          margin: [10, 0, 10, 0],
+          columns: [
+            { text: t("table.header.project"), width: 50 },
+            { text: data.project, bold: true },
+          ],
         },
       ],
-      margin: [10, 10, 10, 10],
-    }),
-    content: [
-      {
-        text: data.title,
-        alignment: "center",
-        style: "header",
-        color: "#000000",
-        margin: [0, 0, 0, 30],
+      margin: [0, 0, 0, 10],
+    },
+    {
+      table: {
+        headerRows: 1,
+        widths: Array(overallReport[0]?.length ?? 0).fill("*"),
+        body: overallReport,
       },
-      {
-        alignment: "center",
-        columns: [
-          {
-            margin: [0, 0, 20, 0],
-            columns: [
-              { text: t('table.header.date'), width: 50 },
-              { text: data.date, bold: true },
-            ],
-          },
-          {
-            margin: [10, 0, 10, 0],
-            columns: [
-              { text: t('table.header.area'), width: 50 },
-              { text: data.area, bold: true },
-            ],
-          },
-          {
-            margin: [10, 0, 10, 0],
-            columns: [
-              { text: t('table.header.province'), width: 50 },
-              { text: data.province, bold: true },
-            ],
-          },
-          {
-            margin: [10, 0, 10, 0],
-            columns: [
-              { text: t('table.header.project'), width: 50 },
-              { text: data.project, bold: true },
-            ],
-          },
-        ],
-        margin: [0, 0, 0, 10],
-      },
-      {
-        table: {
-          headerRows: 1,
-          widths: Array(overallReport[0]?.length).fill("*"),
-          body: overallReport,
+      layout: {
+        fillColor: (rowIndex: number) => {
+          if (rowIndex === 0 || rowIndex === lastOverallReportRowIndex) {
+            return "#D9D9D9";
+          }
+          return null;
         },
-        layout: {
-          fillColor: (rowIndex: number) => {
-            if (rowIndex === 0 || rowIndex === lastOverallReportRowIndex) {
-              return "#D9D9D9";
-            }
-            return null;
-          },
-          hLineColor: () => "#BFBFBF",
-          vLineColor: () => "#BFBFBF",
-          hLineWidth: () => 1,
-          vLineWidth: () => 1,
-          paddingLeft: () => 5,
-          paddingRight: () => 5,
-          paddingTop: () => 4,
-          paddingBottom: () => 4,
-        },
+        hLineColor: () => "#BFBFBF",
+        vLineColor: () => "#BFBFBF",
+        hLineWidth: () => 1,
+        vLineWidth: () => 1,
+        paddingLeft: () => 5,
+        paddingRight: () => 5,
+        paddingTop: () => 4,
+        paddingBottom: () => 4,
       },
+    },
+  ];
+
+  if ((data.overallReportDetail ?? []).length > 0) {
+    content.push(
       {
         pageBreak: "before",
         text: data.title,
@@ -190,7 +249,37 @@ export const generateOverallReportPdfBlob = async (
           paddingBottom: () => 4,
         },
       }
-    ],
+    );
+  }
+
+  const docDefinition: TDocumentDefinitions = {
+    pageSize: "A4",
+    pageMargins: [10, 30, 10, 30],
+    pageOrientation: "landscape",
+    defaultStyle: {
+      font: "Sarabun",
+      fontSize: 10,
+    },
+    header: () => ({
+      columns: [
+        {
+          text: data.title,
+          alignment: "left",
+          color: "#ACACAC",
+        },
+        {
+          text: `${t("text.export-date")}: ${dayjs().format(
+            i18n.language === "th"
+              ? "DD/MM/BBBB HH:mm:ss"
+              : "DD/MM/YYYY HH:mm:ss"
+          )}`,
+          alignment: "right",
+          color: "#ACACAC",
+        },
+      ],
+      margin: [10, 10, 10, 10],
+    }),
+    content,
     styles: {
       header: {
         fontSize: 16,
@@ -210,7 +299,7 @@ export const generateOverallReportPdfBlob = async (
       },
     },
     footer: (currentPage: number) => ({
-      text: currentPage,
+      text: currentPage.toString(),
       alignment: "right",
       margin: [0, 10, 40, 0],
     }),
@@ -220,8 +309,11 @@ export const generateOverallReportPdfBlob = async (
 
   return new Promise<Blob>((resolve, reject) => {
     pdfDocGenerator.getBlob((blob) => {
-      if (blob) resolve(blob);
-      else reject(new Error("PDF generation failed"));
+      if (blob) {
+        resolve(blob);
+      } else {
+        reject(new Error("PDF generation failed"));
+      }
     });
   });
 };

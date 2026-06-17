@@ -34,7 +34,7 @@ const MatrixRainingCode = ({ className = "" }: MatrixRainingCodeProps) => {
 
     const draw = () => {
       const secondaryColor = getComputedStyle(document.documentElement)
-        .getPropertyValue("--secondary-color-rgb")
+        .getPropertyValue("--tertiary-color-rgb")
         .trim();
       ctx.fillStyle = `rgba(${secondaryColor}, 0.12)`;
       ctx.fillRect(0, 0, width, height);

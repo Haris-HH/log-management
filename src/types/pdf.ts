@@ -1,13 +1,10 @@
 // Types
 import type { 
-  AgencyUsage, 
-  PersonUsage, 
-  LogUsage, 
-  SearchLog, 
-  OverallReportDetail, 
-  OverallReportType,
+  OverallProblemReport,
+  OverallReport,
   AccessLog,
   LprSearchLog,
+  Summary,
 } from "./common";
 
 export interface AgencyUsagePdfData {
@@ -129,6 +126,7 @@ export interface OverallReportPdfData {
   area: string;
   province: string;
   project: string;
-  overallReport: OverallReportType[];
-  overallReportDetail: OverallReportDetail[];
+  overallReport: OverallReport[];
+  summary: Summary;
+  overallReportDetail: OverallProblemReport[];
 }

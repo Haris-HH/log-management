@@ -105,6 +105,7 @@ const Login = () => {
             title_name_en: titleName?.title_abbr_en ?? "",
             first_name: userResponse.data[0]?.firstname ?? "-",
             last_name: userResponse.data[0]?.lastname ?? "-",
+            image_url: userResponse.data[0]?.image_url ?? "-",
             agency: {
               ou_code: userResponse.data[0]?.ou_code,
               ou_abbr_th: nsbOu?.ou_abbr_th ?? "-",
@@ -143,7 +144,7 @@ const Login = () => {
           <motion.div
             className="absolute inset-0 z-50 flex flex-col items-center justify-center"
             style={{
-              background: "var(--secondary-color)",
+              background: "var(--tertiary-color)",
             }}
             initial={{ opacity: 1 }}
             animate={{ opacity: 1 }}
@@ -165,7 +166,7 @@ const Login = () => {
         transition={{ duration: 0.8 }}
         className="flex flex-col w-122 h-90 rounded-lg z-10"
         style={{
-          backgroundColor: "rgba(var(--secondary-color-rgb),0.8)",
+          backgroundColor: "rgba(var(--tertiary-color-rgb),0.8)",
           border: "1px solid var(--primary-color)",
         }}
       >
@@ -177,17 +178,17 @@ const Login = () => {
             className="w-17 h-17"
           />
           <div
-            className="flex flex-col text-(--tertiary-color)"
+            className="flex flex-col text-(--primary-color)"
           >
             <Typography
               variant="h6"
-              sx={{ fontSize: "1.8rem", fontWeight: "bold", textShadow: "1px 2px 2px var(--primary-color)" }}
+              sx={{ fontSize: "1.8rem", fontWeight: "bold", textShadow: "1px 2px 2px var(--tertiary-color)" }}
             >
               {t('project.title')}
             </Typography>
             <Typography
               variant="h6"
-              sx={{ fontSize: "0.8rem", mt: -1, textShadow: "1px 1px 2px var(--primary-color)" }}
+              sx={{ fontSize: "0.8rem", mt: -1, textShadow: "1px 1px 2px var(--tertiary-color)" }}
             >
               {t('project.subtitle')}
             </Typography>

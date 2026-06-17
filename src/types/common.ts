@@ -136,8 +136,6 @@ export interface OverallReportType {
   network_percent: number;
   disable: number;
   disable_percent: number;
-  ready: number;
-  ready_percent: number;
 }
 
 export interface Dropdown {
@@ -489,6 +487,8 @@ export interface Area {
   id: number;
   title_en: string;
   title_th: string;
+  title_abbr_en: string;
+  title_abbr_th: string;
   visible: boolean;
   active: boolean;
 }
@@ -573,15 +573,22 @@ export interface Device {
   serial_number: string;
   part_number: string;
   project_id: string;
+  project_name?: string;
   center_id: string;
   checkpoint_id: string;
   checkpoint_name?: string;
   province_code: string;
+  province_name?: string;
   district_code: string;
+  district_name?: string;
   subdistrict_code: string;
+  subdistrict_name?: string;
   route: string;
   address: string;
+  police_region_id: number;
+  police_region_name?: string;
   police_station_id: number;
+  police_station_name?: string;
   latitude: number;
   longitude: number;
   visible: boolean;
@@ -669,4 +676,93 @@ export interface CameraInCheckpoint {
   cameras: Device[];
   latLng?: LatLngExpression;
   total: number;
+}
+
+export interface PoliceStation {
+  id: number;
+  province_name: string;
+  station_name: string;
+  address: string;
+  phone: string;
+  fax: string;
+  visible: boolean;
+  active: boolean;
+  notes: string;
+  province_code: string;
+  district_code: string;
+}
+
+export interface OverallReport {
+  rank: number;
+  police_region_id: number;
+  remark: string;
+  police_region: Area | null;
+  total: number;
+  online: number;
+  online_percent?: number;
+  offline: number;
+  offline_percent?: number;
+  maintenance: number;
+  maintenance_percent?: number;
+  suspended: number;
+  suspended_percent?: number;
+  others: number;
+  others_percent?: number;
+  availability_pct: number;
+}
+
+export interface Pagination {
+  page: number;
+  maxPage: number;
+  limit: number | string;
+  count: number;
+  countAll: number;
+}
+
+export interface Summary {
+  total: number;
+  total_percent?: number;
+  online: number;
+  online_percent?: number;
+  offline: number;
+  offline_percent?: number;
+  maintenance: number;
+  maintenance_percent?: number;
+  suspended: number;
+  suspended_percent?: number;
+  others: number;
+  others_percent?: number;
+  availability_pct: number;
+}
+
+export interface Series {
+  date: string;
+  total: number;
+  online: number;
+  offline: number;
+  maintenance: number;
+  suspended: number;
+  others: number;
+  availability_pct: number;
+}
+
+export interface OverallProblemReport {
+  seq: string;
+  device_id: string;
+  device_name: string;
+  checkpoint_id: string;
+  checkpoint_name: string;
+  police_station_id: number;
+  station_name: string;
+  police_region_id: number;
+  police_region: string;
+  province_code: string;
+  province_name: string;
+  project_id: string;
+  project_name: string;
+  device_status_code: string;
+  problem_days: string;
+  total_days: number;
+  problem_pct: string;
+  remark: string;
 }

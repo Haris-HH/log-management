@@ -25,6 +25,7 @@ import DatePickerBuddhist from "../components/date-picker-buddhist/DatePickerBud
 import PaginationComponent from "../components/pagination/Pagination";
 import DetailsDialog from "../components/details-dialog/DetailsDialog";
 import LoadingScreen from '../components/loading-screen/LoadingScreen';
+import ExportLoadingScreen from '../components/loading-screen/ExportLoadingScreen';
 
 // Constants
 import { ROWS_PER_PAGE_OPTIONS } from "../constants/dropdown";
@@ -79,12 +80,19 @@ const StatisticAccessAgency = () => {
   // State
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
 
   // Data
   const [rows, setRows] = useState<AccessLog[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [totalUsage, setTotalUsage] = useState(0);
   const [selectedData, setSelectedData] = useState<AccessLog | null>(null);
+  const [exportProgress, setExportProgress] = useState({
+    text: "",
+    current: 0,
+    total: 0,
+    percent: 0,
+  });
 
   // Options
   const [agencyOptions, setAgencyOptions] = useState<{ label: string, value: string }[]>([]);
@@ -106,7 +114,6 @@ const StatisticAccessAgency = () => {
 
   // Pagination
   const [page, setPage] = useState(1);
-  const [pageInput, setPageInput] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalData, setTotalData] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(
@@ -314,7 +321,7 @@ const StatisticAccessAgency = () => {
 
   const handleExportPdf = async () => {
     try {
-      setIsLoading(true);
+      setExportLoading(true);
 
       const dateFormat = i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD";
       const startDate = dayjs(formData.start_date_time).format(dateFormat);
@@ -335,6 +342,13 @@ const StatisticAccessAgency = () => {
 
         const zip = new JSZip();
         const totalFiles = Math.ceil(totalData / CHUNK_SIZE);
+
+        setExportProgress({
+          text: t("text.export-pdf"),
+          current: 0,
+          total: totalFiles,
+          percent: 0,
+        });
 
         for (let page = 1; page <= totalFiles; page++) {
           const res = await searchAccessLogs(
@@ -362,7 +376,14 @@ const StatisticAccessAgency = () => {
 
           zip.file(fileName, blob);
 
-          await new Promise((resolve) => setTimeout(resolve, 100));
+          setExportProgress({
+            text: t("text.export-excel"),
+            current: page,
+            total: totalFiles,
+            percent: Math.round((page / totalFiles) * 100),
+          });
+
+          await new Promise((resolve) => setTimeout(resolve, 50));
         }
 
         const zipBlob = await zip.generateAsync({ type: "blob" });
@@ -409,7 +430,7 @@ const StatisticAccessAgency = () => {
       );
     } 
     finally {
-      setIsLoading(false);
+      setExportLoading(false);
     }
   };
 
@@ -466,6 +487,7 @@ const StatisticAccessAgency = () => {
 
   const handleExportExcel = async () => {
     try {
+      setExportLoading(true);
       const dateFormat = i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD";
 
       const startDate = dayjs(formData.start_date_time).format(dateFormat);
@@ -511,10 +533,15 @@ const StatisticAccessAgency = () => {
 
         if (!isConfirmed) return;
 
-        setIsLoading(true);
-
         const zip = new JSZip();
         const totalFiles = Math.ceil(totalData / CHUNK_SIZE);
+
+        setExportProgress({
+          text: t("text.export-excel"),
+          current: 0,
+          total: totalFiles,
+          percent: 0,
+        });
 
         for (let pageIndex = 1; pageIndex <= totalFiles; pageIndex++) {
           const res = await searchAccessLogs(
@@ -547,7 +574,14 @@ const StatisticAccessAgency = () => {
 
           zip.file(`${baseFileName}_${pageIndex}.xlsx`, blob);
 
-          await new Promise((resolve) => setTimeout(resolve, 100));
+          setExportProgress({
+            text: t("text.export-excel"),
+            current: pageIndex,
+            total: totalFiles,
+            percent: Math.round((pageIndex / totalFiles) * 100),
+          });
+
+          await new Promise((resolve) => setTimeout(resolve, 50));
         }
 
         const zipBlob = await zip.generateAsync({ type: "blob" });
@@ -555,8 +589,6 @@ const StatisticAccessAgency = () => {
 
         return;
       }
-
-      setIsLoading(true);
 
       const res = await searchAccessLogs(
         {},
@@ -588,7 +620,7 @@ const StatisticAccessAgency = () => {
       );
     } 
     finally {
-      setIsLoading(false);
+      setExportLoading(false);
     }
   };
 
@@ -655,6 +687,15 @@ const StatisticAccessAgency = () => {
   return (
     <section id='statistic-access-agency' className="flex flex-col h-full w-full p-2">
       { isLoading && <LoadingScreen /> }
+      {
+        exportLoading &&
+        <ExportLoadingScreen
+          text={exportProgress.text}
+          current={exportProgress.current}
+          total={exportProgress.total}
+          percent={exportProgress.percent}
+        />
+      }
       {/* Main Title */}
       <MainTitle title={t("pages.statistic-access-agency")} />
       <div className='p-4 bg-(--main-bg-color) flex flex-1 flex-col gap-4 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-y-auto'>
@@ -818,43 +859,38 @@ const StatisticAccessAgency = () => {
                   "& .MuiTableCell-head": {
                     color: "var(--tertiary-color)",
                     backgroundColor: "var(--primary-color)",
+                    textAlign: "center",
                   },
                 }}
               >
                 <TableRow>
                   <TableCell
-                    align="center"
-                    sx={{ color: "var(--tertiary-color)", width: "2%" }}
+                    sx={{ width: "2%" }}
                   >
                     {t('table.header.no')}
                   </TableCell>
                   <TableCell
-                    align="center"
-                    sx={{ color: "var(--tertiary-color)", width: "10%" }}
+                    sx={{ width: "10%" }}
                   >
                     {t('table.header.count')}
                   </TableCell>
                   <TableCell
-                    align="center"
-                    sx={{ color: "var(--tertiary-color)", width: "10%" }}
+                    sx={{ width: "10%" }}
                   >
                     {t('table.header.agency')}
                   </TableCell>
                   <TableCell
-                    align="center"
-                    sx={{ color: "var(--tertiary-color)", width: "10%" }}
+                    sx={{ width: "10%" }}
                   >
                     {t('table.header.bh')}
                   </TableCell>
                   <TableCell
-                    align="center"
-                    sx={{ color: "var(--tertiary-color)", width: "10%" }}
+                    sx={{ width: "10%" }}
                   >
                     {t('table.header.bk')}
                   </TableCell>
                   <TableCell
-                    align="center"
-                    sx={{ color: "var(--tertiary-color)", width: "10%" }}
+                    sx={{ width: "10%" }}
                   >
                     {t('table.header.org')}
                   </TableCell>
@@ -867,12 +903,16 @@ const StatisticAccessAgency = () => {
                     onClick={() => {
                       showDetailDialog(data);
                     }}
+                    sx={{
+                      "& .MuiTableCell-root": {
+                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--tertiary-color)",
+                        color: "var(--secondary-color)",
+                        borderBottom: "1px solid var(--primary-color)",
+                      }
+                    }}
                   >
                     <TableCell
                       sx={{
-                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--tertiary-color)",
-                        color: "var(--primary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
                         textAlign: "center",
                       }}
                     >
@@ -880,48 +920,21 @@ const StatisticAccessAgency = () => {
                     </TableCell>
                     <TableCell
                       sx={{
-                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--tertiary-color)",
-                        color: "var(--primary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
                         textAlign: "center",
                       }}
                     >
                       {(data.total || 0).toLocaleString()}
                     </TableCell>
-                    <TableCell
-                      sx={{
-                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--tertiary-color)",
-                        color: "var(--primary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
-                      }}
-                    >
+                    <TableCell>
                       {data.ou_name}
                     </TableCell>
-                    <TableCell
-                      sx={{
-                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--tertiary-color)",
-                        color: "var(--primary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
-                      }}
-                    >
+                    <TableCell>
                       {data.bh_name}
                     </TableCell>
-                    <TableCell
-                      sx={{
-                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--tertiary-color)",
-                        color: "var(--primary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
-                      }}
-                    >
+                    <TableCell>
                       {data.bk_name}
                     </TableCell>
-                    <TableCell
-                      sx={{
-                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--tertiary-color)",
-                        color: "var(--primary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
-                      }}
-                    >
+                    <TableCell>
                       {data.org_name}
                     </TableCell>
                   </TableRow>
