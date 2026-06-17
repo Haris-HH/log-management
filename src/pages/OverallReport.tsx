@@ -149,6 +149,19 @@ const OverallReport = () => {
     );
   }, [project, formData.province_id, t]);
 
+  // Map
+  const areaMap = new Map(
+    area.map(item => [item.id, item])
+  );
+
+  const provinceMap = new Map(
+    province.map(item => [item.province_code, item])
+  );
+
+  const projectMap = new Map(
+    project.map(item => [item.project_id, item])
+  );
+
   const getFilters = useCallback((data: FormData, range: ReportRange) => {
     const filters: Record<string, string> = {
       device_category: "camera",
@@ -381,6 +394,40 @@ const OverallReport = () => {
 
     const problemReportData = await fetchProblemReportData();
 
+    const areaData =
+      formData.area_id !== "0"
+        ? areaMap.get(Number(formData.area_id))
+        : undefined;
+
+    const provinceData =
+      formData.province_id !== "0"
+        ? provinceMap.get(formData.province_id)
+        : undefined;
+
+    const projectData =
+      formData.project_id !== "0"
+        ? projectMap.get(formData.project_id)
+        : undefined;
+
+    const areaName =
+      formData.area_id === "0"
+        ? t("text.all")
+        : i18n.language === "th"
+          ? areaData?.title_abbr_th ?? "-"
+          : areaData?.title_abbr_en ?? "-";
+
+    const provinceName =
+      formData.province_id === "0"
+        ? t("text.all")
+        : i18n.language === "th"
+          ? provinceData?.name_th ?? "-"
+          : provinceData?.name_en ?? "-";
+
+    const projectName =
+      formData.project_id === "0"
+        ? t("text.all")
+        : projectData?.project_name ?? "-";
+
     const dateFormat = i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD";
     const reportDateFormat = i18n.language === "th" ? "DD/MM/BBBB" : "DD/MM/YYYY";
     const name = reportRange === "day" ? t('file-name.daily-report') : reportRange === "week" ? t('file-name.weekly-report') : t('file-name.monthly-report');
@@ -392,9 +439,9 @@ const OverallReport = () => {
     const pdfData: OverallReportPdfData = {
       title: reportRange === "day" ? t('text.daily-report-and-checkpoint-problem') : reportRange === "week" ? t('text.weekly-report-and-checkpoint-problem') : t('text.monthly-report-and-checkpoint-problem'),
       date: date,
-      area: formData.area_id === "0" ? t('text.all') : areaOptions.find((item) => item.value === formData.area_id)?.label ?? "-",
-      province: formData.province_id === "0" ? t('text.all') : provinceOptions.find((item) => item.value === formData.province_id)?.label ?? "-",
-      project: formData.project_id === "0" ? t('text.all') : projectOptions.find((item) => item.value === formData.project_id)?.label ?? "-",
+      area: areaName,
+      province: provinceName,
+      project: projectName,
       summary: summaryValue,
       overallReport: reportData,
       overallReportDetail: problemReportData,

@@ -51,7 +51,7 @@ import ExportPdfIcon from "../assets/icons/export-pdf.png";
 import InformationIcon from "../assets/icons/information.png";
 
 // Utils
-import { buildOptions } from "../utils/commonFunctions";
+import { buildOptions, getLocalizedName } from "../utils/commonFunctions";
 import { exportExcel, generateExcelBlob } from "../utils/exportData";
 import { PopupMessage, PopupMessageWithCancel } from '../utils/popupMessage';
 
@@ -546,41 +546,41 @@ const StatisticAccessPerson = () => {
     const selectedBk = bkMap.get(formData.bk_id);
     const selectedOrg = orgMap.get(formData.org_id);
 
-    const agencyName =
-      formData.agency_id === "0"
-        ? t("text.all")
-        : selectedAgency
-          ? i18n.language === "th"
-            ? selectedAgency.ou_name_th ?? "-"
-            : selectedAgency.ou_name_en ?? "-"
-          : "-";
+    const agencyName = getLocalizedName(
+      formData.agency_id,
+      selectedAgency,
+      "ou_abbr_th",
+      "ou_abbr_en",
+      t,
+      i18n
+    );
 
-    const bhName =
-      formData.bh_id === "0"
-        ? t("text.all")
-        : selectedBh
-          ? i18n.language === "th"
-            ? selectedBh.bh_name_th ?? "-"
-            : selectedBh.bh_name_en ?? "-"
-          : "-";
+    const bhName = getLocalizedName(
+      formData.bh_id,
+      selectedBh,
+      "bh_abbr_th",
+      "bh_abbr_en",
+      t,
+      i18n
+    );
 
-    const bkName =
-      formData.bk_id === "0"
-        ? t("text.all")
-        : selectedBk
-          ? i18n.language === "th"
-            ? selectedBk.bk_name_th ?? "-"
-            : selectedBk.bk_name_en ?? "-"
-          : "-";
+    const bkName = getLocalizedName(
+      formData.bk_id,
+      selectedBk,
+      "bk_abbr_th",
+      "bk_abbr_en",
+      t,
+      i18n
+    );
 
-    const orgName =
-      formData.org_id === "0"
-        ? t("text.all")
-        : selectedOrg
-          ? i18n.language === "th"
-            ? selectedOrg.org_name_th ?? "-"
-            : selectedOrg.org_name_en ?? "-"
-          : "-";
+    const orgName = getLocalizedName(
+      formData.org_id,
+      selectedOrg,
+      "org_abbr_th",
+      "org_abbr_en",
+      t,
+      i18n
+    );
 
     return {
       pid_or_water_mark: formData.pid_or_water_mark || "-",

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useState, useCallback, useEffect, useMemo } from 'react'
 import { Map as LeafletMap } from 'leaflet';
 import { motion, AnimatePresence } from "framer-motion";
 import { useSelector } from 'react-redux';
@@ -36,7 +36,7 @@ import { getCheckpoints } from "../features/core-data/api/CoreDataApi";
 import { getDistrict, getSubdistrict } from "../features/dropdown/api/DropdownApi";
 
 // Types
-import type { Device, Checkpoint, CameraInCheckpoint } from "../types/common";
+import type { CameraInCheckpoint } from "../types/common";
 
 // Constant
 import { DEVICE_STATUS_COLOR } from "../constants/color";
@@ -62,14 +62,7 @@ const OverallMap = () => {
 
   // Data
   const [map, setMap] = useState<LeafletMap | null>(null);
-  const [devices, setDevices] = useState<Device[]>([]);
-  const [checkpoints, setCheckpoints] = useState<Checkpoint[]>([]);
   const [cameraInCheckpoints, setCameraInCheckpoints] = useState<CameraInCheckpoint[]>([]);
-
-  // Options
-  const [areaOptions, setAreaOptions] = useState<{ label: string, value: string }[]>([]);
-  const [provinceOptions, setProvinceOptions] = useState<{ label: string, value: string }[]>([]);
-  const [typeOptions, setTypeOptions] = useState<{ label: string, value: string }[]>([]);
 
   // Form Data
   const [formData, setFormData] = useState<FormData>({
@@ -102,33 +95,50 @@ const OverallMap = () => {
     i18n.isInitialized,
   ])
 
+  const areaOptions = useMemo(() => {
+    const langKeyArea = i18n.language === "th" ? "title_th" : "title_en";
+
+    return buildOptions(area, t("dropdown.all-area"), langKeyArea, "id")
+  }, [area, t, i18n.language]);
+
+  const provinceOptions = useMemo(() => {
+    const langKeyProvince = i18n.language === "th" ? "name_th" : "name_en";
+    const filteredProvince =
+      formData.area_id !== "0"
+        ? province.filter((item) => item.police_region_id === Number(formData.area_id))
+        : province;
+
+    return buildOptions(
+      filteredProvince, "", 
+      langKeyProvince, 
+      "region_code",
+      false);
+  }, [province, t, i18n.language]);
+
+  const typeOptions = useMemo(() => {
+    const langKeyDeviceStatus = i18n.language === "th" ? "status_th" : "status_en";
+
+    return buildOptions(deviceStatus, t('dropdown.all-type'), langKeyDeviceStatus, "status_code")
+  }, [deviceStatus, t, i18n.language]);
+
+  // Map
+  const areaMap = new Map(
+    area.map(item => [item.id, item])
+  );
+
+  const provinceMap = new Map(
+    province.map(item => [item.province_code, item])
+  );
+
+  const deviceStatusMap = new Map(
+    deviceStatus.map(item => [item.status_code, item])
+  );
+
   useEffect(() => {
     if (map && cameraInCheckpoints) {
       showOverallWithList(cameraInCheckpoints);
     }
   }, [map, t, i18n.language, i18n.isInitialized, cameraInCheckpoints]);
-
-  useEffect(() => {
-    const langKeyArea = i18n.language === "th" ? "title_th" : "title_en";
-    const langKeyProvince = i18n.language === "th" ? "name_th" : "name_en";
-    const langKeyDeviceStatus = i18n.language === "th" ? "status_th" : "status_en";
-
-    setAreaOptions(
-      buildOptions(area, t("dropdown.all-area"), langKeyArea, "id")
-    );
-
-    const filteredProvince =
-      formData.area_id !== "0"
-        ? province.filter((item) => item.police_region_id === Number(formData.area_id))
-        : province;
-    setProvinceOptions(
-      buildOptions(
-        filteredProvince, t('dropdown.all-province'), 
-        langKeyProvince,
-        "province_code")
-      );
-    setTypeOptions(buildOptions(deviceStatus, t('dropdown.all-type'), langKeyDeviceStatus, "status_code"));
-  }, [area, province, deviceStatus, t, formData.area_id, i18n.language, i18n.isInitialized]);
 
   const fetchData = useCallback(
     async (filterData: FormData = formData) => {
@@ -136,7 +146,6 @@ const OverallMap = () => {
         setIsLoading(true);
 
         const resCheckpoint = await getCheckpoints();
-        setCheckpoints(resCheckpoint.data);
 
         const resDevice: CameraInCheckpoint[] = await Promise.all(
           resCheckpoint.data.map(async (item) => {
@@ -148,12 +157,12 @@ const OverallMap = () => {
 
             const resDistrict = await getDistrict({ filter: `province_code=${item.province_code},district_code=${item.district_code}` });
             const resSubdistrict = await getSubdistrict({ filter: `province_code=${item.province_code},district_code=${item.district_code},subdistrict_code=${item.subdistrict_code}` });
-            const provinceName = province.find((p) => p.province_code === item.province_code);            
-            const areaName = area.find((a) => a.id === Number(item.police_region_id));
+            const provinceName = provinceMap.get(item.province_code);            
+            const areaName = areaMap.get(item.police_region_id);
 
             const updatedData = res.data.map((device) => {
               const color = DEVICE_STATUS_COLOR.find((status) => status.code === device.device_status_code);
-              const name = deviceStatus.find((status) => status.status_code === device.device_status_code);
+              const name = deviceStatusMap.get(device.device_status_code);
 
               return {
                 ...device,

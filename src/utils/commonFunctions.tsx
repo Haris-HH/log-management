@@ -68,3 +68,20 @@ export const formatNumber = (value: unknown) => {
 export const formatPercent = (value: unknown) => {
   return toNumber(value).toFixed(1);
 };
+
+export const getLocalizedName = (
+  id: string,
+  item: any,
+  thField: string,
+  enField: string,
+  t: (key: string) => string,
+  i18n: any
+) => {
+  return id === "0"
+    ? t("text.all")
+    : item?.[
+        i18n.language === "th"
+          ? thField
+          : enField
+      ] ?? "-";
+}

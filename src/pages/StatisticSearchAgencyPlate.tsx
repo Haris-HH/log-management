@@ -51,7 +51,7 @@ import ExportPdfIcon from "../assets/icons/export-pdf.png";
 import InformationIcon from "../assets/icons/information.png";
 
 // Utils
-import { buildOptions } from "../utils/commonFunctions";
+import { buildOptions, getLocalizedName } from "../utils/commonFunctions";
 import { exportExcel, generateExcelBlob } from "../utils/exportData";
 import { PopupMessage, PopupMessageWithCancel } from '../utils/popupMessage';
 
@@ -486,41 +486,41 @@ const StatisticSearchAgencyPlate = () => {
     const selectedBk = bkMap.get(formData.bk_id);
     const selectedProvince = provinceMap.get(formData.province_id);
 
-    const agencyName =
-      formData.agency_id === "0"
-        ? t("text.all")
-        : selectedAgency
-          ? i18n.language === "th"
-            ? selectedAgency.ou_name_th ?? "-"
-            : selectedAgency.ou_name_en ?? "-"
-          : "-";
+    const agencyName = getLocalizedName(
+      formData.agency_id,
+      selectedAgency,
+      "ou_abbr_th",
+      "ou_abbr_en",
+      t,
+      i18n
+    );
 
-    const bhName =
-      formData.bh_id === "0"
-        ? t("text.all")
-        : selectedBh
-          ? i18n.language === "th"
-            ? selectedBh.bh_name_th ?? "-"
-            : selectedBh.bh_name_en ?? "-"
-          : "-";
+    const bhName = getLocalizedName(
+      formData.bh_id,
+      selectedBh,
+      "bh_abbr_th",
+      "bh_abbr_en",
+      t,
+      i18n
+    );
 
-    const bkName =
-      formData.bk_id === "0"
-        ? t("text.all")
-        : selectedBk
-          ? i18n.language === "th"
-            ? selectedBk.bk_name_th ?? "-"
-            : selectedBk.bk_name_en ?? "-"
-          : "-";
+    const bkName = getLocalizedName(
+      formData.bk_id,
+      selectedBk,
+      "bk_abbr_th",
+      "bk_abbr_en",
+      t,
+      i18n
+    );
 
-    const provinceName = 
-      formData.province_id === "0"
-        ? t("text.all")
-        : selectedProvince
-          ? i18n.language === "th"
-            ? selectedProvince.name_th ?? "-"
-            : selectedProvince.name_en ?? "-"
-          : "-";
+    const provinceName = getLocalizedName(
+      formData.province_id,
+      selectedProvince,
+      "name_th",
+      "name_en",
+      t,
+      i18n
+    );
 
     return {
       agency_id: formData.agency_id,
