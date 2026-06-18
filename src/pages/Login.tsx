@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import type { SubmitHandler } from "react-hook-form";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
@@ -27,7 +28,7 @@ import { PopupMessage } from "../utils/popupMessage";
 // Store
 import { useAppDispatch } from "../store/hooks";
 
-interface FormData {
+type FormData = {
   username: string;
   password: string;
 }
@@ -56,7 +57,7 @@ const Login = () => {
     handleSubmit,
     formState: { errors },
     setValue,
-  } = useForm();
+  } = useForm<FormData>();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -76,7 +77,7 @@ const Login = () => {
     setValue(key, value);
   };
 
-  const handleFormSubmit = async (data: FormData) => {
+  const handleFormSubmit: SubmitHandler<FormData> = async (data) => {
     setLoading(true);
 
     try {

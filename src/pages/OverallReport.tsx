@@ -1043,14 +1043,14 @@ const OverallReport = () => {
                       <TableCell>{t("table.header.total")}</TableCell>
 
                       <TableCell>
-                        {renderCell("bg-(--status-all)", summaryValue.total)}
+                        {renderCell("bg-(--status-all)", summaryValue?.total ?? 0)}
                       </TableCell>
 
                       <TableCell>
                         {renderCell(
                           "bg-(--status-device-normal)",
-                          summaryValue.online,
-                          summaryValue.online_percent,
+                          summaryValue?.online ?? 0,
+                          summaryValue?.online_percent ?? 0,
                           true
                         )}
                       </TableCell>
@@ -1058,8 +1058,8 @@ const OverallReport = () => {
                       <TableCell>
                         {renderCell(
                           "bg-(--status-device-outage)",
-                          summaryValue.offline,
-                          summaryValue.offline_percent,
+                          summaryValue?.offline ?? 0,
+                          summaryValue?.offline_percent ?? 0,
                           true
                         )}
                       </TableCell>
@@ -1067,8 +1067,8 @@ const OverallReport = () => {
                       <TableCell>
                         {renderCell(
                           "bg-(--status-network-outage)",
-                          summaryValue.others,
-                          summaryValue.others_percent,
+                          summaryValue?.others ?? 0,
+                          summaryValue?.others_percent ?? 0,
                           true
                         )}
                       </TableCell>
@@ -1076,8 +1076,8 @@ const OverallReport = () => {
                       <TableCell>
                         {renderCell(
                           "bg-(--status-device-disable)",
-                          summaryValue.maintenance,
-                          summaryValue.maintenance_percent,
+                          summaryValue?.maintenance ?? 0,
+                          summaryValue?.maintenance_percent ?? 0,
                           true
                         )}
                       </TableCell>

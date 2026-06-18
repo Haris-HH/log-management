@@ -6,7 +6,6 @@ import type { SearchPersonPlatePdfData } from "../types/pdf";
 import buddhistEra from "dayjs/plugin/buddhistEra";
 
 // Utils
-import { formatNumber } from "../utils/commonFunctions";
 import { getConfiguredPdfMake } from "../utils/loadFontPdf";
 
 dayjs.extend(buddhistEra);
@@ -14,7 +13,6 @@ dayjs.extend(buddhistEra);
 export const generateStatisticSearchPersonPlatePdfBlob = async (
   data: SearchPersonPlatePdfData,
   t: (key: string) => string,
-  i18n: any
 ): Promise<Blob> => {
   await getConfiguredPdfMake();
 
@@ -201,8 +199,7 @@ export const downloadStatisticSearchPersonPlatePdf = async (
   data: SearchPersonPlatePdfData,
   fileName: string,
   t: (key: string) => string,
-  i18n: any
 ) => {
-  const blob = await generateStatisticSearchPersonPlatePdfBlob(data, t, i18n);
+  const blob = await generateStatisticSearchPersonPlatePdfBlob(data, t);
   saveAs(blob, fileName);
 };

@@ -36,6 +36,7 @@ export const mockDevice: DeviceResponse = {
       "subdistrict_code": "Ladyao",
       "route": "string",
       "address": "123 Phahonyothin Rd, Chatuchak",
+      "police_region_id": 1,
       "police_station_id": 1,
       "latitude": 13.756331,
       "longitude": 100.501765,
@@ -43,6 +44,7 @@ export const mockDevice: DeviceResponse = {
       "active": true,
       "alive": true,
       "device_status_code": "active",
+      "device_status_name": "active",
       "maintenance_status_code": "active",
       "last_online": "2025-01-15T10:30:00Z",
       "last_check": "2025-01-15T10:30:00Z",
@@ -52,7 +54,8 @@ export const mockDevice: DeviceResponse = {
       "request_delete_reason": "string",
       "created_at": "2025-01-15T10:30:00Z",
       "updated_at": "2025-01-15T10:30:00Z",
-      "deleted_at": "2025-01-15T10:30:00Z"
+      "deleted_at": "2025-01-15T10:30:00Z",
+      "lane": "string"
     }
   ]
 }

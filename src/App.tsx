@@ -110,7 +110,7 @@ function App() {
 
   const enabled = Boolean(localStorage.getItem("accessToken") ?? false);
 
-  const handleSseMessage = (data: any) => {
+  const handleSseMessage = () => {
   };
 
   useSse(

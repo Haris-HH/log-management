@@ -13,7 +13,6 @@ dayjs.extend(buddhistEra);
 export const generateStatisticSearchLogPlatePdfBlob = async (
   data: SearchLogPlatePdfData,
   t: (key: string) => string,
-  i18n: any
 ): Promise<Blob> => {
   await getConfiguredPdfMake();
 
@@ -190,8 +189,7 @@ export const downloadStatisticSearchLogPlatePdf = async (
   data: SearchLogPlatePdfData,
   fileName: string,
   t: (key: string) => string,
-  i18n: any
 ) => {
-  const blob = await generateStatisticSearchLogPlatePdfBlob(data, t, i18n);
+  const blob = await generateStatisticSearchLogPlatePdfBlob(data, t);
   saveAs(blob, fileName);
 };

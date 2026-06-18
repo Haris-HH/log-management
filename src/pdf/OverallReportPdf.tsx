@@ -77,40 +77,40 @@ export const generateOverallReportPdfBlob = async (
   overallReport.push([
     { text: t("table.header.total"), style: "totalSum" },
     {
-      text: formatNumber(data.summary.total),
+      text: formatNumber(data?.summary?.total ?? 0),
       style: "totalSum",
       alignment: "right",
     },
     {
-      text: `${formatNumber(data.summary.online)} (${formatPercent(
-        data.summary.online_percent
+      text: `${formatNumber(data?.summary?.online ?? 0)} (${formatPercent(
+        data?.summary?.online_percent ?? 0
       )}%)`,
       style: "totalSum",
       alignment: "right",
     },
     {
-      text: `${formatNumber(data.summary.offline)} (${formatPercent(
-        data.summary.offline_percent
+      text: `${formatNumber(data?.summary?.offline ?? 0)} (${formatPercent(
+        data?.summary?.offline_percent ?? 0
       )}%)`,
       style: "totalSum",
       alignment: "right",
     },
     {
-      text: `${formatNumber(data.summary.others)} (${formatPercent(
-        data.summary.others_percent
+      text: `${formatNumber(data?.summary?.others ?? 0)} (${formatPercent(
+        data?.summary?.others_percent ?? 0
       )}%)`,
       style: "totalSum",
       alignment: "right",
     },
     {
-      text: `${formatNumber(data.summary.maintenance)} (${formatPercent(
-        data.summary.maintenance_percent
+      text: `${formatNumber(data?.summary?.maintenance ?? 0)} (${formatPercent(
+        data?.summary?.maintenance_percent ?? 0
       )}%)`,
       style: "totalSum",
       alignment: "right",
     },
     {
-      text: formatPercent(data.summary.availability_pct),
+      text: formatPercent(data?.summary?.availability_pct ?? 0),
       style: "totalSum",
       alignment: "right",
     },

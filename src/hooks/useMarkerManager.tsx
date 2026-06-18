@@ -40,7 +40,7 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
 
         return {
           ...item,
-          id: color.id,
+          id: color?.id ?? -1,
           color: color?.color ?? "#FFFFFF",
         }
       }).sort((a, b) => { return a.id - b.id })
@@ -255,7 +255,7 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
 
   const createOverallPopup = (marker: L.Marker<any>, detail: CameraInCheckpoint) => {
     const cameraLength = detail.total;
-    const sortStatus = detail.cameras.sort((a, b) => a.device_status_id - b.device_status_id);
+    const sortStatus = detail.cameras.sort((a, b) => (a.device_status_id ?? -1) - (b.device_status_id ?? -1));
 
     const cameraIconHtml = ReactDOMServer.renderToStaticMarkup(
       <CameraIcon style={{ width: "20px", height: "15px", marginTop: "5px", color:'var(--primary-color)' }} />
@@ -317,12 +317,12 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
                 ${
                   Object.values(
                     sortStatus.reduce((acc, item) => {
-                      const key = item.device_status_id;
+                      const key = item.device_status_id ?? -1;
 
                       if (!acc[key]) {
                         acc[key] = {
-                          status_id: item.device_status_id,
-                          status_name: item.device_status_name,
+                          status_id: item.device_status_id ?? -1,
+                          status_name: item.device_status_name ?? "-",
                           count: 0,
                         };
                       }

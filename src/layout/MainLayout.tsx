@@ -28,7 +28,7 @@ const MainLayout = () => {
   const { user } = useSelector((state: RootState) => state.authUser);
 
   const hashPid = user?.hash_id || "NO HASH ID";
-  const nsbOu = i18n.language === "th" ? user?.agency.ou_abbr_th || "-" : user?.agency.ou_abbr_en || "-";
+  const nsbOu = i18n.language === "th" ? user?.agency?.ou_abbr_th || "-" : user?.agency?.ou_abbr_en || "-";
 
   return (
     <div className="relative min-h-screen overflow-hidden">

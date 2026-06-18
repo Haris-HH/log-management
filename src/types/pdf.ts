@@ -127,6 +127,6 @@ export interface OverallReportPdfData {
   province: string;
   project: string;
   overallReport: OverallReportType[];
-  summary: Summary;
+  summary: Summary | null;
   overallReportDetail: OverallProblemReport[];
 }

@@ -291,11 +291,11 @@ const StatisticAccessPerson = () => {
       const rows = data.map((item) => {
         const user = userMap.get(item.user_id);
 
-        const agencyData = agencyMap.get(item.ou_code);
-        const bhData = bhMap.get(item.bh_code);
-        const bkData = bkMap.get(item.bk_code);
-        const orgData = orgMap.get(item.org_code);
-        const titleData = titleMap.get(user?.title_id);
+        const agencyData = item.ou_code ?agencyMap.get(item.ou_code) : null;
+        const bhData = item.bh_code ? bhMap.get(item.bh_code) : null;
+        const bkData = item.bk_code ? bkMap.get(item.bk_code) : null;
+        const orgData = item.org_code ? orgMap.get(item.org_code) : null;
+        const titleData = user?.title_id ? titleMap.get(user?.title_id) : null;
 
         return {
           ...item,
@@ -303,34 +303,34 @@ const StatisticAccessPerson = () => {
           title:
             titleData
               ? i18n.language === "th"
-                ? titleData.title_abbr_th
-                : titleData.title_abbr_en
+                ? titleData?.title_abbr_th ?? ""
+                : titleData?.title_abbr_en ?? ""
               : "",
           firstname: user?.firstname ?? "-",
           lastname: user?.lastname ?? "-",
           ou_name:
             agencyData
               ? i18n.language === "th"
-                ? agencyData.ou_abbr_th
-                : agencyData.ou_abbr_en
+                ? agencyData?.ou_abbr_th ?? ""
+                : agencyData?.ou_abbr_en ?? ""
               : "-",
           bh_name:
             bhData
               ? i18n.language === "th"
-                ? bhData.bh_abbr_th
-                : bhData.bh_abbr_en
+                ? bhData?.bh_abbr_th ?? ""
+                : bhData?.bh_abbr_en ?? ""
               : "-",
           bk_name:
             bkData
               ? i18n.language === "th"
-                ? bkData.bk_abbr_th
-                : bkData.bk_abbr_en
+                ? bkData?.bk_abbr_th ?? ""
+                : bkData?.bk_abbr_en ?? ""
               : "-",
           org_name:
             orgData
               ? i18n.language === "th"
-                ? orgData.org_abbr_th
-                : orgData.org_abbr_en
+                ? orgData?.org_abbr_th ?? ""
+                : orgData?.org_abbr_en ?? ""
               : "-",
         };
       });
@@ -364,9 +364,9 @@ const StatisticAccessPerson = () => {
         );
 
         setRows(updatedRows);
-        setTotalItems(res.pagination.countAll);
-        setTotalData(res.pagination.countAll);
-        setTotalPages(res.pagination.maxPage);
+        setTotalItems(res.pagination?.countAll ?? 0);
+        setTotalData(res.pagination?.countAll ?? 0);
+        setTotalPages(res.pagination?.maxPage ?? 1);
         setTotalUsage(totalUsage);
       } 
       catch (error) {

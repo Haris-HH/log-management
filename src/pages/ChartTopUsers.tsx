@@ -34,6 +34,7 @@ import usePageTitle from '../hooks/usePageTitle';
 
 // Types
 import type { TopUsersResponse } from "../types/response";
+import type { TopUsers } from "../types/common";
 
 // API
 import { getTopUsersChart } from "../features/usage-chart/api/UsageChartApi";
@@ -123,47 +124,59 @@ const ChartTopUsers = () => {
       setIsLoading(true);
 
       const res = await getTopUsersChart(getFilters());
+      const topUsers = res.data ?? [];
+      setTotalPages(res.pagination?.maxPage ?? 1);
 
-      const updatedData = await Promise.all(
-        (res.data ?? []).map(async (user) => {
-          const userInfo = await getUserApi({ user_id: user.user_id });
+      const userIds = [...new Set(topUsers.map((item) => item.user_id))];
 
-          const titleName = title.find(
-            (titleItem) => titleItem.id === userInfo?.data?.title_id
-          );
+      let userMap = new Map();
 
-          const agencyName = agency.find(
-            (agencyItem) => agencyItem.ou_code === userInfo?.data?.ou_code
-          );
+      if (userIds.length > 0) {
+        const usersRes = await getUserApi({
+          filter: `user_id=in(${userIds.join(",")})`,
+        });
 
-          return {
-            ...user,
-            title_id: userInfo?.data?.title_id,
-            title_name:
-              i18n.language === "th"
-                ? titleName?.title_abbr_th ?? ""
-                : titleName?.title_abbr_en ?? "",
-            firstname: userInfo?.data?.firstname ?? "",
-            lastname: userInfo?.data?.lastname ?? "",
-            idcard: userInfo?.data?.idcard ?? "-",
-            phone: userInfo?.data?.phone ?? "-",
-            ou_name:
-              i18n.language === "th"
-                ? agencyName?.ou_abbr_th ?? "-"
-                : agencyName?.ou_abbr_en ?? "-",
-          };
-        })
-      );
+        userMap = new Map(
+          usersRes.data?.map((user) => [user.user_id, user]) ?? []
+        );
+      }
+
+      const updatedData: TopUsers[] = topUsers.map((user) => {
+        const userInfo = userMap.get(user.user_id);
+
+        const titleName = title.find(
+          (titleItem) => titleItem.id === userInfo?.title_id
+        );
+
+        const agencyName = agency.find(
+          (agencyItem) => agencyItem.ou_code === userInfo?.ou_code
+        );
+
+        return {
+          ...user,
+          title_id: userInfo?.title_id,
+          title_name:
+            i18n.language === "th"
+              ? titleName?.title_abbr_th ?? ""
+              : titleName?.title_abbr_en ?? "",
+          firstname: userInfo?.firstname ?? "",
+          lastname: userInfo?.lastname ?? "",
+          idcard: userInfo?.idcard ?? "-",
+          phone: userInfo?.phone ?? "-",
+          ou_name:
+            i18n.language === "th"
+              ? agencyName?.ou_abbr_th ?? "-"
+              : agencyName?.ou_abbr_en ?? "-",
+        };
+      });
 
       setTopUsersData({
         ...res,
         data: updatedData,
       });
-    } 
-    catch (error) {
+    } catch (error) {
       setTopUsersData(null);
-    } 
-    finally {
+    } finally {
       setIsLoading(false);
     }
   }, [getFilters, title, agency, i18n.language]);
@@ -468,7 +481,7 @@ const ChartTopUsers = () => {
           </Box>
         </Box>
 
-        <Box className={`${topUsersData?.data?.length > 0 ? "flex" : "hidden"} items-center justify-between py-3 pl-1 mt-auto`}>
+        <Box className={`${(topUsersData?.data && topUsersData?.data?.length > 0) ? "flex" : "hidden"} items-center justify-between py-3 pl-1 mt-auto`}>
           <PaginationBelowTableComponent 
             page={page} 
             onChange={handlePageChange}

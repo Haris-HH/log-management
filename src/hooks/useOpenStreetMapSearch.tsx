@@ -1,26 +1,23 @@
-import { useState, useCallback, useEffect } from 'react';
-import L, { Map as LeafletMap, LatLngBounds, Polyline } from 'leaflet';
-import type { LatLngExpression } from 'leaflet';
+import { useState, useCallback } from 'react';
+import { Map as LeafletMap, LatLngBounds } from 'leaflet';
 
 // Types
 import type { SearchResult } from '../types/map';
 import type { CameraInCheckpoint } from "../types/common";
 
 // Utils
-import { parseCoordinates, parseCoordinatesWith2Param } from '../utils/coordinates';
+import { parseCoordinates } from '../utils/coordinates';
 
 // Hooks
 import { useMarkerManager } from './useMarkerManager';
 
 export const useMapSearch = (
-  map: LeafletMap | null, 
-  ableToClick = false,
+  map: LeafletMap | null,
 ) => {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const markerManager = useMarkerManager(map);
-  const [routes, setRoutes] = useState<Polyline[]>([]);
 
   const clearSearchPlaces = async () => {
     setSearchResults([]);

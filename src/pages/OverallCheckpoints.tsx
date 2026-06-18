@@ -153,7 +153,7 @@ const OverallCheckpoints = () => {
   const fetchProjectList = useCallback(async (provinceCode?: string) => {
     try {
       const params =
-        provinceCode !== "0"
+        provinceCode && provinceCode !== "0"
           ? { province_code: provinceCode }
           : undefined;
 
@@ -260,16 +260,16 @@ const OverallCheckpoints = () => {
       data: rows,
       mapRow: (data, index) => [
         (page - 1) * rowsPerPage + index + 1,
-        data.device_name,
-        data.checkpoint_name,
-        data.police_station_name,
-        data.police_region_name,
-        data.province_name,
-        data.district_name,
-        data.subdistrict_name,
-        data.route,
-        data.lane,
-        data.project_name,
+        data.device_name ?? "-",
+        data.checkpoint_name ?? "-",
+        data.police_station_name ?? "-",
+        data.police_region_name ?? "-",
+        data.province_name ?? "-",
+        data.district_name ?? "-",
+        data.subdistrict_name ?? "-",
+        data.route ?? "-",
+        data.lane ?? "-",
+        data.project_name ?? "-",
       ],
       columnStyles: {
         2: { alignment: { horizontal: "center" } },
@@ -282,16 +282,16 @@ const OverallCheckpoints = () => {
     const pdfData: OverallCheckpointsPdfData[] = rows.map((data) => ({
       ...data,
       id: data.device_id,
-      checkpoint_name: data.checkpoint_name,
-      camera_name: data.device_name,
-      station_name: data.police_station_name,
-      area_name: data.police_region_name,
-      province_name: data.province_name,
-      district_name: data.district_name,
-      subdistrict_name: data.subdistrict_name,
-      road: data.route,
-      route: data.lane,
-      project: data.project_name,
+      checkpoint_name: data.checkpoint_name ?? "-",
+      camera_name: data.device_name ?? "-",
+      station_name: data.police_station_name ?? "-",
+      area_name: data.police_region_name ?? "-",
+      province_name: data.province_name ?? "-",
+      district_name: data.district_name ?? "-",
+      subdistrict_name: data.subdistrict_name ?? "-",
+      road: data.route ?? "-",
+      route: data.lane ?? "-",
+      project: data.project_name ?? "-",
     }));
     await downloadOverallCheckpointsPdf(
       pdfData,
@@ -325,6 +325,27 @@ const OverallCheckpoints = () => {
   };
 
   const visibleColumns = columnOptions.filter((col) => col.checked);
+
+  const formatCellValue = (value: unknown): React.ReactNode => {
+    if (value === null || value === undefined || value === "") return "-";
+
+    if (typeof value === "boolean") return value ? "true" : "false";
+
+    if (typeof value === "string" || typeof value === "number") return value;
+
+    if (Array.isArray(value)) return value.join(", ");
+
+    if (
+      typeof value === "object" &&
+      "lat" in value &&
+      "lng" in value
+    ) {
+      const latLng = value as { lat: number; lng: number };
+      return `${latLng.lat}, ${latLng.lng}`;
+    }
+
+    return "-";
+  };
 
   return (
     <section id='overall-checkpoints' className="flex flex-col h-full w-full p-2">
@@ -530,8 +551,9 @@ const OverallCheckpoints = () => {
                     </TableCell>
                     {visibleColumns.map((col) => {
                       const field = columnKeyMap[col.key];
+                      const rawValue = data[field];
 
-                      let value = data[field] ?? "-";
+                      let value: React.ReactNode = formatCellValue(rawValue);
                       if (field === "lane") {
                         value = value === "1" ? t('text.exit') : t('text.in')
                       }

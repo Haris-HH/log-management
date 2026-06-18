@@ -41,7 +41,8 @@ export const mockLprSearchLog: LprSearchLogResponse = {
       "plate_prefix": "string",
       "plate_number": "1กข 1234",
       "region_code": "CODE001",
-      "search_result": "example"
+      "search_result": "example",
+      "details": "example"
     }
   ]
 };

@@ -124,20 +124,6 @@ export interface OverallReportDetail {
   remark: string;
 }
 
-export interface OverallReportType {
-  police_division: string;
-  police_division_name: string;
-  total: number;
-  normal: number;
-  normal_percent: number;
-  device: number;
-  device_percent: number;
-  network: number;
-  network_percent: number;
-  disable: number;
-  disable_percent: number;
-}
-
 export interface Dropdown {
   code: string;
   name: string;
@@ -284,11 +270,11 @@ export interface NsbBk {
   ou_code: string;
   bh_code: string;
   bk_code: string;
-  bk_abbr_en: string;
-  bk_abbr_th: string;
-  bk_name_en: string;
-  bk_name_th: string;
-  notes: string;
+  bk_abbr_en: string | null;
+  bk_abbr_th: string | null;
+  bk_name_en: string | null;
+  bk_name_th: string | null;
+  notes: string | null;
 }
 
 export interface NsbOrg {
@@ -296,12 +282,12 @@ export interface NsbOrg {
   bh_code: string;
   bk_code: string;
   org_code: string;
-  org_abbr_en: string;
-  org_abbr_th: string;
-  org_name_en: string;
-  org_name_th: string;
+  org_abbr_en: string | null;
+  org_abbr_th: string | null;
+  org_name_en: string | null;
+  org_name_th: string | null;
   quota: number;
-  notes: string;
+  notes: string | null;
 }
 
 export interface Province {
