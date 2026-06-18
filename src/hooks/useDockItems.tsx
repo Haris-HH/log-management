@@ -9,7 +9,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import { useTranslation } from "react-i18next";
 import { useMemo } from "react";
 
-export type DockSubMenuItem = {
+type DockSubMenuItem = {
   label: string;
   path: string;
 };

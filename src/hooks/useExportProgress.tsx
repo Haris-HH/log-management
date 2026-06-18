@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 
-export interface ExportProgress {
+interface ExportProgress {
   text: string;
   current: number;
   total: number;

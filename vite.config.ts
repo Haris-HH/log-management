@@ -7,11 +7,6 @@ import svgr from "vite-plugin-svgr";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss(), svgr()],
-  test: {
-    globals: true,
-    environment: "jsdom",
-    setupFiles: "./test-setup.js",
-  },
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
