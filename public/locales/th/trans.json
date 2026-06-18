@@ -4,7 +4,9 @@
     "subtitle": "Narcotics Suppression Bureau"
   },
   "navbar": {
-    "logout": "ออกจากระบบ"
+    "logout": "ออกจากระบบ",
+    "language": "ภาษา",
+    "theme": "ธีม"
   },
   "pages": {
     "chart-internal-police": "แผนภูมิหน่วยงานภายใน ตร.",
@@ -135,7 +137,8 @@
     "app-version": "App Version",
     "export-excel": "กำลังสร้างไฟล์ Excel...",
     "export-pdf": "กำลังสร้างไฟล์ PDF...",
-    "complete": "ทำเสร็จ"
+    "complete": "ทำเสร็จ",
+    "number-of-item": "จำนวนรายการ"
   },
   "dock": {
     "home": "หน้าหลัก",

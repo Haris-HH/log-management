@@ -5,6 +5,7 @@ import "dayjs/locale/th";
 import { Th, Gb } from "react-flags-select";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 // Material UI
 import AppBar from "@mui/material/AppBar";
@@ -13,9 +14,16 @@ import Typography from "@mui/material/Typography";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
+import IconButton from "@mui/material/IconButton";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import Box from "@mui/material/Box";
 
+import SettingsIcon from "@mui/icons-material/Settings";
 import ColorLensIcon from "@mui/icons-material/ColorLens";
 import LanguageIcon from "@mui/icons-material/Language";
+import LogoutIcon from "@mui/icons-material/Logout";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
 
 // Components
 import HoverSelectMenu from "../components/select-menu/HoverSelectMenu";
@@ -49,16 +57,25 @@ const Navbar = () => {
 
   const version = __APP_VERSION__;
   const { themeName, setThemeName, theme, themes } = useTheme();
-
   const primaryColor = theme.colors["--primary-color"];
 
+  // State
   const [isLoading, setIsLoading] = useState(false);
+
+  // Data
   const [currentTime, setCurrentTime] = useState(dayjs());
   const [selectedLanguage, setSelectedLanguage] = useState(LANGUAGES[0]);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
+  // i18n
   const { t, i18n } = useTranslation();
 
+  // Redux
   const { user } = useSelector((state: RootState) => state.authUser);
+
+  const isDesktop = useMediaQuery("(min-width:1024px)");
+
+  const isMenuOpen = Boolean(anchorEl);
 
   const themeItems = Object.entries(themes).map(([key, value]) => ({
     key: key as keyof typeof themes,
@@ -70,6 +87,10 @@ const Navbar = () => {
 
   const selectedTheme =
     themeItems.find((item) => item.key === themeName) ?? themeItems[0];
+
+  const userFullName = user
+    ? `${i18n.language === "th" ? user.title_name_th : user.title_name_en}${user.first_name} ${user.last_name}`
+    : "-";
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -84,6 +105,12 @@ const Navbar = () => {
 
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (isDesktop) {
+      closeMenu();
+    }
+  }, [isDesktop]);
 
   const handleLogout = async () => {
     const isConfirmed = await PopupMessageWithCancel(
@@ -115,7 +142,28 @@ const Navbar = () => {
       );
     } finally {
       setIsLoading(false);
+      closeMenu();
     }
+  };
+
+  const closeMenu = () => {
+    setAnchorEl(null);
+  };
+
+  const toggleMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl((prev) => (prev ? null : event.currentTarget));
+  };
+
+  const handleChangeLanguage = (lang: (typeof LANGUAGES)[number]) => {
+    setSelectedLanguage(lang);
+    i18n.changeLanguage(lang.code);
+    localStorage.setItem("language", JSON.stringify(lang));
+    closeMenu();
+  };
+
+  const handleChangeTheme = (themeKey: keyof typeof themes) => {
+    setThemeName(themeKey);
+    closeMenu();
   };
 
   return (
@@ -137,18 +185,24 @@ const Navbar = () => {
         sx={{
           display: "flex",
           justifyContent: "space-between",
+          gap: 2,
           padding: "10px 24px",
+          minHeight: "64px !important",
         }}
       >
         {/* left */}
-        <div className="flex [@media(max-width:600px)]:pt-0.5">
-          <div className="flex gap-2 items-center justify-center">
+        <div className="flex min-w-0">
+          <div className="flex gap-2 items-center justify-center min-w-0">
             <Avatar alt="Logo" src="/project-logo/logo.png" />
 
-            <div className="flex flex-col [@media(max-width:600px)]:hidden">
+            <div className="flex flex-col min-w-0">
               <Typography
                 variant="h6"
-                sx={{ fontSize: "1.2rem", fontWeight: "bold" }}
+                sx={{
+                  fontSize: "1.2rem",
+                  fontWeight: "bold",
+                  whiteSpace: "nowrap",
+                }}
               >
                 {t("project.title")}
               </Typography>
@@ -172,8 +226,8 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* right */}
-        <div className="flex gap-4 items-center justify-center [@media(max-width:600px)]:pt-0.5">
+        {/* desktop */}
+        <div className="hidden lg:flex items-center justify-center gap-4">
           <HoverSelectMenu
             icon={
               <LanguageIcon
@@ -189,11 +243,7 @@ const Navbar = () => {
             getLabel={(lang) => lang.label}
             getKey={(lang) => lang.code}
             selectedColor={primaryColor}
-            onSelect={(lang) => {
-              setSelectedLanguage(lang);
-              i18n.changeLanguage(lang.code);
-              localStorage.setItem("language", JSON.stringify(lang));
-            }}
+            onSelect={handleChangeLanguage}
             renderItemPrefix={(lang) => (
               <div className="w-4 h-4 rounded-full overflow-hidden">
                 {lang.code === "th" ? (
@@ -203,7 +253,6 @@ const Navbar = () => {
                 )}
               </div>
             )}
-            className="[@media(max-height:780px)]:hidden"
           />
 
           <Divider
@@ -213,7 +262,6 @@ const Navbar = () => {
               opacity: 0.2,
               height: "20px",
             }}
-            className="[@media(max-height:780px)]:hidden"
           />
 
           <HoverSelectMenu
@@ -252,7 +300,6 @@ const Navbar = () => {
                 }}
               />
             )}
-            className="[@media(max-height:780px)]:hidden"
           />
 
           <Divider
@@ -262,7 +309,6 @@ const Navbar = () => {
               opacity: 0.2,
               height: "20px",
             }}
-            className="[@media(max-height:780px)]:hidden"
           />
 
           <div className="flex gap-2 items-center">
@@ -273,18 +319,15 @@ const Navbar = () => {
                 color: primaryColor,
                 fontWeight: "bold",
               }}
-              className="[@media(max-height:780px)]:hidden"
             >
-              {user
-                ? `${i18n.language === "th" ? user.title_name_th : user.title_name_en}${user.first_name} ${user.last_name}`
-                : "-"}
+              {userFullName}
             </Typography>
 
             <Avatar
               alt="User"
               src={user?.image_url}
-              sx={{ 
-                width: 34, 
+              sx={{
+                width: 34,
                 height: 34,
                 backgroundColor: "rgba(var(--primary-color-rgb), 0.8)",
                 color: "var(--tertiary-color)",
@@ -347,6 +390,254 @@ const Navbar = () => {
           >
             {t("navbar.logout")}
           </Button>
+        </div>
+
+        {/* mobile / tablet */}
+        <div className="flex lg:hidden items-center gap-1">
+          <Avatar
+            alt="User"
+            src={user?.image_url}
+            sx={{
+              width: 34,
+              height: 34,
+              backgroundColor: "rgba(var(--primary-color-rgb), 0.8)",
+              color: "var(--tertiary-color)",
+            }}
+          />
+
+          <IconButton
+            onClick={toggleMenu}
+            sx={{
+              color: primaryColor,
+            }}
+          >
+            <SettingsIcon />
+          </IconButton>
+
+          <Menu
+            anchorEl={anchorEl}
+            open={isMenuOpen}
+            onClose={closeMenu}
+            slotProps={{
+              paper: {
+                sx: {
+                  mt: 1,
+                  minWidth: 240,
+                  borderRadius: "16px",
+                  opacity: 0.8,
+                  backgroundColor: "var(--tertiary-color)",
+                  boxShadow: "0 8px 24px rgba(var(--secondary-color-rgb), 0.15)",
+                  border: "1px solid rgba(var(--secondary-color-rgb), 0.18)",
+                  color: "var(--primary-color)",
+                },
+              }
+            }}
+          >
+            <MenuItem 
+              disabled
+              sx={{
+                opacity: "1 !important",
+                color: "var(--primary-color) !important",
+
+                "&.Mui-disabled": {
+                  opacity: "1 !important",
+                  color: "var(--primary-color) !important",
+                },
+
+                "& .MuiSvgIcon-root": {
+                  color: "var(--primary-color) !important",
+                },
+
+                "& .MuiTypography-root": {
+                  color: "var(--primary-color) !important",
+                },
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Avatar
+                  src={user?.image_url}
+                  sx={{
+                    width: 26,
+                    height: 26,
+                    backgroundColor: "rgba(var(--primary-color-rgb), 0.8)",
+                    color: "var(--tertiary-color)",
+                  }}
+                />
+
+                <Typography
+                  sx={{
+                    fontSize: "14px",
+                    color: primaryColor,
+                    fontWeight: "bold",
+                  }}
+                >
+                  {userFullName}
+                </Typography>
+              </Box>
+            </MenuItem>
+
+            <MenuItem 
+              disabled
+              sx={{
+                opacity: "1 !important",
+                color: "var(--primary-color) !important",
+
+                "&.Mui-disabled": {
+                  opacity: "1 !important",
+                  color: "var(--primary-color) !important",
+                },
+
+                "& .MuiSvgIcon-root": {
+                  color: "var(--primary-color) !important",
+                },
+
+                "& .MuiTypography-root": {
+                  color: "var(--primary-color) !important",
+                },
+              }}
+            >
+              <AccessTimeIcon sx={{ mr: 1, fontSize: 18 }} />
+              <Box className="flex flex-col">
+                <Typography sx={{ fontSize: "12px" }}>
+                  {dayjs(currentTime)
+                    .locale(i18n.language)
+                    .format("dd DD/MM/BBBB")}
+                </Typography>
+                <Typography sx={{ fontSize: "14px", fontWeight: "bold" }}>
+                  {dayjs(currentTime).format("HH:mm:ss")}
+                </Typography>
+              </Box>
+            </MenuItem>
+
+            <Divider />
+
+            <MenuItem 
+              disabled
+              sx={{
+                opacity: "1 !important",
+                color: "var(--primary-color) !important",
+
+                "&.Mui-disabled": {
+                  opacity: "1 !important",
+                  color: "var(--primary-color) !important",
+                },
+
+                "& .MuiSvgIcon-root": {
+                  color: "var(--primary-color) !important",
+                },
+
+                "& .MuiTypography-root": {
+                  color: "var(--primary-color) !important",
+                },
+              }}
+            >
+              <LanguageIcon sx={{ mr: 1, fontSize: 18 }} />
+              {t("navbar.language")}
+            </MenuItem>
+
+            {LANGUAGES.map((lang) => (
+              <MenuItem
+                key={lang.code}
+                selected={selectedLanguage.code === lang.code}
+                onClick={() => handleChangeLanguage(lang)}
+                sx={{
+                  pl: 4,
+                  "&.Mui-selected": {
+                    border: "1px solid var(--primary-color)",
+                    borderRadius: "12px",
+                    backgroundColor: "rgba(var(--primary-color-rgb), 0.06)",
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 16,
+                    height: 16,
+                    borderRadius: "50%",
+                    overflow: "hidden",
+                    mr: 1,
+                  }}
+                >
+                  {lang.code === "th" ? (
+                    <Th style={{ width: "100%", height: "100%" }} />
+                  ) : (
+                    <Gb style={{ width: "100%", height: "100%" }} />
+                  )}
+                </Box>
+
+                {lang.label}
+              </MenuItem>
+            ))}
+
+            <Divider />
+
+            <MenuItem 
+              disabled
+              sx={{
+                opacity: "1 !important",
+                color: "var(--primary-color) !important",
+
+                "&.Mui-disabled": {
+                  opacity: "1 !important",
+                  color: "var(--primary-color) !important",
+                },
+
+                "& .MuiSvgIcon-root": {
+                  color: "var(--primary-color) !important",
+                },
+
+                "& .MuiTypography-root": {
+                  color: "var(--primary-color) !important",
+                },
+              }}
+            >
+              <ColorLensIcon sx={{ mr: 1, fontSize: 18 }} />
+              {t("navbar.theme")}
+            </MenuItem>
+
+            {themeItems.map((themeItem) => (
+              <MenuItem
+                key={themeItem.key}
+                selected={themeName === themeItem.key}
+                onClick={() => handleChangeTheme(themeItem.key)}
+                sx={{
+                  pl: 4,
+                  "&.Mui-selected": {
+                    border: "1px solid var(--primary-color)",
+                    borderRadius: "12px",
+                    backgroundColor: "rgba(var(--primary-color-rgb), 0.06)",
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 14,
+                    height: 14,
+                    borderRadius: "50%",
+                    backgroundColor: themeItem.colors["--primary-color"],
+                    mr: 1,
+                  }}
+                />
+
+                {themeItem.name}
+              </MenuItem>
+            ))}
+
+            <Divider />
+
+            <MenuItem
+              onClick={() => {
+                closeMenu();
+                handleLogout();
+              }}
+              sx={{
+                color: "var(--danger-color)",
+              }}
+            >
+              <LogoutIcon sx={{ mr: 1, fontSize: 18 }} />
+              {t("navbar.logout")}
+            </MenuItem>
+          </Menu>
         </div>
       </Toolbar>
     </AppBar>

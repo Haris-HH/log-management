@@ -32,14 +32,10 @@ import {
   fetchArea,
   fetchAgency,
   fetchBh,
-  fetchBk,
-  fetchOrg,
-  fetchProject,
   fetchProvince,
   fetchDeviceStatus,
   fetchTitle,
   fetchLprRegion,
-  fetchPoliceStation,
 } from "./features/dropdown/api/DropdownSlice";
 
 // i18n
@@ -89,17 +85,27 @@ function App() {
   useEffect(() => {
     if (!user) return;
 
-    dispatch(fetchArea());
-    dispatch(fetchAgency());
-    dispatch(fetchBh());
-    dispatch(fetchBk());
-    dispatch(fetchOrg());
-    dispatch(fetchProject());
-    dispatch(fetchProvince());
-    dispatch(fetchDeviceStatus());
-    dispatch(fetchTitle());
-    dispatch(fetchLprRegion());
-    dispatch(fetchPoliceStation());
+    dispatch(fetchArea({
+      limit: "100",
+    }));
+    dispatch(fetchAgency({
+      limit: "100",
+    }));
+    dispatch(fetchBh({
+      limit: "100",
+    }));
+    dispatch(fetchProvince({
+      limit: "100",
+    }));
+    dispatch(fetchDeviceStatus({
+      limit: "100",
+    }));
+    dispatch(fetchTitle({
+      limit: "100",
+    }));
+    dispatch(fetchLprRegion({
+      limit: "100",
+    }));
   }, [user, dispatch])
 
   const enabled = Boolean(localStorage.getItem("accessToken") ?? false);

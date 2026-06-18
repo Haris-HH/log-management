@@ -16,7 +16,6 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
-import IconButton from "@mui/material/IconButton";
 
 // Components
 import MainTitle from '../components/main-title/MainTitle';
@@ -26,6 +25,7 @@ import PaginationComponent from "../components/pagination/Pagination";
 import DetailsDialog from "../components/details-dialog/DetailsDialog";
 import LoadingScreen from '../components/loading-screen/LoadingScreen';
 import ExportLoadingScreen from '../components/loading-screen/ExportLoadingScreen';
+import GroupExportButton from '../components/group-export-button/GroupExportButton';
 
 // Constants
 import { ROWS_PER_PAGE_OPTIONS } from "../constants/dropdown";
@@ -37,7 +37,7 @@ import {
 } from "../pdf/StatisticAccessAgencyPdf";
 
 // Types
-import type { AccessLog } from "../types/common";
+import type { AccessLog, NsbBk, NsbOrg } from "../types/common";
 import type { AgencyUsagePdfData } from "../types/pdf";
 
 // i18n
@@ -45,8 +45,6 @@ import { useTranslation } from 'react-i18next';
 
 // Icons
 import ClearIcon from "../assets/svg/clear.svg?react";
-import ExportExcelIcon from "../assets/icons/export-excel.png";
-import ExportPdfIcon from "../assets/icons/export-pdf.png";
 import InformationIcon from "../assets/icons/information.png";
 
 // Utils
@@ -56,12 +54,14 @@ import { PopupMessage, PopupMessageWithCancel } from '../utils/popupMessage';
 
 // Hooks
 import usePageTitle from "../hooks/usePageTitle";
+import useExportProgress from "../hooks/useExportProgress";
 
 // Store
 import type { RootState } from "../store/store";
 
 // API
 import { searchAccessLogs } from "../features/access-data/api/AccessDataApi";
+import { getBk, getOrg } from "../features/dropdown/api/DropdownApi"
 
 interface FormData {
   agency_id: string;
@@ -80,19 +80,14 @@ const StatisticAccessAgency = () => {
   // State
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [exportLoading, setExportLoading] = useState(false);
 
   // Data
   const [rows, setRows] = useState<AccessLog[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [totalUsage, setTotalUsage] = useState(0);
   const [selectedData, setSelectedData] = useState<AccessLog | null>(null);
-  const [exportProgress, setExportProgress] = useState({
-    text: "",
-    current: 0,
-    total: 0,
-    percent: 0,
-  });
+  const [bk, setBk] = useState<NsbBk[]>([]);
+  const [org, setOrg] = useState<NsbOrg[]>([]);
 
   // Constants
   const CHUNK_SIZE = 1000;
@@ -118,8 +113,16 @@ const StatisticAccessAgency = () => {
     ROWS_PER_PAGE_OPTIONS
   );
 
+  const {
+    exportLoading,
+    exportProgress,
+    startExportLoading,
+    stopExportLoading,
+    updateExportProgress,
+  } = useExportProgress();
+
   // Slice
-  const { agency, bh, bk, org } = useSelector((state: RootState) => state.dropdown);
+  const { agency, bh } = useSelector((state: RootState) => state.dropdown);
 
   usePageTitle(t("pages.statistic-access-agency"));
 
@@ -130,13 +133,14 @@ const StatisticAccessAgency = () => {
 
   const bhOptions = useMemo(() => {
     const langKeyBh = i18n.language === "th" ? "bh_abbr_th" : "bh_abbr_en";
+
     const filteredBh =
       formData.agency_id !== "0"
         ? bh.filter((item) => item.ou_code === formData.agency_id)
         : bh;
 
-    return buildOptions(filteredBh, t("dropdown.all-bh"), langKeyBh, "bh_code")
-  }, [bh, t, i18n.language]);
+    return buildOptions(filteredBh, t("dropdown.all-bh"), langKeyBh, "bh_code");
+  }, [bh, t, i18n.language, formData.agency_id]);
 
   const bkOptions = useMemo(() => {
     const langKeyBk = i18n.language === "th" ? "bk_abbr_th" : "bk_abbr_en";
@@ -146,7 +150,7 @@ const StatisticAccessAgency = () => {
         : bk;
 
     return buildOptions(filteredBk, t("dropdown.all-bk"), langKeyBk, "bk_code")
-  }, [bk, t, i18n.language]);
+  }, [bk, t, i18n.language, formData.bh_id]);
 
   // Map
   const agencyMap = new Map(
@@ -164,6 +168,46 @@ const StatisticAccessAgency = () => {
   const orgMap = new Map(
     org.map(item => [item.org_code, item])
   );
+
+  const fetchBkList = useCallback(async (bhCode?: string) => {
+    try {
+      const params: Record<string, string> = {
+        limit: "100",
+        ...(bhCode && bhCode !== "0"
+          ? { bh_code: bhCode }
+          : {}),
+      };
+
+      const res = await getBk(params);
+      setBk(res.data ?? []);
+    } catch (error) {
+      setBk([]);
+    }
+  }, []);
+
+  const fetchOrgList = useCallback(async (bkCode?: string) => {
+    try {
+      const params: Record<string, string> = {
+        limit: "100",
+        ...(bkCode && bkCode !== "0"
+          ? { bk_code: bkCode }
+          : {}),
+      };
+
+      const res = await getOrg(params);
+      setOrg(res.data ?? []);
+    } catch (error) {
+      setOrg([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchBkList(formData.bh_id);
+  }, [fetchBkList, formData.bh_id]);
+
+  useEffect(() => {
+    fetchOrgList(formData.bk_id);
+  }, [fetchOrgList, formData.bk_id]);
 
   useEffect(() => {
     fetchData(formData);
@@ -326,7 +370,7 @@ const StatisticAccessAgency = () => {
 
   const handleExportPdf = async () => {
     try {
-      setExportLoading(true);
+      startExportLoading();
 
       const dateFormat = i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD";
       const startDate = dayjs(formData.start_date_time).format(dateFormat);
@@ -348,12 +392,12 @@ const StatisticAccessAgency = () => {
         const zip = new JSZip();
         const totalFiles = Math.ceil(totalData / CHUNK_SIZE);
 
-        setExportProgress({
-          text: t("text.export-pdf"),
-          current: 0,
-          total: totalFiles,
-          percent: 0,
-        });
+        updateExportProgress(
+          t("text.export-pdf"),
+          0,
+          totalFiles,
+          0,
+        );
 
         for (let page = 1; page <= totalFiles; page++) {
           const res = await searchAccessLogs(
@@ -381,12 +425,12 @@ const StatisticAccessAgency = () => {
 
           zip.file(fileName, blob);
 
-          setExportProgress({
-            text: t("text.export-excel"),
-            current: page,
-            total: totalFiles,
-            percent: Math.round((page / totalFiles) * 100),
-          });
+          updateExportProgress(
+            t("text.export-pdf"),
+            page,
+            totalFiles,
+            Math.round((page / totalFiles) * 100),
+          );
 
           await new Promise((resolve) => setTimeout(resolve, 50));
         }
@@ -403,18 +447,14 @@ const StatisticAccessAgency = () => {
         return;
       }
 
-      const res = await searchAccessLogs(
-        {},
-        {
-          groupBy: "org_code",
-          limit: REQUEST_LIMIT.toString(),
-          page: "1",
-          orderBy: "org_code",
-          ...getFilters(formData),
-        }
-      );
+      const exportRows = await getExportData(REQUEST_LIMIT, 1);
 
-      const exportRows = await mapAccessLogRows(res.data);
+      updateExportProgress(
+        t("text.export-pdf"),
+        page,
+        1,
+        80
+      );
 
       const pdfName = `${t(
         "file-name.statistic-access-agency"
@@ -428,6 +468,7 @@ const StatisticAccessAgency = () => {
       );
     } 
     catch (error) {
+      stopExportLoading();
       await PopupMessage(
         t("popup.export-error-title"),
         t("popup.export-error-message"),
@@ -435,7 +476,7 @@ const StatisticAccessAgency = () => {
       );
     } 
     finally {
-      setExportLoading(false);
+      stopExportLoading();
     }
   };
 
@@ -490,7 +531,7 @@ const StatisticAccessAgency = () => {
 
   const handleExportExcel = async () => {
     try {
-      setExportLoading(true);
+      startExportLoading();
       const dateFormat = i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD";
 
       const startDate = dayjs(formData.start_date_time).format(dateFormat);
@@ -539,26 +580,20 @@ const StatisticAccessAgency = () => {
         const zip = new JSZip();
         const totalFiles = Math.ceil(totalData / CHUNK_SIZE);
 
-        setExportProgress({
-          text: t("text.export-excel"),
-          current: 0,
-          total: totalFiles,
-          percent: 0,
-        });
+        updateExportProgress(
+          t("text.export-excel"),
+          0,
+          totalFiles,
+          0
+        );
 
         for (let pageIndex = 1; pageIndex <= totalFiles; pageIndex++) {
-          const res = await searchAccessLogs(
-            {},
+          const exportRows = await getExportData(CHUNK_SIZE, pageIndex, 
             {
               groupBy: "org_code",
-              limit: CHUNK_SIZE.toString(),
-              page: pageIndex.toString(),
               orderBy: "org_code",
-              ...getFilters(formData),
             }
           );
-
-          const exportRows = await mapAccessLogRows(res.data);
 
           const blob = await generateExcelBlob({
             sheetName: t("file-name.statistic-access-agency"),
@@ -577,12 +612,12 @@ const StatisticAccessAgency = () => {
 
           zip.file(`${baseFileName}_${pageIndex}.xlsx`, blob);
 
-          setExportProgress({
-            text: t("text.export-excel"),
-            current: pageIndex,
-            total: totalFiles,
-            percent: Math.round((pageIndex / totalFiles) * 100),
-          });
+          updateExportProgress(
+            t("text.export-excel"),
+            pageIndex,
+            totalFiles,
+            Math.round((pageIndex / totalFiles) * 100)
+          );
 
           await new Promise((resolve) => setTimeout(resolve, 50));
         }
@@ -593,18 +628,14 @@ const StatisticAccessAgency = () => {
         return;
       }
 
-      const res = await searchAccessLogs(
-        {},
-        {
-          groupBy: "org_code",
-          limit: REQUEST_LIMIT.toString(),
-          page: "1",
-          orderBy: "org_code",
-          ...getFilters(formData),
-        }
-      );
+      const exportRows = await getExportData(REQUEST_LIMIT, 1);
 
-      const exportRows = await mapAccessLogRows(res.data);
+      updateExportProgress(
+        t("text.export-excel"),
+        1,
+        1,
+        50
+      );
 
       await exportExcel({
         sheetName: t("file-name.statistic-access-agency"),
@@ -616,6 +647,7 @@ const StatisticAccessAgency = () => {
       });
     } 
     catch (error) {
+      stopExportLoading();
       await PopupMessage(
         t("popup.export-error-title"),
         t("popup.export-error-message"),
@@ -623,8 +655,26 @@ const StatisticAccessAgency = () => {
       );
     } 
     finally {
-      setExportLoading(false);
+      stopExportLoading();
     }
+  };
+
+  const getExportData = async (
+    limit: number,
+    page: number,
+    otherFilters: Record<string, string> = {},
+  ) => {
+    const res = await searchAccessLogs(
+      {},
+      {
+        limit: limit.toString(),
+        page: page.toString(),
+        ...otherFilters,
+        ...getFilters(formData),
+      }
+    );
+
+    return mapAccessLogRows(res.data);
   };
 
   const handlePageChange = async (
@@ -651,7 +701,7 @@ const StatisticAccessAgency = () => {
   }
 
   const navigateToPersonUsage = async () => {
-    navigate("/statistic-usage-person", {
+    navigate("/statistic-access-person", {
       state: {
         fromNavigate: true,
         filters: {
@@ -704,9 +754,17 @@ const StatisticAccessAgency = () => {
       <div className='p-4 bg-(--main-bg-color) flex flex-1 flex-col gap-4 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-y-auto'>
         {/* Search Filters */}
         <Box 
-          className="grid grid-cols-6 border border-(--primary-color) rounded-[10px] p-4 gap-2 bg-(--tertiary-color)"
+          className="border border-(--primary-color) rounded-[10px] p-4 bg-(--tertiary-color)"
           sx={{
-            boxShadow: "0px 2px 8px rgba(var(--tertiary-color-rgb),0.1)"
+            boxShadow: "0px 2px 8px rgba(var(--tertiary-color-rgb),0.1)",
+            display: "grid",
+            gap: 2,
+            gridTemplateColumns: {
+              xs: "1fr",
+              md: "repeat(2, minmax(0, 1fr))",
+              lg: "repeat(3, minmax(0, 1fr))",
+              xl: "repeat(6, minmax(0, 1fr))",
+            },
           }}
         >
           <AutoComplete 
@@ -807,34 +865,10 @@ const StatisticAccessAgency = () => {
             >
               {t('button.clear')}
             </Button>
-            <IconButton 
-              sx={{ 
-                border: "1px solid var(--primary-color)", 
-                width: "40px", 
-                height: "40px", 
-                borderRadius: "5px",
-                "&:hover": {
-                  backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
-                },
-              }}
-              onClick={handleExportPdf}
-            >
-              <img src={ExportPdfIcon} alt="Export PDF" className="h-6 w-6" />
-            </IconButton>
-            <IconButton 
-              sx={{ 
-                border: "1px solid var(--primary-color)", 
-                width: "40px", 
-                height: "40px", 
-                borderRadius: "5px",
-                "&:hover": {
-                  backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
-                },
-              }}
-              onClick={handleExportExcel}
-            >
-              <img src={ExportExcelIcon} alt="Export CSV" className="h-6 w-6" />
-            </IconButton>
+            <GroupExportButton 
+              handleExportExcel={handleExportExcel}
+              handleExportPdf={handleExportPdf}
+            />
           </Box>
         </Box>
 
@@ -903,15 +937,26 @@ const StatisticAccessAgency = () => {
                 {rows.map((data, index) => (
                   <TableRow
                     key={index}
-                    onClick={() => {
-                      showDetailDialog(data);
-                    }}
+                    onClick={() => showDetailDialog(data)}
                     sx={{
+                      cursor: "pointer",
                       "& .MuiTableCell-root": {
-                        backgroundColor: selectedData?.log_id === data.log_id ? "rgba(var(--primary-color-rgb), 0.3)" : "var(--tertiary-color)",
+                        backgroundColor:
+                          selectedData?.log_id === data.log_id
+                            ? "rgba(var(--primary-color-rgb), 0.3)"
+                            : "var(--tertiary-color)",
                         color: "var(--secondary-color)",
                         borderBottom: "1px solid var(--primary-color)",
-                      }
+                        transition: "background-color 0.2s ease",
+                      },
+                      "&:hover .MuiTableCell-root": {
+                        backgroundColor: "rgba(var(--primary-color-rgb), 0.15)",
+                      },
+                      "&:hover": {
+                        "& .MuiTableCell-root": {
+                          color: "var(--secondary-color)",
+                        },
+                      },
                     }}
                   >
                     <TableCell

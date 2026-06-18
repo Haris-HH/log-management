@@ -129,20 +129,36 @@ const PieChartComponent = ({ data }: Props) => {
         )
       }
 
-      <Box className="grid grid-cols-4 border border-(--primary-color) w-full overflow-hidden rounded-sm">
+      <Box
+        className="border border-(--primary-color) w-full overflow-hidden rounded-sm"
+        sx={{
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "1fr",
+            xl: "repeat(4, minmax(0, 1fr))",
+          },
+        }}
+      >
         {data.map((item, index) => (
           <Box
             key={`${item.name}-${index}`}
             className="flex flex-col items-center justify-center gap-2"
             sx={{
-              borderLeft:
-                index === 0 ? "none" : "1px solid var(--primary-color)",
+              py: 1.5,
+              borderLeft: {
+                xs: "none",
+                xl: index === 0 ? "none" : "1px solid var(--primary-color)",
+              },
+              borderTop: {
+                xs: index === 0 ? "none" : "1px solid var(--primary-color)",
+                xl: "none",
+              },
             }}
           >
             <Box className="flex flex-col items-center justify-center">
               <Typography
                 sx={{
-                  fontSize: 38,
+                  fontSize: { xs: 28, md: 34, xl: 38 },
                   fontWeight: 500,
                   color: "var(--primary-color)",
                 }}
@@ -155,7 +171,7 @@ const PieChartComponent = ({ data }: Props) => {
                 sx={{
                   fontSize: 14,
                   fontWeight: 400,
-                  marginTop: -2.6,
+                  mt: { xs: -1.8, xl: -2.6 },
                   color: "var(--secondary-color)",
                 }}
                 variant="subtitle1"
@@ -175,7 +191,7 @@ const PieChartComponent = ({ data }: Props) => {
 
               <Typography
                 sx={{
-                  fontSize: 16,
+                  fontSize: { xs: 14, xl: 16 },
                   fontWeight: 400,
                   color: "var(--primary-color)",
                 }}

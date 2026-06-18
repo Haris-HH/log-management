@@ -70,7 +70,7 @@ const PaginationComponent: React.FC<PaginationProps> = ({
   );
 
   return (
-    <div className='flex items-center justify-between w-full'>
+    <div className='flex [@media(max-width:1500px)]:flex-col items-center justify-between w-full'>
       {
         !isShowColumn && (
           <p className="text-(--primary-color) text-[16px] font-semibold">{`${t('text.all')} ${totalItems?.toLocaleString()} ${t('text.list')} : ${t('text.total')} ${totalUsage?.toLocaleString()} ${t('text.time')}`}</p>
@@ -78,7 +78,7 @@ const PaginationComponent: React.FC<PaginationProps> = ({
       }
       {
         isShowColumn && (
-          <div className='flex gap-2 items-center justify-center'>
+          <div className='flex [@media(max-width:1500px)]:flex-col gap-2 items-center justify-center'>
             <Button
               variant="contained"
               startIcon={
@@ -175,7 +175,38 @@ const PaginationComponent: React.FC<PaginationProps> = ({
                 "& .MuiSvgIcon-root": {
                   color: "var(--primary-color)",
                 },
+                width: "120px",
+                height: "35px",
               }}
+              MenuProps={{
+              slotProps: {
+                paper: {
+                  sx: {
+                    backgroundColor: "var(--tertiary-color)",
+                    border: "1px solid var(--primary-color)",
+
+                    "& .MuiMenuItem-root": {
+                      color: "var(--primary-color)",
+                      backgroundColor: "var(--tertiary-color)",
+
+                      "&:hover": {
+                        backgroundColor: "rgba(var(--primary-color-rgb), 0.15)",
+                      },
+
+                      "&.Mui-selected": {
+                        color: "var(--tertiary-color)",
+                        backgroundColor: "var(--primary-color) !important",
+                      },
+
+                      "&.Mui-selected:hover": {
+                        backgroundColor:
+                          "rgba(var(--primary-color-rgb), 0.8) !important",
+                      },
+                    },
+                  },
+                },
+              },
+            }}
               size="medium"
             >
               {rowsPerPageOptions.map((option) => (
@@ -187,11 +218,11 @@ const PaginationComponent: React.FC<PaginationProps> = ({
           </div>
         )
       }
-      <div className='flex justify-center items-center gap-4'>
+      <div className='flex [@media(max-width:1500px)]:flex-col justify-center items-center gap-4'>
         {
           !isShowColumn && (
             <div className="flex items-center gap-4">
-              <p className="text-(--primary-color) text-[16px] font-medium">{"จำนวนรายการ"}</p>
+              <p className="text-(--primary-color) text-[16px] font-medium">{t("text.number-of-item")}</p>
               <Select
                 id="row-per-page-select"
                 value={rowsPerPage.toString()}

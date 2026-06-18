@@ -36,7 +36,7 @@ import { mockPoliceStations } from "../../../mocks/mockPoliceStations";
 // Env
 const isDev = import.meta.env.VITE_IS_DEV;
 
-export const getArea = async (): Promise<AreaResponse> => {
+export const getArea = async (param?: Record<string, string>): Promise<AreaResponse> => {
   if (isDev) {
     return mockArea;
   }
@@ -45,13 +45,14 @@ export const getArea = async (): Promise<AreaResponse> => {
     "/masterdata/police-regions/get",
     {
       method: "GET",
+      queryParams: param,
     },
   );
 
   return res;
 };
 
-export const getAgency = async (): Promise<NsbOuResponse> => {
+export const getAgency = async (param?: Record<string, string>): Promise<NsbOuResponse> => {
   if (isDev) {
     return mockAgency;
   }
@@ -60,13 +61,14 @@ export const getAgency = async (): Promise<NsbOuResponse> => {
     "/masterdata/nsb-ou/get",
     {
       method: "GET",
+      queryParams: param,
     },
   );
 
   return res;
 };
 
-export const getBh = async (): Promise<NsbBhResponse> => {
+export const getBh = async (param?: Record<string, string>): Promise<NsbBhResponse> => {
   if (isDev) {
     return mockBh;
   }
@@ -75,13 +77,14 @@ export const getBh = async (): Promise<NsbBhResponse> => {
     "/masterdata/nsb-bh/get",
     {
       method: "GET",
+      queryParams: param,
     },
   );
 
   return res;
 };
 
-export const getBk = async (): Promise<NsbBkResponse> => {
+export const getBk = async (param?: Record<string, string>): Promise<NsbBkResponse> => {
   if (isDev) {
     return mockBk;
   }
@@ -90,13 +93,14 @@ export const getBk = async (): Promise<NsbBkResponse> => {
     "/masterdata/nsb-bk/get",
     {
       method: "GET",
+      queryParams: param,
     },
   );
 
   return res;
 }; 
 
-export const getOrg = async (): Promise<NsbOrgResponse> => {
+export const getOrg = async (param?: Record<string, string>): Promise<NsbOrgResponse> => {
   if (isDev) {
     return mockOrg;
   }
@@ -105,13 +109,14 @@ export const getOrg = async (): Promise<NsbOrgResponse> => {
     "/masterdata/nsb-org/get",
     {
       method: "GET",
+      queryParams: param,
     },
   );
 
   return res;
 };
 
-export const getProject = async (): Promise<ProjectResponse> => {
+export const getProject = async (param?: Record<string, string>): Promise<ProjectResponse> => {
   if (isDev) {
     return mockProject;
   }
@@ -120,13 +125,14 @@ export const getProject = async (): Promise<ProjectResponse> => {
     "/core-data/projects/get",
     {
       method: "GET",
+      queryParams: param,
     },
   );
 
   return res;
 };
 
-export const getProvince = async (): Promise<ProvinceResponse> => {
+export const getProvince = async (param?: Record<string, string>): Promise<ProvinceResponse> => {
   if (isDev) {
     return mockProvince;
   }
@@ -135,6 +141,7 @@ export const getProvince = async (): Promise<ProvinceResponse> => {
     "/masterdata/provinces/get",
     {
       method: "GET",
+      queryParams: param,
     },
   );
 
@@ -173,7 +180,7 @@ export const getSubdistrict = async (param?: Record<string, string>): Promise<Su
   return res;
 };
 
-export const getDeviceStatus = async (): Promise<DeviceStatusResponse> => {
+export const getDeviceStatus = async (param?: Record<string, string>): Promise<DeviceStatusResponse> => {
   if (isDev) {
     return mockDeviceStatus;
   }
@@ -182,13 +189,14 @@ export const getDeviceStatus = async (): Promise<DeviceStatusResponse> => {
     "/masterdata/device-statuses/get",
     {
       method: "GET",
+      queryParams: param,
     },
   );
 
   return res;
 };
 
-export const getTitle = async (): Promise<TitleResponse> => {
+export const getTitle = async (param?: Record<string, string>): Promise<TitleResponse> => {
   if (isDev) {
     return mockTitle;
   }
@@ -197,13 +205,14 @@ export const getTitle = async (): Promise<TitleResponse> => {
     "/masterdata/person-titles/get",
     {
       method: "GET",
+      queryParams: param,
     },
   );
   
   return res;
 };
 
-export const getLprRegion = async (): Promise<LprRegionResponse> => {
+export const getLprRegion = async (param?: Record<string, string>): Promise<LprRegionResponse> => {
   if (isDev) {
     return mockLprRegion;
   }
@@ -212,13 +221,14 @@ export const getLprRegion = async (): Promise<LprRegionResponse> => {
     "/masterdata/lpr-regions/get",
     {
       method: "GET",
+      queryParams: param,
     },
   );
   
   return res;
 };
 
-export const getPoliceStation = async (): Promise<PoliceStationResponse> => {
+export const getPoliceStation = async (param?: Record<string, string>): Promise<PoliceStationResponse> => {
   if (isDev) {
     return mockPoliceStations;
   }
@@ -227,6 +237,7 @@ export const getPoliceStation = async (): Promise<PoliceStationResponse> => {
     "/masterdata/police-stations/get",
     {
       method: "GET",
+      queryParams: param,
     },
   );
 

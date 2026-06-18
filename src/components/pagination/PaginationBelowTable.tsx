@@ -38,7 +38,7 @@ const PaginationBelowTableComponent: React.FC<PaginationProps> = ({
   const { t } = useTranslation();
 
   return (
-    <div className='flex items-center justify-between w-full'>
+    <div className='flex [@media(max-width:1500px)]:flex-col items-center justify-between w-full'>
       <div className="flex items-center gap-4">
         <p className="text-(--primary-color) text-[16px]">{t("text.rows-per-page")}</p>
         <Select

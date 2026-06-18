@@ -5,7 +5,7 @@ import ReactDOMServer from "react-dom/server";
 import { useSelector } from 'react-redux';
 
 // Types
-import type { Device, DeviceStatus, CameraInCheckpoint } from "../types/common";
+import type { DeviceStatus, CameraInCheckpoint } from "../types/common";
 
 // Icons
 import CameraIcon from "../assets/svg/camera.svg?react";
@@ -25,7 +25,7 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
   const [markers, setMarkers] = useState<Marker[]>([]);
 
   // i18n
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   // Options
   const [deviceStatusOptions, setDeviceStatusOptions] = useState<DeviceStatus[]>([]);
@@ -275,8 +275,8 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
               <p style="color: var(--primary-color); margin-top: 0px;">${t('text.total-2')} ${cameraLength} จุด</p>
             </div>
           </div>
-          <div style="padding: 0px 5px;">
-            <div style="padding: 10px 15px; background-color: var(--tertiary-color); border: 1px solid var(--primary-color);width: 100%; height: 120px">
+          <div style="padding: 0px 5px; display: flex;">
+            <div style="flex: 1; padding: 10px 15px; background-color: var(--tertiary-color); border: 1px solid var(--primary-color); min-height: 80px;">
               <label style="color: var(--primary-color); font-size: 12px;">${t('text.area-structure')}</label>
 
               <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 15px;">

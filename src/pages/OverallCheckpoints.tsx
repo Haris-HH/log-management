@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import dayjs from "dayjs";
 import { useSelector } from 'react-redux';
 
@@ -34,7 +34,7 @@ import WifiIcon from "../assets/svg/wifi.svg?react";
 import { ROWS_PER_PAGE_OPTIONS } from "../constants/dropdown";
 
 // Types
-import type { Device, ColumnOption } from "../types/common";
+import type { Device, ColumnOption, Project } from "../types/common";
 import type { OverallCheckpointsPdfData } from "../types/pdf";
 
 // Utils
@@ -58,7 +58,7 @@ import type { RootState } from "../store/store";
 
 // API
 import { getOverallCheckpoint } from "../features/overall/api/OverallApi";
-import { getDistrict, getSubdistrict } from "../features/dropdown/api/DropdownApi";
+import { getDistrict, getSubdistrict, getPoliceStation, getProject } from "../features/dropdown/api/DropdownApi";
 
 // i18n
 import { useTranslation } from 'react-i18next';
@@ -83,12 +83,9 @@ const OverallCheckpoints = () => {
   const [totalItems, setTotalItems] = useState(0);
   const [totalUsage, setTotalUsage] = useState(0);
   const [rows, setRows] = useState<Device[]>([]);
-  const [selectedData, setSelectedData] = useState<Device | null>(null);
+  const [project, setProject] = useState<Project[]>([]);
 
   // Options
-  const [areaOptions, setAreaOptions] = useState<{ label: string, value: string }[]>([]);
-  const [provinceOptions, setProvinceOptions] = useState<{ label: string, value: string }[]>([]);
-  const [projectOptions, setProjectOptions] = useState<{ label: string, value: string }[]>([]);
   const [columnOptions, setColumnOptions] = useState<ColumnOption[]>(column);
 
   // Pagination
@@ -122,36 +119,54 @@ const OverallCheckpoints = () => {
   };
 
   // Slice
-  const { area, province, project, policeStation } = useSelector((state: RootState) => state.dropdown);
+  const { area, province } = useSelector((state: RootState) => state.dropdown);
 
   usePageTitle(t("pages.overall-checkpoints"));
 
-  useEffect(() => {
+  const areaOptions = useMemo(() => {
     const langKeyArea = i18n.language === "th" ? "title_th" : "title_en";
+    return buildOptions(area, t("dropdown.all-area"), langKeyArea, "id");
+  }, [area, t, i18n.language]);
+
+  const provinceOptions = useMemo(() => {
     const langKeyProvince = i18n.language === "th" ? "name_th" : "name_en";
-    const langKeyProject = "project_name";
-
-    setAreaOptions(
-      buildOptions(area, t("dropdown.all-area"), langKeyArea, "id")
-    );
-
     const filteredProvince =
       formData.area_id !== "0"
         ? province.filter((item) => item.police_region_id === Number(formData.area_id))
         : province;
-    setProvinceOptions(
-      buildOptions(
+    return buildOptions(
         filteredProvince, t('dropdown.all-province'), 
         langKeyProvince,
-        "province_code")
-      );
+        "province_code");
+  }, [province, t, i18n.language, formData.area_id]);
 
-    const filteredProject = 
+  const projectOptions = useMemo(() => {
+    const langKeyProject = "project_name";
+    const filteredProject =
       formData.province_id !== "0"
         ? project.filter((item) => item.province_code === formData.province_id)
         : project;
-    setProjectOptions(buildOptions(filteredProject, t('dropdown.all-project'), langKeyProject, "project_id"));
-  }, [area, province, project, t, formData.area_id, i18n.language, i18n.isInitialized]);
+
+    return buildOptions(filteredProject, t("dropdown.all-bk"), langKeyProject, "project_id")
+  }, [project, t, i18n.language, formData.province_id]);
+
+  const fetchProjectList = useCallback(async (provinceCode?: string) => {
+    try {
+      const params =
+        provinceCode !== "0"
+          ? { province_code: provinceCode }
+          : undefined;
+
+      const res = await getProject(params);
+      setProject(res.data ?? []);
+    } catch (error) {
+      setProject([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchProjectList(formData.province_id);
+  }, [fetchProjectList, formData.province_id]);
 
   useEffect(() => {
     setColumnOptions(column);
@@ -172,8 +187,8 @@ const OverallCheckpoints = () => {
             const resSubdistrict = await getSubdistrict({ filter: `province_code=${item.province_code},district_code=${item.district_code},subdistrict_code=${item.subdistrict_code}` });
             const provinceData = province.find((p) => p.province_code === item.province_code);            
             const areaData = area.find((a) => a.id === Number(item.police_region_id));
-            const policeStationData = policeStation.find((p) => p.id === Number(item.police_station_id));
-            const projectData = project.find((p) => p.project_id === item.project_id);
+            const policeStationData = await getPoliceStation({ filter: `id=${item.police_station_id}` });
+            const projectData = await getProject({ filter: `project_id=${item.project_id}` });
 
             return {
               ...item,
@@ -182,8 +197,8 @@ const OverallCheckpoints = () => {
               subdistrict_name: i18n.language === "th" ? resSubdistrict.data[0]?.name_th ?? "-" : resSubdistrict.data[0]?.name_en ?? "-",
               police_region_name: i18n.language === "th" ? areaData?.title_th ?? "-" : areaData?.title_en ?? "-",
               checkpoint_name: item.checkpoint_name,
-              police_station_name: policeStationData?.station_name ?? "-",
-              project_name: projectData?.project_name ?? "-",
+              police_station_name: policeStationData.data[0]?.station_name ?? "-",
+              project_name: projectData.data[0]?.project_name ?? "-",
             }
           })
         )
@@ -318,10 +333,18 @@ const OverallCheckpoints = () => {
       <MainTitle title={t("pages.overall-checkpoints")} />
       <div className='flex flex-col p-4 bg-(--main-bg-color) flex-1 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-y-auto gap-2'>
         {/* Search Filters */}
-        <Box 
-          className="grid grid-cols-[repeat(5,minmax(0,1fr))_180px] border border-(--primary-color) rounded-[10px] p-4 gap-2 bg-(--tertiary-color)"
+        <Box
+          className="border border-(--primary-color) rounded-[10px] p-4 gap-2 bg-(--tertiary-color)"
           sx={{
             boxShadow: "0px 2px 8px rgba(var(--tertiary-color-rgb),0.1)",
+            display: "grid",
+            gap: 2,
+            gridTemplateColumns: {
+              xs: "1fr",
+              md: "repeat(2, minmax(0, 1fr))",
+              lg: "repeat(3, minmax(0, 1fr))",
+              xl: "repeat(5, minmax(0, 1fr)) 180px",
+            },
             "& h6": {
               whiteSpace: "nowrap",
               overflow: "hidden",

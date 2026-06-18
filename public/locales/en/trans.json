@@ -4,7 +4,9 @@
     "subtitle": "Narcotics Suppression Bureau"
   },
   "navbar": {
-    "logout": "Logout"
+    "logout": "Logout",
+    "language": "ภาษา",
+    "theme": "ธีม"
   },
   "pages": {
     "chart-internal-police": "Chart Internal Police",
@@ -135,7 +137,8 @@
     "app-version": "App Version",
     "export-excel": "Exporting Excel...",
     "export-pdf": "Exporting PDF...",
-    "complete": "Complete"
+    "complete": "Complete",
+    "number-of-item": "Number of items"
   },
   "dock": {
     "home": "Home",

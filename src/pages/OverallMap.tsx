@@ -113,7 +113,7 @@ const OverallMap = () => {
       langKeyProvince, 
       "region_code",
       false);
-  }, [province, t, i18n.language]);
+  }, [province, t, i18n.language, formData.area_id]);
 
   const typeOptions = useMemo(() => {
     const langKeyDeviceStatus = i18n.language === "th" ? "status_th" : "status_en";

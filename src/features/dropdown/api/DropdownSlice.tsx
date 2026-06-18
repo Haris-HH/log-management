@@ -71,162 +71,180 @@ const initialState: DropdownState = {
   error: null,
 };
 
+type DropdownParams = Record<string, string> | undefined;
+
+const getErrorMessage = (err: any) =>
+  err?.response?.data?.message ?? err?.message ?? "Something went wrong";
+
 // Thunks
-export const fetchArea = createAsyncThunk(
-  "dropdown/fetchArea",
-  async (_, { rejectWithValue }) => {
-    try {
-      const res = await getArea();
-      return res.data;
-    } catch (err: any) {
-      return rejectWithValue(err.message);
-    }
+export const fetchArea = createAsyncThunk<
+  AreaResponse["data"],
+  DropdownParams,
+  { rejectValue: string }
+>("dropdown/fetchArea", async (param = undefined, { rejectWithValue }) => {
+  try {
+    const { data } = await getArea(param);
+    return data;
+  } catch (err: any) {
+    return rejectWithValue(getErrorMessage(err));
   }
-);
+});
 
-export const fetchAgency = createAsyncThunk(
-  "dropdown/fetchAgency",
-  async (_, { rejectWithValue }) => {
-    try {
-      const res = await getAgency();
-      return res.data;
-    } catch (err: any) {
-      return rejectWithValue(err.message);
-    }
+export const fetchAgency = createAsyncThunk<
+  NsbOuResponse["data"],
+  DropdownParams,
+  { rejectValue: string }
+>("dropdown/fetchAgency", async (param = undefined, { rejectWithValue }) => {
+  try {
+    const { data } = await getAgency(param);
+    return data;
+  } catch (err: any) {
+    return rejectWithValue(getErrorMessage(err));
   }
-);
+});
 
-export const fetchBh = createAsyncThunk(
-  "dropdown/fetchBh",
-  async (_, { rejectWithValue }) => {
-    try {
-      const res = await getBh();
-      return res.data;
-    } catch (err: any) {
-      return rejectWithValue(err.message);
-    }
+export const fetchBh = createAsyncThunk<
+  NsbBhResponse["data"],
+  DropdownParams,
+  { rejectValue: string }
+>("dropdown/fetchBh", async (param = undefined, { rejectWithValue }) => {
+  try {
+    const { data } = await getBh(param);
+    return data;
+  } catch (err: any) {
+    return rejectWithValue(getErrorMessage(err));
   }
-);
+});
 
-export const fetchBk = createAsyncThunk(
-  "dropdown/fetchBk",
-  async (_, { rejectWithValue }) => {
-    try {
-      const res = await getBk();
-      return res.data;
-    } catch (err: any) {
-      return rejectWithValue(err.message);
-    }
+export const fetchBk = createAsyncThunk<
+  NsbBkResponse["data"],
+  DropdownParams,
+  { rejectValue: string }
+>("dropdown/fetchBk", async (param = undefined, { rejectWithValue }) => {
+  try {
+    const { data } = await getBk(param);
+    return data;
+  } catch (err: any) {
+    return rejectWithValue(getErrorMessage(err));
   }
-);
+});
 
-export const fetchOrg = createAsyncThunk(
-  "dropdown/fetchOrg",
-  async (_, { rejectWithValue }) => {
-    try {
-      const res = await getOrg();
-      return res.data;
-    } catch (err: any) {
-      return rejectWithValue(err.message);
-    }
+export const fetchOrg = createAsyncThunk<
+  NsbOrgResponse["data"],
+  DropdownParams,
+  { rejectValue: string }
+>("dropdown/fetchOrg", async (param = undefined, { rejectWithValue }) => {
+  try {
+    const { data } = await getOrg(param);
+    return data;
+  } catch (err: any) {
+    return rejectWithValue(getErrorMessage(err));
   }
-);
+});
 
-export const fetchProject = createAsyncThunk(
-  "dropdown/fetchProject",
-  async (_, { rejectWithValue }) => {
-    try {
-      const res = await getProject();
-      return res.data;
-    } catch (err: any) {
-      return rejectWithValue(err.message);
-    }
+export const fetchProject = createAsyncThunk<
+  ProjectResponse["data"],
+  DropdownParams,
+  { rejectValue: string }
+>("dropdown/fetchProject", async (param = undefined, { rejectWithValue }) => {
+  try {
+    const { data } = await getProject(param);
+    return data;
+  } catch (err: any) {
+    return rejectWithValue(getErrorMessage(err));
   }
-);
+});
 
-export const fetchProvince = createAsyncThunk(
-  "dropdown/fetchProvince",
-  async (_, { rejectWithValue }) => {
-    try {
-      const res = await getProvince();
-      return res.data;
-    } catch (err: any) {
-      return rejectWithValue(err.message);
-    }
+export const fetchProvince = createAsyncThunk<
+  ProvinceResponse["data"],
+  DropdownParams,
+  { rejectValue: string }
+>("dropdown/fetchProvince", async (param = undefined, { rejectWithValue }) => {
+  try {
+    const { data } = await getProvince(param);
+    return data;
+  } catch (err: any) {
+    return rejectWithValue(getErrorMessage(err));
   }
-);
+});
 
-export const fetchDistrict = createAsyncThunk(
-  "dropdown/fetchDistrict",
-  async (_, { rejectWithValue }) => {
-    try {
-      const res = await getDistrict();
-      return res.data;
-    } catch (err: any) {
-      return rejectWithValue(err.message);
-    }
+export const fetchDistrict = createAsyncThunk<
+  DistrictResponse["data"],
+  DropdownParams,
+  { rejectValue: string }
+>("dropdown/fetchDistrict", async (param = undefined, { rejectWithValue }) => {
+  try {
+    const { data } = await getDistrict(param);
+    return data;
+  } catch (err: any) {
+    return rejectWithValue(getErrorMessage(err));
   }
-);
+});
 
-export const fetchSubdistrict = createAsyncThunk(
-  "dropdown/fetchSubdistrict",
-  async (_, { rejectWithValue }) => {
-    try {
-      const res = await getSubdistrict();
-      return res.data;
-    } catch (err: any) {
-      return rejectWithValue(err.message);
-    }
+export const fetchSubdistrict = createAsyncThunk<
+  SubdistrictResponse["data"],
+  DropdownParams,
+  { rejectValue: string }
+>("dropdown/fetchSubdistrict", async (param = undefined, { rejectWithValue }) => {
+  try {
+    const { data } = await getSubdistrict(param);
+    return data;
+  } catch (err: any) {
+    return rejectWithValue(getErrorMessage(err));
   }
-);
+});
 
-export const fetchDeviceStatus = createAsyncThunk(
-  "dropdown/fetchDeviceStatus",
-  async (_, { rejectWithValue }) => {
-    try {
-      const res = await getDeviceStatus();
-      return res.data;
-    } catch (err: any) {
-      return rejectWithValue(err.message);
-    }
+export const fetchDeviceStatus = createAsyncThunk<
+  DeviceStatusResponse["data"],
+  DropdownParams,
+  { rejectValue: string }
+>("dropdown/fetchDeviceStatus", async (param = undefined, { rejectWithValue }) => {
+  try {
+    const { data } = await getDeviceStatus(param);
+    return data;
+  } catch (err: any) {
+    return rejectWithValue(getErrorMessage(err));
   }
-);
+});
 
-export const fetchTitle = createAsyncThunk(
-  "dropdown/fetchTitle",
-  async (_, { rejectWithValue }) => {
-    try {
-      const res = await getTitle();
-      return res.data;
-    } catch (err: any) {
-      return rejectWithValue(err.message);
-    }
+export const fetchTitle = createAsyncThunk<
+  TitleResponse["data"],
+  DropdownParams,
+  { rejectValue: string }
+>("dropdown/fetchTitle", async (param = undefined, { rejectWithValue }) => {
+  try {
+    const { data } = await getTitle(param);
+    return data;
+  } catch (err: any) {
+    return rejectWithValue(getErrorMessage(err));
   }
-);
+});
 
-export const fetchLprRegion = createAsyncThunk(
-  "dropdown/fetchLprRegion",
-  async (_, { rejectWithValue }) => {
-    try {
-      const res = await getLprRegion();
-      return res.data;
-    } catch (err: any) {
-      return rejectWithValue(err.message);
-    }
+export const fetchLprRegion = createAsyncThunk<
+  LprRegionResponse["data"],
+  DropdownParams,
+  { rejectValue: string }
+>("dropdown/fetchLprRegion", async (param = undefined, { rejectWithValue }) => {
+  try {
+    const { data } = await getLprRegion(param);
+    return data;
+  } catch (err: any) {
+    return rejectWithValue(getErrorMessage(err));
   }
-);
+});
 
-export const fetchPoliceStation = createAsyncThunk(
-  "dropdown/fetchPoliceStation",
-  async (_, { rejectWithValue }) => {
-    try {
-      const res = await getPoliceStation();
-      return res.data;
-    } catch (err: any) {
-      return rejectWithValue(err.message);
-    }
+export const fetchPoliceStation = createAsyncThunk<
+  PoliceStationResponse["data"],
+  DropdownParams,
+  { rejectValue: string }
+>("dropdown/fetchPoliceStation", async (param = undefined, { rejectWithValue }) => {
+  try {
+    const { data } = await getPoliceStation(param);
+    return data;
+  } catch (err: any) {
+    return rejectWithValue(getErrorMessage(err));
   }
-);
+});
 
 // Slice
 const dropdownSlice = createSlice({

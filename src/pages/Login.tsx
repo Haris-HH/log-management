@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { motion, AnimatePresence } from "framer-motion";
-import { useSelector } from 'react-redux';
 import { useNavigate } from "react-router-dom";
 
 // Material UI
@@ -20,12 +19,12 @@ import { useTranslation } from "react-i18next";
 import { loginApi } from "../features/login/api/LoginApi";
 import { getUserApi } from "../features/users/api/UsersApi";
 import { setAuthUser } from "../features/auth-user/api/AuthUserSlice";
+import { getTitle, getAgency } from "../features/dropdown/api/DropdownApi";
 
 // Utils
 import { PopupMessage } from "../utils/popupMessage";
 
 // Store
-import type { RootState } from "../store/store";
 import { useAppDispatch } from "../store/hooks";
 
 interface FormData {
@@ -51,9 +50,6 @@ const Login = () => {
     username: "",
     password: "",
   });
-
-  // Slice
-  const { agency, title } = useSelector((state: RootState) => state.dropdown);
   
   const {
     register,
@@ -93,23 +89,22 @@ const Login = () => {
 
       if (result.userId) {
         const userResponse = await getUserApi({ filter: `user_id=${result.userId}` });
-        const titleName = title.find(
-          (titleItem) => titleItem.id === userResponse.data[0]?.title_id
-        );
-        const nsbOu = agency.find((a) => a.ou_code === userResponse.data[0]?.ou_code);
+        const titleData = await getTitle({ filter: `id=${userResponse.data[0]?.title_id}` });
+        const nsbOuData = await getAgency({ filter: `ou_code=${userResponse.data[0]?.ou_code}` });
+        
         dispatch(
           setAuthUser({
             user_id: userResponse.data[0]?.user_id ?? "-",
             hash_id: userResponse.data[0]?.hash_id ?? "-",
-            title_name_th: titleName?.title_abbr_th ?? "",
-            title_name_en: titleName?.title_abbr_en ?? "",
+            title_name_th: titleData.data[0]?.title_abbr_th ?? "",
+            title_name_en: titleData.data[0]?.title_abbr_en ?? "",
             first_name: userResponse.data[0]?.firstname ?? "-",
             last_name: userResponse.data[0]?.lastname ?? "-",
             image_url: userResponse.data[0]?.image_url ?? "-",
             agency: {
               ou_code: userResponse.data[0]?.ou_code,
-              ou_abbr_th: nsbOu?.ou_abbr_th ?? "-",
-              ou_abbr_en: nsbOu?.ou_abbr_en ?? "-",
+              ou_abbr_th: nsbOuData.data[0]?.ou_abbr_th ?? "-",
+              ou_abbr_en: nsbOuData.data[0]?.ou_abbr_en ?? "-",
             },
           })
         );

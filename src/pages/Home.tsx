@@ -2,6 +2,9 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
+// Material UI
+import Box from "@mui/material/Box";
+
 // Hooks
 import { useDockItems } from "../hooks/useDockItems";
 
@@ -14,8 +17,18 @@ const Home = () => {
   const [mousePosition, setMousePosition] = useState<Record<number, { x: number; y: number }>>({});
 
   return (
-    <section id="home" className="h-full w-full">
-      <div className="grid h-full grid-cols-3 [@media(max-height:780px)]:grid-cols-1 gap-4 p-4">
+    <section id="home" className="h-full w-full overflow-y-auto">
+      <Box className="h-full p-4"
+        sx={{
+          display: "grid",
+          gap: 4,
+          gridTemplateColumns: {
+            xs: "1fr",
+            md: "repeat(2, minmax(0, 1fr))",
+            lg: "repeat(3, minmax(0, 1fr))",
+          },
+        }}
+      >
         {dockItems.filter((item) => item.subMenu).map((item, index) => {
           const isHovered = hoveredIndex === index;
           const pointer = mousePosition[index] || { x: 50, y: 50 };
@@ -144,7 +157,7 @@ const Home = () => {
             </motion.div>
           );
         })}
-      </div>
+      </Box>
     </section>
   );
 };

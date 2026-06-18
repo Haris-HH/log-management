@@ -37,7 +37,7 @@ import TableIcon from "../assets/svg/table.svg?react";
 
 // Types
 import type { OverallPieChart } from "../types/chart";
-import type { OverallReportType, Summary, Series } from "../types/common";
+import type { OverallReportType, Summary, Series, Project } from "../types/common";
 import type { OverallReportPdfData } from "../types/pdf"
 
 // Utils
@@ -46,6 +46,8 @@ import { buildOptions, getPercent, formatNumber, formatPercent } from "../utils/
 
 // API
 import { getOverallReport, searchOverallProblemReport } from "../features/overall/api/OverallApi";
+import { getProject } from "../features/dropdown/api/DropdownApi";
+
 
 // i18n
 import { useTranslation } from "react-i18next";
@@ -80,7 +82,7 @@ const defaultFormData = (): FormData => ({
 const OverallReport = () => {
   const { t, i18n } = useTranslation();
 
-  const { area, province, project } = useSelector(
+  const { area, province } = useSelector(
     (state: RootState) => state.dropdown
   );
 
@@ -97,6 +99,7 @@ const OverallReport = () => {
   const [dayReport, setDayReport] = useState<OverallPieChart[]>([]);
   const [weekReport, setWeekReport] = useState<Series[]>([]);
   const [monthReport, setMonthReport] = useState<Series[]>([]);
+  const [project, setProject] = useState<Project[]>([]);
 
   const [formData, setFormData] = useState<FormData>(defaultFormData);
 
@@ -147,7 +150,7 @@ const OverallReport = () => {
       "project_name",
       "project_id"
     );
-  }, [project, formData.province_id, t]);
+  }, [project, formData.province_id, t, i18n.language]);
 
   // Map
   const areaMap = new Map(
@@ -198,6 +201,26 @@ const OverallReport = () => {
 
     return filters;
   }, []);
+
+  const fetchProjectList = useCallback(async (provinceCode?: string) => {
+    try {
+      const params: Record<string, string> = {
+        limit: "100",
+        ...(provinceCode && provinceCode !== "0"
+          ? { province_code: provinceCode }
+          : {}),
+      };
+      
+      const res = await getProject(params);
+      setProject(res.data ?? []);
+    } catch (error) {
+      setProject([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchProjectList(formData.province_id);
+  }, [fetchProjectList, formData.province_id]);
 
   const fetchData = useCallback(
     async (filterData: FormData = formData, range: ReportRange = reportRange) => {
@@ -570,7 +593,7 @@ const OverallReport = () => {
 
       <div className="p-4 bg-(--main-bg-color) flex flex-1 flex-col gap-4 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-y-auto">
         <Box className="flex flex-col gap-4 bg-(--tertiary-color) p-4">
-          <Box className="flex gap-4">
+          <Box className="flex [@media(max-width:1500px)]:flex-col gap-4">
             {(["day", "week", "month"] as ReportRange[]).map((range) => (
               <Button
                 key={range}
@@ -621,10 +644,18 @@ const OverallReport = () => {
               },
               display: "grid",
               gap: 2,
-              gridTemplateColumns:
-                reportRange === "week"
-                  ? "repeat(5, minmax(0, 1fr)) 130px"
-                  : "repeat(4, minmax(0, 1fr)) 130px",
+              gridTemplateColumns: {
+                xs: "1fr",
+                md: "repeat(2, minmax(0, 1fr))",
+                lg:
+                  reportRange === "week"
+                    ? "repeat(3, minmax(0, 1fr))"
+                    : "repeat(3, minmax(0, 1fr))",
+                xl:
+                  reportRange === "week"
+                    ? "repeat(5, minmax(0, 1fr)) 130px"
+                    : "repeat(4, minmax(0, 1fr)) 130px",
+              },
             }}
           >
             {reportRange === "day" && (
@@ -827,7 +858,7 @@ const OverallReport = () => {
           </Box>
         </Box>
 
-        <Box className="grid grid-cols-2 gap-4 flex-1">
+        <Box className="grid grid-cols-2 [@media(max-width:1500px)]:grid-cols-1 gap-4 flex-1">
           <Box className="flex flex-col gap-4 bg-(--tertiary-color) p-4">
             <Box className="flex gap-2">
               <ChartIcon
