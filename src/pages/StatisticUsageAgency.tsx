@@ -210,7 +210,19 @@ const StatisticUsageAgency = () => {
 
   useEffect(() => {
     fetchData(formData);
-  }, [formData, agency, bh, bk, org]);
+  }, [
+    formData.agency_id,
+    formData.bh_id,
+    formData.bk_id,
+    formData.start_date_time,
+    formData.end_date_time,
+    page,
+    rowsPerPage,
+    agency,
+    bh,
+    bk,
+    org,
+  ]);
 
   const mapUsageLogRows = useCallback(
     (data: AccessLog[]) => {

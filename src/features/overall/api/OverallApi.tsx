@@ -22,7 +22,7 @@ import {
 // Env
 const isDev = import.meta.env.VITE_IS_DEV;
 
-export const getOverallCheckpoint = async (): Promise<CameraResponse> => {
+export const getOverallCheckpoint = async (body?: Record<string, string>): Promise<CameraResponse> => {
   if (isDev) {
     return mockCamera;
   }
@@ -31,7 +31,7 @@ export const getOverallCheckpoint = async (): Promise<CameraResponse> => {
     "/core-data/cameras/search",
     {
       method: "POST",
-      body: JSON.stringify({}),
+      body: JSON.stringify(body),
     },
   );
 

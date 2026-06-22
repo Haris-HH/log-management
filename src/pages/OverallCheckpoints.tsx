@@ -133,7 +133,6 @@ const OverallCheckpoints = () => {
 
   // CONSTANTS
   const CHUNK_SIZE = 1000;
-  const REQUEST_LIMIT = 1000;
 
   // Slice
   const { area, province } = useSelector((state: RootState) => state.dropdown);
@@ -201,7 +200,10 @@ const OverallCheckpoints = () => {
     try {
       setIsLoading(true);
 
-      const res = await getOverallCheckpoint();
+      const res = await getOverallCheckpoint({
+        page: page.toString(),
+        limit: rowsPerPage.toString(),
+      });
       const cameras = res.data ?? [];
 
       const updated = await mapCameraRows(cameras);
@@ -238,7 +240,11 @@ const OverallCheckpoints = () => {
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, [
+    fetchData,
+    page,
+    rowsPerPage,
+  ]);
 
   const filteredRows = useMemo(() => {
     return rows.filter((item) => {
@@ -932,7 +938,10 @@ const OverallCheckpoints = () => {
   };
 
   const getExportData = useCallback(async () => {
-    const res = await getOverallCheckpoint();
+    const res = await getOverallCheckpoint({
+      page: page.toString(),
+      limit: rowsPerPage.toString(),
+    });
 
     const cameras = res.data ?? [];
 
