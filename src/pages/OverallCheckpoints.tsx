@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import dayjs from "dayjs";
 import { useSelector } from 'react-redux';
+import { saveAs } from "file-saver";
+import JSZip from "jszip";
 
 // Material UI
 import Box from "@mui/material/Box";
@@ -21,6 +23,8 @@ import AutoComplete from "../components/auto-complete/AutoComplete";
 import PaginationComponent from "../components/pagination/Pagination";
 import TextBox from "../components/text-box/TextBox";
 import Loading from "../components/loading-screen/LoadingScreen";
+import ExportLoadingScreen from "../components/loading-screen/ExportLoadingScreen";
+import GroupExportButton from "../components/group-export-button/GroupExportButton";
 
 // Icons
 import ClearIcon from "../assets/svg/clear.svg?react";
@@ -34,20 +38,28 @@ import WifiIcon from "../assets/svg/wifi.svg?react";
 import { ROWS_PER_PAGE_OPTIONS } from "../constants/dropdown";
 
 // Types
-import type { Device, ColumnOption, Project } from "../types/common";
+import type { Camera, ColumnOption, Project } from "../types/common";
 import type { OverallCheckpointsPdfData } from "../types/pdf";
 
 // Utils
-import { exportExcel } from "../utils/exportData";
+import {
+  exportExcel,
+  generateExcelBlob,
+} from "../utils/exportData";
 import { buildOptions } from "../utils/commonFunctions";
-import { PopupMessage } from '../utils/popupMessage';
+import {
+  PopupMessage,
+  PopupMessageWithCancel,
+} from "../utils/popupMessage";
 
 // Hooks
 import { useColumn } from "../hooks/useColumn";
+import useExportProgress from "../hooks/useExportProgress";
 
 // PDF
 import {
   downloadOverallCheckpointsPdf,
+  generateOverallCheckpointsPdfBlob,
 } from "../pdf/OverallCheckpointPdf";
 
 // Hooks
@@ -59,6 +71,7 @@ import type { RootState } from "../store/store";
 // API
 import { getOverallCheckpoint } from "../features/overall/api/OverallApi";
 import { getDistrict, getSubdistrict, getPoliceStation, getProject } from "../features/dropdown/api/DropdownApi";
+import { getCheckpoints } from "../features/core-data/api/CoreDataApi";
 
 // i18n
 import { useTranslation } from 'react-i18next';
@@ -82,7 +95,7 @@ const OverallCheckpoints = () => {
   // Data
   const [totalItems, setTotalItems] = useState(0);
   const [totalUsage, setTotalUsage] = useState(0);
-  const [rows, setRows] = useState<Device[]>([]);
+  const [rows, setRows] = useState<Camera[]>([]);
   const [project, setProject] = useState<Project[]>([]);
 
   // Options
@@ -101,13 +114,13 @@ const OverallCheckpoints = () => {
   // Form Data
   const [formData, setFormData] = useState<FormData>({
     search: "",
-    area_id: "0",
+    area_id: "",
     province_id: "0",
     project_id: "0",
   });
 
   const columnKeyMap: Record<string, keyof typeof rows[0]> = {
-    camera: "device_name",
+    camera: "camera_name",
     station: "police_station_name",
     area: "police_region_name",
     province: "province_name",
@@ -118,20 +131,32 @@ const OverallCheckpoints = () => {
     project: "project_name",
   };
 
+  // CONSTANTS
+  const CHUNK_SIZE = 1000;
+  const REQUEST_LIMIT = 1000;
+
   // Slice
   const { area, province } = useSelector((state: RootState) => state.dropdown);
 
   usePageTitle(t("pages.overall-checkpoints"));
 
+  const {
+    exportLoading,
+    exportProgress,
+    startExportLoading,
+    stopExportLoading,
+    updateExportProgress,
+  } = useExportProgress();
+
   const areaOptions = useMemo(() => {
     const langKeyArea = i18n.language === "th" ? "title_th" : "title_en";
-    return buildOptions(area, t("dropdown.all-area"), langKeyArea, "id");
+    return buildOptions(area, t("dropdown.all-area"), langKeyArea, "id", true, "");
   }, [area, t, i18n.language]);
 
   const provinceOptions = useMemo(() => {
     const langKeyProvince = i18n.language === "th" ? "name_th" : "name_en";
     const filteredProvince =
-      formData.area_id !== "0"
+      formData.area_id !== ""
         ? province.filter((item) => item.police_region_id === Number(formData.area_id))
         : province;
     return buildOptions(
@@ -170,54 +195,286 @@ const OverallCheckpoints = () => {
 
   useEffect(() => {
     setColumnOptions(column);
-  }, [column, t, i18n.language, i18n.isInitialized])
+  }, [column, t, i18n.language, i18n.isInitialized]);
+
+  const fetchData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+
+      const res = await getOverallCheckpoint();
+      const cameras = res.data ?? [];
+
+      const updated = await mapCameraRows(cameras);
+
+      setRows(updated);
+      setTotalItems(updated.length);
+      setTotalUsage(updated.length);
+      setTotalPages(
+        Math.ceil(updated.length / rowsPerPage)
+      );
+    } 
+    catch (error) {
+      await PopupMessage(
+        t("popup.fetch-error"),
+        "",
+        "error"
+      );
+
+      setRows([]);
+      setTotalItems(0);
+      setTotalUsage(0);
+      setTotalPages(1);
+    } 
+    finally {
+      setIsLoading(false);
+    }
+  }, [
+    area,
+    province,
+    i18n.language,
+    rowsPerPage,
+    t,
+  ]);
 
   useEffect(() => {
     fetchData();
-  }, [formData]);
+  }, [fetchData]);
 
-  const fetchData = useCallback(
-    async () => {
-      try {
-        setIsLoading(true);
-        const res = await getOverallCheckpoint();
-        const updated = await Promise.all(
-          res.data.map(async (item) => {
-            const resDistrict = await getDistrict({ filter: `province_code=${item.province_code},district_code=${item.district_code}` });
-            const resSubdistrict = await getSubdistrict({ filter: `province_code=${item.province_code},district_code=${item.district_code},subdistrict_code=${item.subdistrict_code}` });
-            const provinceData = province.find((p) => p.province_code === item.province_code);            
-            const areaData = area.find((a) => a.id === Number(item.police_region_id));
-            const policeStationData = await getPoliceStation({ filter: `id=${item.police_station_id}` });
-            const projectData = await getProject({ filter: `project_id=${item.project_id}` });
+  const filteredRows = useMemo(() => {
+    return rows.filter((item) => {
+      const keyword =
+        formData.search.toLowerCase();
 
-            return {
-              ...item,
-              province_name: i18n.language === "th" ? provinceData?.name_th ?? "-" : provinceData?.name_en ?? "-",
-              district_name: i18n.language === "th" ? resDistrict.data[0]?.name_th ?? "-" : resDistrict.data[0]?.name_en ?? "-",
-              subdistrict_name: i18n.language === "th" ? resSubdistrict.data[0]?.name_th ?? "-" : resSubdistrict.data[0]?.name_en ?? "-",
-              police_region_name: i18n.language === "th" ? areaData?.title_th ?? "-" : areaData?.title_en ?? "-",
-              checkpoint_name: item.checkpoint_name,
-              police_station_name: policeStationData.data[0]?.station_name ?? "-",
-              project_name: projectData.data[0]?.project_name ?? "-",
-            }
-          })
+      const matchesSearch =
+        !keyword ||
+        [
+          item.camera_name,
+          item.project_name,
+          item.province_name,
+          item.district_name,
+          item.subdistrict_name,
+          item.police_station_name,
+          item.checkpoint_name,
+        ]
+          .join(" ")
+          .toLowerCase()
+          .includes(keyword);
+
+      const matchesArea =
+        !formData.area_id ||
+        String(item.police_region_id) ===
+          formData.area_id;
+
+      const matchesProvince =
+        formData.province_id === "0" ||
+        item.province_code ===
+          formData.province_id;
+
+      const matchesProject =
+        formData.project_id === "0" ||
+        String(item.project_id) ===
+          formData.project_id;
+
+      return (
+        matchesSearch &&
+        matchesArea &&
+        matchesProvince &&
+        matchesProject
+      );
+    });
+  }, [rows, formData]);
+
+  const paginatedRows = useMemo(() => {
+    const start =
+      (page - 1) * rowsPerPage;
+
+    return filteredRows.slice(
+      start,
+      start + rowsPerPage
+    );
+  }, [filteredRows, page, rowsPerPage]);
+
+  useEffect(() => {
+    setPage(1);
+
+    setTotalItems(filteredRows.length);
+    setTotalUsage(filteredRows.length);
+    setTotalPages(
+      Math.max(
+        1,
+        Math.ceil(
+          filteredRows.length / rowsPerPage
         )
+      )
+    );
+  }, [filteredRows, rowsPerPage]);
 
-        setRows(updated);
-      }
-      catch (error) {
-        await PopupMessage(t("popup.fetch-error"), "", "error");
-        setRows([]);
-        setTotalUsage(0);
-        setTotalItems(0);
-        setTotalPages(1);
-      } 
-      finally {
-        setIsLoading(false);
-      }
+  const mapCameraRows = useCallback(
+    async (cameras: Camera[]) => {
+      const districtCache = new Map<string, any>();
+      const subdistrictCache = new Map<string, any>();
+      const stationCache = new Map<string, any>();
+      const projectCache = new Map<string, any>();
+      const checkpointCache = new Map<string, any>();
+
+      await Promise.all(
+        cameras.map(async (item) => {
+          const districtKey =
+            `${item.province_code}_${item.district_code}`;
+
+          const subdistrictKey =
+            `${item.province_code}_${item.district_code}_${item.subdistrict_code}`;
+
+          const stationKey = String(item.police_station_id);
+          const projectKey = String(item.project_id);
+          const checkpointKey = String(item.checkpoint_id);
+
+          const requests: Promise<void>[] = [];
+
+          if (!districtCache.has(districtKey)) {
+            requests.push(
+              getDistrict({
+                filter:
+                  `province_code=${item.province_code},district_code=${item.district_code}`,
+              }).then((res) => {
+                districtCache.set(districtKey, res.data?.[0]);
+              })
+            );
+          }
+
+          if (!subdistrictCache.has(subdistrictKey)) {
+            requests.push(
+              getSubdistrict({
+                filter:
+                  `province_code=${item.province_code},district_code=${item.district_code},subdistrict_code=${item.subdistrict_code}`,
+              }).then((res) => {
+                subdistrictCache.set(
+                  subdistrictKey,
+                  res.data?.[0]
+                );
+              })
+            );
+          }
+
+          if (!stationCache.has(stationKey)) {
+            requests.push(
+              getPoliceStation({
+                filter: `id=${item.police_station_id}`,
+              }).then((res) => {
+                stationCache.set(
+                  stationKey,
+                  res.data?.[0]
+                );
+              })
+            );
+          }
+
+          if (!projectCache.has(projectKey)) {
+            requests.push(
+              getProject({
+                filter: `project_id=${item.project_id}`,
+              }).then((res) => {
+                projectCache.set(
+                  projectKey,
+                  res.data?.[0]
+                );
+              })
+            );
+          }
+
+          if (!checkpointCache.has(checkpointKey)) {
+            requests.push(
+              getCheckpoints({
+                filter: `checkpoint_id=${item.checkpoint_id}`,
+              }).then((res) => {
+                checkpointCache.set(
+                  checkpointKey,
+                  res.data?.[0]
+                );
+              })
+            );
+          }
+
+          await Promise.all(requests);
+        })
+      );
+
+      const updated = cameras.map((item) => {
+        const district =
+          districtCache.get(
+            `${item.province_code}_${item.district_code}`
+          );
+
+        const subdistrict =
+          subdistrictCache.get(
+            `${item.province_code}_${item.district_code}_${item.subdistrict_code}`
+          );
+
+        const station =
+          stationCache.get(
+            String(item.police_station_id)
+          );
+
+        const project =
+          projectCache.get(
+            String(item.project_id)
+          );
+
+        const checkpoint =
+          checkpointCache.get(
+            String(item.checkpoint_id)
+          );
+
+        const provinceData = province.find(
+          (p) => p.province_code === item.province_code
+        );
+
+        const areaData = area.find(
+          (a) =>
+            a.id === Number(item.police_region_id)
+        );
+
+        return {
+          ...item,
+          province_name:
+            i18n.language === "th"
+              ? provinceData?.name_th ?? "-"
+              : provinceData?.name_en ?? "-",
+
+          district_name:
+            i18n.language === "th"
+              ? district?.name_th ?? "-"
+              : district?.name_en ?? "-",
+
+          subdistrict_name:
+            i18n.language === "th"
+              ? subdistrict?.name_th ?? "-"
+              : subdistrict?.name_en ?? "-",
+
+          police_region_name:
+            i18n.language === "th"
+              ? areaData?.title_th ?? "-"
+              : areaData?.title_en ?? "-",
+
+          checkpoint_name:
+            checkpoint?.checkpoint_name ?? "-",
+
+          police_station_name:
+            station?.station_name ?? "-",
+
+          project_name:
+            project?.project_name ?? "-",
+        };
+      });
+
+      return updated;
     },
-    []
-  );
+    [
+      area,
+      province,
+      i18n.language,
+    ]
+  )
 
   const handleDropdownChange = (
     event: React.SyntheticEvent,
@@ -225,7 +482,23 @@ const OverallCheckpoints = () => {
     value: { value: any ,label: string } | null,
   ) => {
     event.preventDefault();
-    setFormData((prev) => ({ ...prev, [key]: value?.value ?? "0" }));
+    setFormData((prev) => {
+      const next: FormData = {
+        ...prev,
+        [key]: key === "area_id" ? value?.value ?? "" : value?.value ?? "0",
+      };
+
+      if (key === "area_id") {
+        next.province_id = "0";
+        next.project_id = "0";
+      }
+
+      if (key === "province_id") {
+        next.project_id = "0";
+      }
+
+      return next;
+    });
   };
 
   const handleTextChange = (key: keyof typeof formData, value: string) => {
@@ -235,32 +508,46 @@ const OverallCheckpoints = () => {
   const handleClear = () => {
     setFormData({
       search: "",
-      area_id: "0",
+      area_id: "",
       province_id: "0",
       project_id: "0",
     });
   }
 
   const handleExportExcel = async () => {
-    await exportExcel({
-      sheetName: `${t('file-name.overall-checkpoints')}`,
-      fileName: `${t('file-name.overall-checkpoints')}_${dayjs().format(i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD")}.xlsx`,
-      headers: [
-        t('table.header.no'),
-        t('table.header.camera'),
-        t('table.header.station'),
-        t('table.header.area'),
-        t('table.header.province'),
-        t('table.header.district'),
-        t('table.header.subdistrict'),
-        t('table.header.road'),
-        t('table.header.route'),
-        t('table.header.project'),
-      ],
-      data: rows,
-      mapRow: (data, index) => [
-        (page - 1) * rowsPerPage + index + 1,
-        data.device_name ?? "-",
+    try {
+      startExportLoading();
+
+      const exportRows =
+        await getExportData();
+
+      const dateFormat =
+        i18n.language === "th"
+          ? "BBBB-MM-DD"
+          : "YYYY-MM-DD";
+
+      const baseFileName =
+        `${t("file-name.overall-checkpoints")}_${dayjs().format(dateFormat)}`;
+
+      const headers = [
+        t("table.header.no"),
+        t("table.header.camera"),
+        t("table.header.station"),
+        t("table.header.area"),
+        t("table.header.province"),
+        t("table.header.district"),
+        t("table.header.subdistrict"),
+        t("table.header.road"),
+        t("table.header.route"),
+        t("table.header.project"),
+      ];
+
+      const mapRow = (
+        data: Camera,
+        index: number
+      ) => [
+        index + 1,
+        data.camera_name ?? "-",
         data.checkpoint_name ?? "-",
         data.police_station_name ?? "-",
         data.police_region_name ?? "-",
@@ -268,37 +555,334 @@ const OverallCheckpoints = () => {
         data.district_name ?? "-",
         data.subdistrict_name ?? "-",
         data.route ?? "-",
-        data.lane ?? "-",
+        data.lane === "1"
+          ? t("text.exit")
+          : t("text.in"),
         data.project_name ?? "-",
-      ],
-      columnStyles: {
-        2: { alignment: { horizontal: "center" } },
-      },
-    });
+      ];
+
+      if (exportRows.length > CHUNK_SIZE) {
+        const isConfirmed =
+          await PopupMessageWithCancel(
+            t("popup.export-chunk-confirm-title"),
+            t("popup.export-chunk-confirm-message",
+              {
+                totalData:
+                  exportRows.length.toLocaleString(),
+              }
+            ),
+            t("button.confirm"),
+            t("button.cancel"),
+            "warning"
+          );
+
+        if (!isConfirmed)
+          return;
+
+        const zip = new JSZip();
+
+        const totalFiles =
+          Math.ceil(
+            exportRows.length /
+              CHUNK_SIZE
+          );
+
+        updateExportProgress(
+          t("text.export-excel"),
+          0,
+          totalFiles,
+          0
+        );
+
+        for (let index = 0; index < totalFiles; index++) {
+          const chunk =
+            exportRows.slice(
+              index *
+                CHUNK_SIZE,
+              (index + 1) *
+                CHUNK_SIZE
+            );
+
+          const blob =
+            await generateExcelBlob(
+              {
+                sheetName: t("file-name.overall-checkpoints"),
+                headers,
+                data: chunk,
+                mapRow: (
+                  data,
+                  rowIndex
+                ) =>
+                  mapRow(
+                    data,
+                    index *
+                      CHUNK_SIZE +
+                      rowIndex
+                  ),
+              }
+            );
+
+          zip.file(
+            `${baseFileName}_${index + 1}.xlsx`,
+            blob
+          );
+
+          updateExportProgress(
+            t("text.export-excel"),
+            index + 1,
+            totalFiles,
+            Math.round(
+              ((index + 1) /
+                totalFiles) *
+                100
+            )
+          );
+
+          await new Promise(
+            (resolve) =>
+              setTimeout(
+                resolve,
+                50
+              )
+          );
+        }
+
+        const zipBlob =
+          await zip.generateAsync({
+            type: "blob",
+          });
+
+        saveAs(
+          zipBlob,
+          `Excel_${baseFileName}.zip`
+        );
+
+        return;
+      }
+
+      updateExportProgress(
+        t("text.export-excel"),
+        1,
+        1,
+        50
+      );
+
+      await exportExcel({
+        sheetName: t("file-name.overall-checkpoints"),
+        fileName: `${baseFileName}.xlsx`,
+        headers,
+        data: exportRows,
+        mapRow,
+      });
+    } 
+    catch (error) {
+      await PopupMessage(
+        t("popup.export-error-title"),
+        t("popup.export-error-message"),
+        "error"
+      );
+    } 
+    finally {
+      stopExportLoading();
+    }
   };
 
   const handleExportPdf = async () => {
-    const pdfName = `${t('file-name.overall-checkpoints')}_${dayjs().format(i18n.language === "th" ? "BBBB-MM-DD" : "YYYY-MM-DD")}.pdf`;
-    const pdfData: OverallCheckpointsPdfData[] = rows.map((data) => ({
-      ...data,
-      id: data.device_id,
-      checkpoint_name: data.checkpoint_name ?? "-",
-      camera_name: data.device_name ?? "-",
-      station_name: data.police_station_name ?? "-",
-      area_name: data.police_region_name ?? "-",
-      province_name: data.province_name ?? "-",
-      district_name: data.district_name ?? "-",
-      subdistrict_name: data.subdistrict_name ?? "-",
-      road: data.route ?? "-",
-      route: data.lane ?? "-",
-      project: data.project_name ?? "-",
-    }));
-    await downloadOverallCheckpointsPdf(
-      pdfData,
-      pdfName,
-      t,
-      i18n
-    );
+    try {
+      startExportLoading();
+
+      const exportRows =
+        await getExportData();
+
+      const dateFormat =
+        i18n.language === "th"
+          ? "BBBB-MM-DD"
+          : "YYYY-MM-DD";
+
+      const baseFileName =
+        `${t("file-name.overall-checkpoints")}_${dayjs().format(dateFormat)}`;
+
+      if (exportRows.length > CHUNK_SIZE) {
+        const isConfirmed =
+          await PopupMessageWithCancel(
+            t(
+              "popup.export-chunk-confirm-title"
+            ),
+            t(
+              "popup.export-chunk-confirm-message",
+              {
+                totalData:
+                  exportRows.length.toLocaleString(),
+              }
+            ),
+            t("button.confirm"),
+            t("button.cancel"),
+            "warning"
+          );
+
+        if (!isConfirmed) return;
+
+        const zip = new JSZip();
+
+        const totalFiles = Math.ceil(exportRows.length / CHUNK_SIZE);
+
+        updateExportProgress(
+          t("text.export-pdf"),
+          0,
+          totalFiles,
+          0
+        );
+
+        for (let index = 0; index < totalFiles; index++) {
+          const chunk =
+            exportRows.slice(
+              index * CHUNK_SIZE,
+              (index + 1) *
+                CHUNK_SIZE
+            );
+
+          const pdfData =
+            chunk.map(
+              (data) => ({
+                ...data,
+                id:
+                  data.camera_id,
+                checkpoint_name:
+                  data.checkpoint_name ??
+                  "-",
+                camera_name:
+                  data.camera_name ??
+                  "-",
+                station_name:
+                  data.police_station_name ??
+                  "-",
+                area_name:
+                  data.police_region_name ??
+                  "-",
+                province_name:
+                  data.province_name ??
+                  "-",
+                district_name:
+                  data.district_name ??
+                  "-",
+                subdistrict_name:
+                  data.subdistrict_name ??
+                  "-",
+                road:
+                  data.route ??
+                  "-",
+                route:
+                  data.lane ??
+                  "-",
+                project:
+                  data.project_name ??
+                  "-",
+              })
+            );
+
+          const blob =
+            await generateOverallCheckpointsPdfBlob(
+              pdfData,
+              t,
+              i18n
+            );
+
+          zip.file(
+            `${baseFileName}_${index + 1}.pdf`,
+            blob
+          );
+
+          updateExportProgress(
+            t("text.export-pdf"),
+            index + 1,
+            totalFiles,
+            Math.round(
+              ((index + 1) /
+                totalFiles) *
+                100
+            )
+          );
+
+          await new Promise(
+            (resolve) =>
+              setTimeout(
+                resolve,
+                50
+              )
+          );
+        }
+
+        const zipBlob =
+          await zip.generateAsync({
+            type: "blob",
+          });
+
+        saveAs(
+          zipBlob,
+          `PDF_${baseFileName}.zip`
+        );
+
+        return;
+      }
+
+      updateExportProgress(
+        t("text.export-pdf"),
+        1,
+        1,
+        80
+      );
+
+      const pdfData =
+        exportRows.map((data) => ({
+          ...data,
+          id: data.camera_id,
+          checkpoint_name:
+            data.checkpoint_name ??
+            "-",
+          camera_name:
+            data.camera_name ??
+            "-",
+          station_name:
+            data.police_station_name ??
+            "-",
+          area_name:
+            data.police_region_name ??
+            "-",
+          province_name:
+            data.province_name ??
+            "-",
+          district_name:
+            data.district_name ??
+            "-",
+          subdistrict_name:
+            data.subdistrict_name ??
+            "-",
+          road:
+            data.route ?? "-",
+          route:
+            data.lane ?? "-",
+          project:
+            data.project_name ??
+            "-",
+        }));
+
+      await downloadOverallCheckpointsPdf(
+        pdfData,
+        `${baseFileName}.pdf`,
+        t,
+        i18n
+      );
+    } 
+    catch (error) {
+      await PopupMessage(
+        t("popup.export-error-title"),
+        t("popup.export-error-message"),
+        "error"
+      );
+    } 
+    finally {
+      stopExportLoading();
+    }
   };
 
   const handleColumnSelectChange = (key: string) => {
@@ -347,9 +931,29 @@ const OverallCheckpoints = () => {
     return "-";
   };
 
+  const getExportData = useCallback(async () => {
+    const res = await getOverallCheckpoint();
+
+    const cameras = res.data ?? [];
+
+    const mapped = await mapCameraRows(cameras);
+
+    return mapped
+  }, [mapCameraRows, formData]);
+
   return (
     <section id='overall-checkpoints' className="flex flex-col h-full w-full p-2">
       { isLoading && <Loading /> }
+      {
+        exportLoading && (
+          <ExportLoadingScreen
+            text={exportProgress.text}
+            current={exportProgress.current}
+            total={exportProgress.total}
+            percent={exportProgress.percent}
+          />
+        )
+      }
       {/* Main Title */}
       <MainTitle title={t("pages.overall-checkpoints")} />
       <div className='flex flex-col p-4 bg-(--main-bg-color) flex-1 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-y-auto gap-2'>
@@ -513,7 +1117,7 @@ const OverallCheckpoints = () => {
                 </TableRow>
               </TableHead>
               <TableBody sx={{ backgroundColor: "var(--tertiary-color)" }}>
-                {rows.map((data, index) => (
+                {paginatedRows.map((data, index) => (
                   <TableRow
                     key={index}
                     sx={{
@@ -538,7 +1142,7 @@ const OverallCheckpoints = () => {
                       }}
                     >
                       <Box className="flex items-center justify-center gap-2">
-                        <img src={data.device_status_code === "online" ? DatabaseOnline : DatabaseOffline} alt="Database Status" className="h-6 w-6" />
+                        <img src={data.active ? DatabaseOnline : DatabaseOffline} alt="Database Status" className="h-6 w-6" />
                         <WifiIcon className="h-6 w-6" color={data.alive ? "#2FA534" : "#DD2025"} />
                       </Box>
                     </TableCell>
@@ -547,7 +1151,7 @@ const OverallCheckpoints = () => {
                         textAlign: "center",
                       }}
                     >
-                      {data.device_name}
+                      {data.camera_name}
                     </TableCell>
                     {visibleColumns.map((col) => {
                       const field = columnKeyMap[col.key];

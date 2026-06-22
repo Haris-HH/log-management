@@ -90,8 +90,8 @@ const StatisticUsageAgency = () => {
   const [org, setOrg] = useState<NsbOrg[]>([]);
 
   // Constants
-  const CHUNK_SIZE = 500;
-  const REQUEST_LIMIT = 5000;
+  const CHUNK_SIZE = 1000;
+  const REQUEST_LIMIT = 1000;
 
   // Form Data
   const [formData, setFormData] = useState<FormData>({

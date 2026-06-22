@@ -281,7 +281,7 @@ const StatisticAccessPerson = () => {
       const userIds = [...new Set(data.map((item) => item.user_id))];
 
       const usersRes = await getUserApi({
-        filter: `user_id=in(${userIds.join(",")})`,
+        filter: `user_id=${userIds.join("|")}`,
       });
 
       const userMap = new Map(

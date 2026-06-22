@@ -110,56 +110,81 @@ export const useMapSearch = (
     }
   }, [map, markerManager]);
 
-  const showOverallWithList = useCallback(async (cameraInCheckpoint: CameraInCheckpoint[]) => {
-    setSearchResults([])
-    if (!map) return
-    
-    setIsSearching(true)
-    setSearchError(null)
-    
-    try {
-      const coordinatesList = [];
-      const bounds = new LatLngBounds([]);
-      const locationList: CameraInCheckpoint[] = [];
+  const showOverallWithList = useCallback(
+    async (cameraInCheckpoint: CameraInCheckpoint[]) => {
+      setSearchResults([]);
 
-      for (const cc of cameraInCheckpoint) {
-        const coordinates = parseCoordinates(`${cc.latitude}, ${cc.longitude}`)
-        if (coordinates) {
+      if (!map) return;
+
+      setIsSearching(true);
+      setSearchError(null);
+
+      try {
+        markerManager.clearMarkers();
+
+        const validCheckpoints = cameraInCheckpoint.filter(
+          (item) => item.cameras?.length > 0
+        );
+
+        if (validCheckpoints.length === 0) {
+          return;
+        }
+
+        const coordinatesList = [];
+        const bounds = new LatLngBounds([]);
+        const locationList: CameraInCheckpoint[] = [];
+
+        for (const cc of validCheckpoints) {
+          const coordinates = parseCoordinates(
+            `${cc.latitude}, ${cc.longitude}`
+          );
+
+          if (!coordinates) continue;
+
           coordinatesList.push(coordinates);
+
           locationList.push({
             ...cc,
             latLng: coordinates,
           });
+
           bounds.extend(coordinates);
         }
-      }
 
-      if (coordinatesList.length > 0) {
-        const result: SearchResult[] = coordinatesList.map(coordinates => ({
+        if (locationList.length === 0) {
+          return;
+        }
+
+        const result: SearchResult[] = coordinatesList.map((coordinates) => ({
           name: `${coordinates.lat}, ${coordinates.lng}`,
-          location: coordinates
+          location: coordinates,
         }));
-        setSearchResults(result)
-        await markerManager.createOverallMarkerWithList(locationList)
+
+        setSearchResults(result);
+
+        await markerManager.createOverallMarkerWithList(locationList);
 
         if (bounds.isValid()) {
           if (coordinatesList.length === 1) {
             map.setView(coordinatesList[0], 15);
           } 
           else {
-            map.fitBounds(bounds, { padding: [30, 30] });
+            map.fitBounds(bounds, {
+              padding: [30, 30],
+            });
           }
         }
+      } 
+      catch (error) {
+        setSearchError("Error searching for place");
+        setSearchResults([]);
+      } 
+      finally {
+        setIsSearching(false);
       }
-    } 
-    catch (error) {
-      setSearchError('Error searching for place')
-      setSearchResults([])
-    } 
-    finally {
-      setIsSearching(false)
-    }
-  }, [map, markerManager]);
+    },
+    [map, markerManager]
+  );
 
   return {
     searchPlace,

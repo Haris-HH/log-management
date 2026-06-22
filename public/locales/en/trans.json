@@ -5,8 +5,8 @@
   },
   "navbar": {
     "logout": "Logout",
-    "language": "ภาษา",
-    "theme": "ธีม"
+    "language": "Language",
+    "theme": "Theme"
   },
   "pages": {
     "chart-internal-police": "Chart Internal Police",

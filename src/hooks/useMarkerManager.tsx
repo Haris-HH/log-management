@@ -151,24 +151,30 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
     setMarkers(newMarkers);
   };
 
-  const createOverallMarkerWithList = (locations: CameraInCheckpoint[]) => {
+  const createOverallMarkerWithList = (
+    locations: CameraInCheckpoint[]
+  ) => {
     if (!map) return;
+
     clearMarkers();
 
     const newMarkers: Marker[] = [];
 
-    for (let i = 0; i < locations.length; i++) {
-      const loc = locations[i];
+    for (const loc of locations) {
+      if (!loc.cameras?.length) continue;
 
       const color =
         loc.cameras
-          ?.map((device) => device.device_status_code)
-          .map((code) =>
-            deviceStatusOptions.find((item) => item.status_code === code)?.color
+          .map((device) => device.device_status_code)
+          .map(
+            (code) =>
+              deviceStatusOptions.find(
+                (item) => item.status_code === code
+              )?.color
           )
           .find(Boolean) ?? "#FFFFFF";
-    
-      let htmlContent = `
+
+      const htmlContent = `
         <div style="
           position: relative;
           display: flex;
@@ -176,7 +182,6 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
           align-items: center;
           cursor: pointer;
         ">
-          <!-- rectangle -->
           <div style="
             display: flex;
             align-items: center;
@@ -190,7 +195,6 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
             ${loc.total ?? 0}
           </div>
 
-          <!-- triangle -->
           <div style="
             width: 0;
             height: 0;
@@ -205,7 +209,7 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
       const marker = L.marker(loc.latLng ?? [0, 0], {
         icon: divIcon({
           html: htmlContent,
-          className: '',
+          className: "",
           iconSize: [30, 40],
           iconAnchor: [15, 36],
         }),
@@ -216,9 +220,10 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
       marker.on("click", () => {
         marker.openPopup();
       });
+
       marker.addTo(map);
       newMarkers.push(marker);
-    };
+    }
 
     setMarkers(newMarkers);
   };

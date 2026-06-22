@@ -447,7 +447,10 @@ const StatisticAccessAgency = () => {
         return;
       }
 
-      const exportRows = await getExportData(REQUEST_LIMIT, 1);
+      const exportRows = await getExportData(REQUEST_LIMIT, 1, {
+        groupBy: "org_code",
+        orderBy: "org_code",
+      });
 
       updateExportProgress(
         t("text.export-pdf"),
@@ -628,7 +631,10 @@ const StatisticAccessAgency = () => {
         return;
       }
 
-      const exportRows = await getExportData(REQUEST_LIMIT, 1);
+      const exportRows = await getExportData(REQUEST_LIMIT, 1, {
+        groupBy: "org_code",
+        orderBy: "org_code",
+      });
 
       updateExportProgress(
         t("text.export-excel"),

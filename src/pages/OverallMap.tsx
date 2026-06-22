@@ -67,7 +67,7 @@ const OverallMap = () => {
   // Form Data
   const [formData, setFormData] = useState<FormData>({
     search_word: "",
-    area_id: "0",
+    area_id: "",
     province_id: "0",
     type_id: "0",
   });
@@ -98,21 +98,20 @@ const OverallMap = () => {
   const areaOptions = useMemo(() => {
     const langKeyArea = i18n.language === "th" ? "title_th" : "title_en";
 
-    return buildOptions(area, t("dropdown.all-area"), langKeyArea, "id")
+    return buildOptions(area, t("dropdown.all-area"), langKeyArea, "id", true, "");
   }, [area, t, i18n.language]);
 
   const provinceOptions = useMemo(() => {
     const langKeyProvince = i18n.language === "th" ? "name_th" : "name_en";
     const filteredProvince =
-      formData.area_id !== "0"
+      formData.area_id !== ""
         ? province.filter((item) => item.police_region_id === Number(formData.area_id))
         : province;
 
     return buildOptions(
-      filteredProvince, "", 
+      filteredProvince, t("dropdown.all-province"), 
       langKeyProvince, 
-      "region_code",
-      false);
+      "province_code");
   }, [province, t, i18n.language, formData.area_id]);
 
   const typeOptions = useMemo(() => {
@@ -155,12 +154,19 @@ const OverallMap = () => {
               }
             );
 
-            const resDistrict = await getDistrict({ filter: `province_code=${item.province_code},district_code=${item.district_code}` });
-            const resSubdistrict = await getSubdistrict({ filter: `province_code=${item.province_code},district_code=${item.district_code},subdistrict_code=${item.subdistrict_code}` });
-            const provinceName = provinceMap.get(item.province_code);            
-            const areaName = areaMap.get(item.police_region_id);
+            let resDistrict = null;
+            let resSubdistrict = null;
+            let provinceName = null;
+            let areaName = null;
 
-            const updatedData = res.data.map((device) => {
+            if (res?.data) {
+              resDistrict = await getDistrict({ filter: `province_code=${item.province_code},district_code=${item.district_code}` });
+              resSubdistrict = await getSubdistrict({ filter: `province_code=${item.province_code},district_code=${item.district_code},subdistrict_code=${item.subdistrict_code}` });
+              provinceName = provinceMap.get(item.province_code);            
+              areaName = areaMap.get(item.police_region_id);
+            }
+
+            const updatedData = res?.data.map((device) => {
               const color = DEVICE_STATUS_COLOR.find((status) => status.code === device.device_status_code);
               const name = deviceStatusMap.get(device.device_status_code);
 
@@ -224,29 +230,48 @@ const OverallMap = () => {
     value: { value: any ,label: string } | null,
   ) => {
     event.preventDefault();
-    setFormData((prev) => ({ ...prev, [key]: value?.value ?? 0 }));
+    setFormData((prev) => {
+      const next: FormData = {
+        ...prev,
+        [key]: key === "area_id" ? value?.value ?? "" : value?.value ?? "0",
+      };
+
+      if (key === "area_id") {
+        next.province_id = "0";
+      }
+
+      return next;
+    });
   };
 
   const handleClear = () => {
     setFormData({
       search_word: "",
-      area_id: "0",
+      area_id: "",
       province_id: "0",
       type_id: "0",
     });
     clearSearchPlaces();
   }
 
+  const handleSearchOnEnter = (
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (event.key === "Enter") {
+      setSearchTrigger((prev) => prev + 1);
+    }
+  };
+
   const getFilters = useCallback((formData: FormData, checkpoint_id: string) => {
     const filters: Record<string, string> = {
       page: "1",
-      limit: "10",
+      limit: "1500",
       device_category: "camera",
       checkpoint_id: checkpoint_id,
     };
 
-    if (formData.area_id !== "0") {
-      filters.police_station_id = formData.area_id;
+    if (formData.area_id !== "") {
+      filters.police_region_id = formData.area_id;
     }
 
     if (formData.province_id !== "0") {
@@ -257,20 +282,17 @@ const OverallMap = () => {
       filters.device_status_code = formData.type_id;
     }
 
+    if (formData.search_word) {
+      filters.device_name = `*${formData.search_word}*`;
+    }
+
     return filters;
   }, [
     formData.area_id,
     formData.province_id,
     formData.type_id,
+    searchTrigger,
   ]);
-
-  const handleSearchOnEnter = (
-    event: React.KeyboardEvent<HTMLInputElement>
-  ) => {
-    if (event.key === "Enter") {
-      setSearchTrigger((prev) => prev + 1);
-    }
-  };
 
   return (
     <section id='overall-map'>

@@ -133,7 +133,7 @@ const ChartTopUsers = () => {
 
       if (userIds.length > 0) {
         const usersRes = await getUserApi({
-          filter: `user_id=in(${userIds.join(",")})`,
+          filter: `user_id=${userIds.join("|")}`,
         });
 
         userMap = new Map(

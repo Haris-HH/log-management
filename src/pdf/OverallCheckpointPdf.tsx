@@ -33,8 +33,8 @@ export const generateOverallCheckpointsPdfBlob = async (
     ],
     ...data.map((item, index) => [
       { text: String(index + 1), alignment: "center" } as TableCell,
-      { text: item.checkpoint_name } as TableCell,
       { text: item.camera_name } as TableCell,
+      { text: item.checkpoint_name } as TableCell,
       { text: item.station_name } as TableCell,
       { text: item.area_name } as TableCell,
       { text: item.province_name } as TableCell,

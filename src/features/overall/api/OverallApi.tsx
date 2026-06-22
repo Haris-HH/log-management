@@ -2,7 +2,7 @@
 import type { 
   OverallProblemReportResponse,
   OverallReportResponse,
-  DeviceResponse,
+  CameraResponse,
 } from "../../../types/response";
 
 // Api
@@ -10,8 +10,8 @@ import { fetchClient } from "../../../api/fetchClient";
 
 // Mocks
 import {
-  mockDevice
-} from "../../../mocks/mockDevice";
+  mockCamera
+} from "../../../mocks/mockCameras";
 import { 
   mockOverallReport,
 } from "../../../mocks/mockOverallReport";
@@ -22,13 +22,13 @@ import {
 // Env
 const isDev = import.meta.env.VITE_IS_DEV;
 
-export const getOverallCheckpoint = async (): Promise<DeviceResponse> => {
+export const getOverallCheckpoint = async (): Promise<CameraResponse> => {
   if (isDev) {
-    return mockDevice;
+    return mockCamera;
   }
 
-  const res = await fetchClient<DeviceResponse>(
-    "/ops-management/devices/search",
+  const res = await fetchClient<CameraResponse>(
+    "/core-data/cameras/search",
     {
       method: "POST",
       body: JSON.stringify({}),

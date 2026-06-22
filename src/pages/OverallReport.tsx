@@ -70,7 +70,7 @@ interface FormData {
 }
 
 const defaultFormData = (): FormData => ({
-  area_id: "0",
+  area_id: "",
   province_id: "0",
   project_id: "0",
   date_time: dayjs().toDate(),
@@ -117,14 +117,14 @@ const OverallReport = () => {
 
   const areaOptions = useMemo(() => {
     const langKeyArea = i18n.language === "th" ? "title_th" : "title_en";
-    return buildOptions(area, t("dropdown.all-area"), langKeyArea, "id");
+    return buildOptions(area, t("dropdown.all-area"), langKeyArea, "id", true, "");
   }, [area, t, i18n.language]);
 
   const provinceOptions = useMemo(() => {
     const langKeyProvince = i18n.language === "th" ? "name_th" : "name_en";
 
     const filteredProvince =
-      formData.area_id !== "0"
+      formData.area_id !== ""
         ? province.filter(
             (item) => item.police_region_id === Number(formData.area_id)
           )
@@ -187,7 +187,7 @@ const OverallReport = () => {
       filters.start_date = dayjs(data.month_year).format("YYYY-MM-DD");
     }
 
-    if (data.area_id !== "0") {
+    if (data.area_id !== "") {
       filters.police_region_id = data.area_id;
     }
 
@@ -238,6 +238,8 @@ const OverallReport = () => {
           maintenance_percent: getPercent(item.maintenance ?? 0, item.total ?? 0),
           suspended_percent: getPercent(item.suspended ?? 0, item.total ?? 0),
           others_percent: getPercent(item.others ?? 0, item.total ?? 0),
+          network_offline_percent: getPercent(item.network_offline ?? 0, item.total ?? 0),
+          device_offline_percent: getPercent(item.device_offline ?? 0, item.total ?? 0),
         }));
 
         setReportData(updated);
@@ -250,6 +252,8 @@ const OverallReport = () => {
             maintenance_percent: getPercent(res.summary.maintenance ?? 0, res.summary.total ?? 0),
             suspended_percent: getPercent(res.summary.suspended ?? 0, res.summary.total ?? 0),
             others_percent: getPercent(res.summary.others ?? 0, res.summary.total ?? 0),
+            network_offline_percent: getPercent(res.summary.network_offline ?? 0, res.summary.total ?? 0),
+            device_offline_percent: getPercent(res.summary.device_offline ?? 0, res.summary.total ?? 0),
           }
           setSummaryValue(updatedSummary);
         }
@@ -295,15 +299,15 @@ const OverallReport = () => {
       {
         name: "network",
         label: t("status.network-outage"),
-        value: summaryValue?.others ?? 0,
-        percent_value: summaryValue?.others_percent ?? 0,
+        value: summaryValue?.network_offline ?? 0,
+        percent_value: summaryValue?.network_offline_percent ?? 0,
         fill: "var(--status-network-outage)",
       },
       {
         name: "disable",
         label: t("status.device-disable"),
-        value: summaryValue?.maintenance ?? 0,
-        percent_value: summaryValue?.maintenance_percent ?? 0,
+        value: summaryValue?.device_offline ?? 0,
+        percent_value: summaryValue?.device_offline_percent ?? 0,
         fill: "var(--status-device-disable)",
       },
     ];
@@ -360,7 +364,7 @@ const OverallReport = () => {
     setFormData((prev) => {
       const next: FormData = {
         ...prev,
-        [key]: value?.value ?? "0",
+        [key]: key === "area_id" ? value?.value ?? "" : value?.value ?? "0",
       };
 
       if (key === "area_id") {
@@ -418,7 +422,7 @@ const OverallReport = () => {
     const problemReportData = await fetchProblemReportData();
 
     const areaData =
-      formData.area_id !== "0"
+      formData.area_id !== ""
         ? areaMap.get(Number(formData.area_id))
         : undefined;
 
@@ -433,7 +437,7 @@ const OverallReport = () => {
         : undefined;
 
     const areaName =
-      formData.area_id === "0"
+      formData.area_id === ""
         ? t("text.all")
         : i18n.language === "th"
           ? areaData?.title_abbr_th ?? "-"
@@ -1008,16 +1012,16 @@ const OverallReport = () => {
                         <TableCell>
                           {renderCell(
                             "bg-(--status-network-outage)",
-                            data.others,
-                            data.others_percent
+                            data.network_offline,
+                            data.network_offline_percent
                           )}
                         </TableCell>
 
                         <TableCell>
                           {renderCell(
                             "bg-(--status-device-disable)",
-                            data.maintenance,
-                            data.maintenance_percent
+                            data.device_offline,
+                            data.device_offline_percent
                           )}
                         </TableCell>
                       </TableRow>
@@ -1067,8 +1071,8 @@ const OverallReport = () => {
                       <TableCell>
                         {renderCell(
                           "bg-(--status-network-outage)",
-                          summaryValue?.others ?? 0,
-                          summaryValue?.others_percent ?? 0,
+                          summaryValue?.network_offline ?? 0,
+                          summaryValue?.network_offline_percent ?? 0,
                           true
                         )}
                       </TableCell>
@@ -1076,8 +1080,8 @@ const OverallReport = () => {
                       <TableCell>
                         {renderCell(
                           "bg-(--status-device-disable)",
-                          summaryValue?.maintenance ?? 0,
-                          summaryValue?.maintenance_percent ?? 0,
+                          summaryValue?.device_offline ?? 0,
+                          summaryValue?.device_offline_percent ?? 0,
                           true
                         )}
                       </TableCell>

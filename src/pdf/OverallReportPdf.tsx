@@ -49,20 +49,20 @@ export const generateOverallReportPdfBlob = async (
           alignment: "right",
         },
         {
+          text: `${formatNumber(item.device_offline)} (${formatPercent(
+            item.device_offline_percent
+          )}%)`,
+          alignment: "right",
+        },
+        {
+          text: `${formatNumber(item.network_offline)} (${formatPercent(
+            item.network_offline_percent
+          )}%)`,
+          alignment: "right",
+        },
+        {
           text: `${formatNumber(item.offline)} (${formatPercent(
             item.offline_percent
-          )}%)`,
-          alignment: "right",
-        },
-        {
-          text: `${formatNumber(item.others)} (${formatPercent(
-            item.others_percent
-          )}%)`,
-          alignment: "right",
-        },
-        {
-          text: `${formatNumber(item.maintenance)} (${formatPercent(
-            item.maintenance_percent
           )}%)`,
           alignment: "right",
         },
@@ -89,22 +89,22 @@ export const generateOverallReportPdfBlob = async (
       alignment: "right",
     },
     {
+      text: `${formatNumber(data?.summary?.device_offline ?? 0)} (${formatPercent(
+        data?.summary?.device_offline_percent ?? 0
+      )}%)`,
+      style: "totalSum",
+      alignment: "right",
+    },
+    {
+      text: `${formatNumber(data?.summary?.network_offline ?? 0)} (${formatPercent(
+        data?.summary?.network_offline_percent ?? 0
+      )}%)`,
+      style: "totalSum",
+      alignment: "right",
+    },
+    {
       text: `${formatNumber(data?.summary?.offline ?? 0)} (${formatPercent(
         data?.summary?.offline_percent ?? 0
-      )}%)`,
-      style: "totalSum",
-      alignment: "right",
-    },
-    {
-      text: `${formatNumber(data?.summary?.others ?? 0)} (${formatPercent(
-        data?.summary?.others_percent ?? 0
-      )}%)`,
-      style: "totalSum",
-      alignment: "right",
-    },
-    {
-      text: `${formatNumber(data?.summary?.maintenance ?? 0)} (${formatPercent(
-        data?.summary?.maintenance_percent ?? 0
       )}%)`,
       style: "totalSum",
       alignment: "right",

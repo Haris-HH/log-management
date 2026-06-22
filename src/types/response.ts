@@ -36,6 +36,7 @@ import type {
   Summary,
   Series,
   OverallProblemReport,
+  Camera,
 } from "../types/common";
 
 export interface UsageChartResponse {
@@ -124,6 +125,8 @@ export interface DeviceResponse extends BasicResponse<Device[]> {}
 export interface CheckpointResponse extends BasicResponse<Checkpoint[]> {}
 
 export interface PoliceStationResponse extends BasicResponse<PoliceStation[]> {}
+
+export interface CameraResponse extends BasicResponse<Camera[]> {}
 
 export interface OverallProblemReportResponse extends ProblemReportResponse<OverallProblemReport[]> {}
 

@@ -39,7 +39,8 @@ export const buildOptions = (
   defaultLabel: string,
   label: string = "name",
   value: string = "code",
-  isAll: boolean = true
+  isAll: boolean = true,
+  allValue: string = "0",
 ) => {
   const options = list.map((item) => ({
     label: item[label],
@@ -47,7 +48,7 @@ export const buildOptions = (
   }));
 
   return isAll
-    ? [{ label: defaultLabel, value: "0" }, ...options]
+    ? [{ label: defaultLabel, value: allValue }, ...options]
     : options;
 };
 

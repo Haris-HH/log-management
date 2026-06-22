@@ -695,6 +695,10 @@ export interface OverallReportType {
   suspended_percent?: number;
   others: number;
   others_percent?: number;
+  network_offline: number;
+  network_offline_percent?: number;
+  device_offline: number;
+  device_offline_percent?: number;
   availability_pct: number;
 }
 
@@ -719,6 +723,10 @@ export interface Summary {
   suspended_percent?: number;
   others: number;
   others_percent?: number;
+  network_offline: number;
+  network_offline_percent?: number;
+  device_offline: number;
+  device_offline_percent?: number;
   availability_pct: number;
 }
 
@@ -730,6 +738,8 @@ export interface Series {
   maintenance: number;
   suspended: number;
   others: number;
+  network_offline: number;
+  device_offline: number;
   availability_pct: number;
 }
 
@@ -752,4 +762,51 @@ export interface OverallProblemReport {
   total_days: number;
   problem_pct: string;
   remark: string;
+}
+
+export interface Camera {
+  camera_id: string;
+  camera_name: string;
+  camera_ip: string;
+  camera_type: string;
+  project_id: string;
+  project_name?: string;
+  center_id: string;
+  checkpoint_id: string;
+  checkpoint_name?: string;
+  province_code: string;
+  province_name?: string;
+  district_code: string;
+  district_name?: string;
+  subdistrict_code: string;
+  subdistrict_name?: string;
+  route: string;
+  address: string;
+  police_region_id: number;
+  police_region_name?: string;
+  police_station_id: number;
+  police_station_name?: string;
+  latitude: number;
+  longitude: number;
+  rtsp_live_url: string;
+  rtsp_process_url: string;
+  stream_encode_id: number;
+  api_server_url: string;
+  live_server_url: string;
+  live_stream_url: string;
+  detection_area: string;
+  streaming: boolean;
+  visible: boolean;
+  active: boolean;
+  alive: boolean;
+  last_online: string;
+  last_check: string;
+  response_ms: number;
+  deleted: boolean;
+  request_delete: boolean;
+  request_delete_reason: string;
+  lane?: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string;
 }

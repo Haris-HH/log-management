@@ -282,7 +282,7 @@ const StatisticAccessLog = () => {
       const userIds = [...new Set(data.map((item) => item.user_id))];
 
       const usersRes = await getUserApi({
-        filter: `user_id=in(${userIds.join(",")})`,
+        filter: `user_id=${userIds.join("|")}`,
       });
 
       const userMap = new Map(
@@ -1245,7 +1245,7 @@ const StatisticAccessLog = () => {
                       {data.request_ip}
                     </TableCell>
                     <TableCell>
-                      <a>{`${data.location_webui?.lat?.toFixed(5)}, ${data.location_webui?.lng?.toFixed(5)}`}</a>
+                      {!data.location_webui?.lat || !data.location_webui?.lng ? "-" : `${data.location_webui?.lat?.toFixed(5)}, ${data.location_webui?.lng?.toFixed(5)}`}
                     </TableCell>
                     <TableCell>
                       {data.user_agent}
