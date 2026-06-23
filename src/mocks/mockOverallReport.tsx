@@ -12,6 +12,8 @@ export const mockOverallReport: OverallReportResponse = {
 		"maintenance": 22,
 		"suspended": 15,
 		"others": 80,
+		"network_offline": 80,
+		"device_offline": 80,
 		"availability_pct": 80
 	},
 	"series": [
@@ -23,6 +25,8 @@ export const mockOverallReport: OverallReportResponse = {
 			"maintenance": 22,
 			"suspended": 15,
 			"others": 79,
+			"network_offline": 80,
+			"device_offline": 80,
 			"availability_pct": 80
 		}
 	],
@@ -53,6 +57,8 @@ export const mockOverallReport: OverallReportResponse = {
 			"maintenance": 5,
 			"suspended": 2,
 			"others": 3,
+			"network_offline": 80,
+			"device_offline": 80,
 			"availability_pct": 80
 		}
 	]

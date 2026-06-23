@@ -15,7 +15,6 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
-import IconButton from "@mui/material/IconButton";
 
 // Components
 import MainTitle from "../components/main-title/MainTitle";
@@ -28,8 +27,6 @@ import GroupExportButton from "../components/group-export-button/GroupExportButt
 
 // Icons
 import ClearIcon from "../assets/svg/clear.svg?react";
-import ExportExcelIcon from "../assets/icons/export-excel.png";
-import ExportPdfIcon from "../assets/icons/export-pdf.png";
 import DatabaseOnline from "../assets/icons/database-online.png";
 import DatabaseOffline from "../assets/icons/database-offline.png";
 import WifiIcon from "../assets/svg/wifi.svg?react";
@@ -104,6 +101,7 @@ const OverallCheckpoints = () => {
   // Pagination
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalData, setTotalData] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(
     ROWS_PER_PAGE_OPTIONS[0],
   );
@@ -133,6 +131,7 @@ const OverallCheckpoints = () => {
 
   // CONSTANTS
   const CHUNK_SIZE = 1000;
+  const REQUEST_LIMIT = 1000;
 
   // Slice
   const { area, province } = useSelector((state: RootState) => state.dropdown);
@@ -210,6 +209,7 @@ const OverallCheckpoints = () => {
 
       setRows(updated);
       setTotalItems(updated.length);
+      setTotalData(res.pagination?.countAll ?? 0);
       setTotalUsage(updated.length);
       setTotalPages(
         Math.ceil(updated.length / rowsPerPage)
@@ -226,6 +226,7 @@ const OverallCheckpoints = () => {
       setTotalItems(0);
       setTotalUsage(0);
       setTotalPages(1);
+      setTotalData(0);
     } 
     finally {
       setIsLoading(false);
@@ -524,9 +525,6 @@ const OverallCheckpoints = () => {
     try {
       startExportLoading();
 
-      const exportRows =
-        await getExportData();
-
       const dateFormat =
         i18n.language === "th"
           ? "BBBB-MM-DD"
@@ -567,31 +565,22 @@ const OverallCheckpoints = () => {
         data.project_name ?? "-",
       ];
 
-      if (exportRows.length > CHUNK_SIZE) {
+      if (totalData > CHUNK_SIZE) {
         const isConfirmed =
           await PopupMessageWithCancel(
             t("popup.export-chunk-confirm-title"),
-            t("popup.export-chunk-confirm-message",
-              {
-                totalData:
-                  exportRows.length.toLocaleString(),
-              }
-            ),
+            t("popup.export-chunk-confirm-message", {
+              totalData: totalData.toLocaleString(),
+            }),
             t("button.confirm"),
             t("button.cancel"),
             "warning"
           );
 
-        if (!isConfirmed)
-          return;
+        if (!isConfirmed) return;
 
         const zip = new JSZip();
-
-        const totalFiles =
-          Math.ceil(
-            exportRows.length /
-              CHUNK_SIZE
-          );
+        const totalFiles = Math.ceil(totalData / CHUNK_SIZE);
 
         updateExportProgress(
           t("text.export-excel"),
@@ -600,71 +589,42 @@ const OverallCheckpoints = () => {
           0
         );
 
-        for (let index = 0; index < totalFiles; index++) {
-          const chunk =
-            exportRows.slice(
-              index *
-                CHUNK_SIZE,
-              (index + 1) *
-                CHUNK_SIZE
-            );
+        for (let pageIndex = 1; pageIndex <= totalFiles; pageIndex++) {
+          const exportRows = await getExportData(CHUNK_SIZE, pageIndex);
 
           const blob =
             await generateExcelBlob(
               {
                 sheetName: t("file-name.overall-checkpoints"),
                 headers,
-                data: chunk,
-                mapRow: (
-                  data,
-                  rowIndex
-                ) =>
-                  mapRow(
-                    data,
-                    index *
-                      CHUNK_SIZE +
-                      rowIndex
-                  ),
+                data: exportRows,
+                mapRow: ( data, index ) =>
+                  mapRow(data, index * CHUNK_SIZE + pageIndex),
               }
             );
 
           zip.file(
-            `${baseFileName}_${index + 1}.xlsx`,
+            `${baseFileName}_${pageIndex + 1}.xlsx`,
             blob
           );
 
           updateExportProgress(
             t("text.export-excel"),
-            index + 1,
+            pageIndex,
             totalFiles,
-            Math.round(
-              ((index + 1) /
-                totalFiles) *
-                100
-            )
+            Math.round((pageIndex / totalFiles) * 100 )
           );
 
-          await new Promise(
-            (resolve) =>
-              setTimeout(
-                resolve,
-                50
-              )
-          );
+          await new Promise((resolve) => setTimeout(resolve, 50));
         }
 
-        const zipBlob =
-          await zip.generateAsync({
-            type: "blob",
-          });
-
-        saveAs(
-          zipBlob,
-          `Excel_${baseFileName}.zip`
-        );
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        saveAs(zipBlob, `Excel_${baseFileName}.zip`);
 
         return;
       }
+
+      const exportRows = await getExportData(REQUEST_LIMIT, 1);
 
       updateExportProgress(
         t("text.export-excel"),
@@ -682,6 +642,7 @@ const OverallCheckpoints = () => {
       });
     } 
     catch (error) {
+      stopExportLoading();
       await PopupMessage(
         t("popup.export-error-title"),
         t("popup.export-error-message"),
@@ -697,9 +658,6 @@ const OverallCheckpoints = () => {
     try {
       startExportLoading();
 
-      const exportRows =
-        await getExportData();
-
       const dateFormat =
         i18n.language === "th"
           ? "BBBB-MM-DD"
@@ -708,19 +666,13 @@ const OverallCheckpoints = () => {
       const baseFileName =
         `${t("file-name.overall-checkpoints")}_${dayjs().format(dateFormat)}`;
 
-      if (exportRows.length > CHUNK_SIZE) {
+      if (totalData > CHUNK_SIZE) {
         const isConfirmed =
           await PopupMessageWithCancel(
-            t(
-              "popup.export-chunk-confirm-title"
-            ),
-            t(
-              "popup.export-chunk-confirm-message",
-              {
-                totalData:
-                  exportRows.length.toLocaleString(),
-              }
-            ),
+            t("popup.export-chunk-confirm-title"),
+            t("popup.export-chunk-confirm-message", {
+              totalData: totalData.toLocaleString(),
+            }),
             t("button.confirm"),
             t("button.cancel"),
             "warning"
@@ -729,8 +681,7 @@ const OverallCheckpoints = () => {
         if (!isConfirmed) return;
 
         const zip = new JSZip();
-
-        const totalFiles = Math.ceil(exportRows.length / CHUNK_SIZE);
+        const totalFiles = Math.ceil(totalData / CHUNK_SIZE);
 
         updateExportProgress(
           t("text.export-pdf"),
@@ -739,16 +690,11 @@ const OverallCheckpoints = () => {
           0
         );
 
-        for (let index = 0; index < totalFiles; index++) {
-          const chunk =
-            exportRows.slice(
-              index * CHUNK_SIZE,
-              (index + 1) *
-                CHUNK_SIZE
-            );
+        for (let pageIndex = 1; pageIndex <= totalFiles; pageIndex++) {
+          const exportRows = await getExportData(CHUNK_SIZE, pageIndex);
 
           const pdfData =
-            chunk.map(
+            exportRows.map(
               (data) => ({
                 ...data,
                 id:
@@ -794,28 +740,22 @@ const OverallCheckpoints = () => {
             );
 
           zip.file(
-            `${baseFileName}_${index + 1}.pdf`,
+            `${baseFileName}_${pageIndex}.pdf`,
             blob
           );
 
           updateExportProgress(
             t("text.export-pdf"),
-            index + 1,
+            pageIndex,
             totalFiles,
             Math.round(
-              ((index + 1) /
+              (pageIndex /
                 totalFiles) *
                 100
             )
           );
 
-          await new Promise(
-            (resolve) =>
-              setTimeout(
-                resolve,
-                50
-              )
-          );
+          await new Promise((resolve) => setTimeout(resolve, 50));
         }
 
         const zipBlob =
@@ -831,6 +771,8 @@ const OverallCheckpoints = () => {
         return;
       }
 
+      const exportRows = await getExportData(REQUEST_LIMIT, 1);
+
       updateExportProgress(
         t("text.export-pdf"),
         1,
@@ -838,7 +780,7 @@ const OverallCheckpoints = () => {
         80
       );
 
-      const pdfData =
+      const pdfData: OverallCheckpointsPdfData[] =
         exportRows.map((data) => ({
           ...data,
           id: data.camera_id,
@@ -880,6 +822,7 @@ const OverallCheckpoints = () => {
       );
     } 
     catch (error) {
+      stopExportLoading();
       await PopupMessage(
         t("popup.export-error-title"),
         t("popup.export-error-message"),
@@ -937,10 +880,15 @@ const OverallCheckpoints = () => {
     return "-";
   };
 
-  const getExportData = useCallback(async () => {
+  const getExportData = async (
+    limit: number,
+    page: number,
+    otherFilters: Record<string, string> = {},
+  ) => {
     const res = await getOverallCheckpoint({
       page: page.toString(),
-      limit: rowsPerPage.toString(),
+      limit: limit.toString(),
+      ...otherFilters,
     });
 
     const cameras = res.data ?? [];
@@ -948,7 +896,7 @@ const OverallCheckpoints = () => {
     const mapped = await mapCameraRows(cameras);
 
     return mapped
-  }, [mapCameraRows, formData]);
+  };
 
   return (
     <section id='overall-checkpoints' className="flex flex-col h-full w-full p-2">
@@ -1052,34 +1000,10 @@ const OverallCheckpoints = () => {
             >
               {t('button.clear')}
             </Button>
-            <IconButton 
-              sx={{ 
-                border: "1px solid var(--primary-color)", 
-                width: "40px", 
-                height: "40px", 
-                borderRadius: "5px",
-                "&:hover": {
-                  backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
-                },
-              }}
-              onClick={handleExportPdf}
-            >
-              <img src={ExportPdfIcon} alt="Export PDF" className="h-6 w-6" />
-            </IconButton>
-            <IconButton 
-              sx={{ 
-                border: "1px solid var(--primary-color)", 
-                width: "40px", 
-                height: "40px", 
-                borderRadius: "5px",
-                "&:hover": {
-                  backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
-                },
-              }}
-              onClick={handleExportExcel}
-            >
-              <img src={ExportExcelIcon} alt="Export CSV" className="h-6 w-6" />
-            </IconButton>
+            <GroupExportButton 
+              handleExportExcel={handleExportExcel}
+              handleExportPdf={handleExportPdf}
+            />
           </Box>
         </Box>
 
