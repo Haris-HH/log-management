@@ -87,7 +87,7 @@ export const getLocalizedName = (
       ] ?? "-";
 }
 
-export const formatPhone = (value: string) => {
+export const formatPhone = (value: string | undefined) => {
   if (!value) return "";
   const digits = value.replace(/\D/g, "").slice(0, 10);
 
@@ -97,7 +97,7 @@ export const formatPhone = (value: string) => {
   return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
 };
 
-export const formatThaiID = (value: string) => {
+export const formatThaiID = (value: string | undefined) => {
   if (!value) return "";
   const digits = value.replace(/\D/g, "").slice(0, 13);
 
