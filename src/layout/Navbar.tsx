@@ -4,7 +4,6 @@ import buddhistEra from "dayjs/plugin/buddhistEra";
 import "dayjs/locale/th";
 import { Th, Gb } from "react-flags-select";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import useMediaQuery from "@mui/material/useMediaQuery";
 
 // Material UI
@@ -34,26 +33,20 @@ import { LANGUAGES } from "../constants/language";
 
 // i18n
 import { useTranslation } from "react-i18next";
-
-// API
-import { logoutApi } from "../features/login/api/LoginApi";
-import { clearAuthUser } from "../features/auth-user/api/AuthUserSlice";
-
 // Utils
-import { PopupMessage, PopupMessageWithCancel } from "../utils/popupMessage";
+import { PopupMessageWithCancel } from "../utils/popupMessage";
 
 // Store
 import type { RootState } from "../store/store";
-import { useAppDispatch } from "../store/hooks";
 
 // Hook
 import { useTheme } from "../hooks/useTheme";
+import { useForceLogout } from "../hooks/useForceLogout";
 
 dayjs.extend(buddhistEra);
 
 const Navbar = () => {
-  const navigate = useNavigate();
-  const dispatch = useAppDispatch();
+  const { forceLogout } = useForceLogout();
 
   const version = __APP_VERSION__;
   const { themeName, setThemeName, theme, themes } = useTheme();
@@ -125,25 +118,10 @@ const Navbar = () => {
 
     setIsLoading(true);
 
-    try {
-      await logoutApi();
+    await forceLogout(true);
 
-      dispatch(clearAuthUser());
-
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("persist:root");
-
-      navigate("/login", { replace: true });
-    } catch {
-      await PopupMessage(
-        t("popup.logout-failed-title"),
-        t("popup.logout-failed-message"),
-        "error"
-      );
-    } finally {
-      setIsLoading(false);
-      closeMenu();
-    }
+    setIsLoading(false);
+    closeMenu();
   };
 
   const closeMenu = () => {

@@ -211,7 +211,7 @@ export const fetchClient = async <T>(
     // Unauthorized
     if ((response.status === 401 || response.status === 403) && !skipAuth) {
       if (retryCount >= 1) {
-        redirectToLogin();
+        window.dispatchEvent(new Event("force-logout"));
         throw new Error("Too many retries");
       }
 
@@ -228,7 +228,7 @@ export const fetchClient = async <T>(
         });
       } 
       catch (error) {
-        redirectToLogin();
+        window.dispatchEvent(new Event("force-logout"));
         throw error;
       }
     }

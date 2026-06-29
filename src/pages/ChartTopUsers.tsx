@@ -46,6 +46,9 @@ import { useTranslation } from 'react-i18next';
 // Constants
 import { ROWS_PER_PAGE_OPTIONS } from "../constants/dropdown";
 
+// Utils
+import { formatPhone, formatThaiID } from "../utils/commonFunctions";
+
 interface FormData {
   month_year: Date | null;
 }
@@ -69,11 +72,14 @@ const ChartTopUsers = () => {
   // Pagination
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
-  const [pageInput, setPageInput] = useState<number>(1);
+  const [pageInput, setPageInput] = useState<string>("1");
   const [rowsPerPage, setRowsPerPage] = useState(
     ROWS_PER_PAGE_OPTIONS[0],
   );
   const [rowsPerPageOptions] = useState(ROWS_PER_PAGE_OPTIONS);
+
+  // Constants
+  const MONTH_RANGE = 3;
 
   // Form Data
   const [formData, setFormData] = useState<FormData>({
@@ -190,34 +196,42 @@ const ChartTopUsers = () => {
     setRowsPerPage(limit);
   };
 
-  const handlePageChange = async (event: React.ChangeEvent<unknown>, value: number) => {
+  const handlePageChange = (
+    event: React.ChangeEvent<unknown>,
+    value: number
+  ) => {
     event.preventDefault();
     setPage(value);
+    setPageInput(value.toString());
   };
 
-  const handlePageInputKeyDown = async (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
+  const handlePageInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const cleaned = event.target.value.replace(/\D/g, "");
 
-      setPage(pageInput);
-    }
+    setPageInput(cleaned);
   };
 
-  const handlePageInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const input = event.target.value;
-    const cleaned = input.replace(/\D/g, '');
+  const handlePageInputKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (event.key !== "Enter") return;
 
-    if (cleaned) {
-      const numberInput = Number(cleaned);
-      if (numberInput > 0 && numberInput <= totalPages) {
-        setPageInput(numberInput);
-      }
+    event.preventDefault();
+
+    const nextPage = Number(pageInput);
+
+    if (!nextPage) {
+      setPageInput(page.toString());
+      return;
     }
-    else if (cleaned === "") {
-      setPageInput(1);
-    }
-    return cleaned;
-  }
+
+    const validPage = Math.min(Math.max(nextPage, 1), totalPages);
+
+    setPage(validPage);
+    setPageInput(validPage.toString());
+  };
 
   const handleDisplaySettingChange = (topInternal: number, topExternal: number) => {
     setDisplaySettingOpen(false);
@@ -232,17 +246,23 @@ const ChartTopUsers = () => {
     }));
   };
 
+  const monthKeys = Array.from({ length: MONTH_RANGE }, (_, index) =>
+    dayjs(formData.month_year)
+      .subtract(MONTH_RANGE - index - 1, "month")
+      .format("YYYY-MM")
+  );
+
   return (
     <section id='chart-top-users' className="flex flex-col h-full w-full p-2">
       { isLoading && <LoadingScreen /> }
       {/* Main Title */}
       <MainTitle title={t("pages.chart-top-users")} />
-      <div className='p-2 bg-(--main-bg-color) flex-1 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-hidden'>
+      <Box className='p-4 flex flex-col gap-2 bg-(--main-bg-color) min-h-0 h-full w-full rounded-lg border border-(--primary-color) overflow-y-auto'>
         {/* Chart */}
         <Box 
           className="w-full bg-(--tertiary-color) p-4 flex flex-col gap-4"
           sx={{
-            boxShadow: "-2px 3px 2px rgba(var(--tertiary-color-rgb),0.1)"
+            boxShadow: "-2px 3px 2px rgba(0,0,0,0.1)"
           }}
         >
           <Box className="flex flex-col gap-2">
@@ -346,135 +366,142 @@ const ChartTopUsers = () => {
               className="mt-3 flex-1"
               sx={{
                 backgroundColor: "transparent",
-                overflow: "auto"
+                mt: 3,
+                flex: 1,
+                minHeight: 0,
+                overflow: "auto",
               }}
             >
               <Table
                 size="small"
                 sx={{ minWidth: 650, backgroundColor: "var(--secondary-color)" }}
+                stickyHeader
               >
                 {/* ================= HEADER ================= */}
                 <TableHead>
                   <TableRow
                     sx={{
-                      backgroundColor: "var(--primary-color)",
-                      position: "sticky",
-                      top: 0,
-                      zIndex: 2,
                       height: 40,
                       "& th": {
-                        color: "var(--tertiary-color)",
-                        border: "1px solid rgba(var(--primary-color-rgb), 0.5)",
                         padding: "6px 8px",
+                      },
+                      "& .MuiTableCell-root": {
+                        backgroundColor: "var(--primary-color)",
+                        color: "var(--tertiary-color)",
+                        border: "1px solid rgba(var(--secondary-color-rgb), 0.5)",
+                        fontWeight: 700
                       },
                     }}
                   >
-                    <TableCell align="center" sx={{ width: "3%", fontWeight: 700 }}>
+                    <TableCell align="center" sx={{ width: "3%" }}>
                       {t("table.header.order")}
                     </TableCell>
-                    <TableCell align="center" sx={{ width: "8%", fontWeight: 700 }}>
+                    <TableCell align="center" sx={{ width: "8%" }}>
                       {t("table.header.pid")}
                     </TableCell>
-                    <TableCell align="center" sx={{ width: "8%", fontWeight: 700 }}>
+                    <TableCell align="center" sx={{ width: "8%" }}>
                       {t("table.header.name")}
                     </TableCell>
-                    <TableCell align="center" sx={{ width: "8%", fontWeight: 700 }}>
+                    <TableCell align="center" sx={{ width: "8%" }}>
                       {t("table.header.phone")}
                     </TableCell>
-                    <TableCell align="center" sx={{ width: "8%", fontWeight: 700 }}>
+                    <TableCell align="center" sx={{ width: "8%" }}>
                       {t("table.header.agency")}
                     </TableCell>
 
-                    {topUsersData?.data?.[0] &&
-                      Object.keys(topUsersData.data[0].months)
-                        .sort(
-                          (a, b) =>
-                            dayjs(a).valueOf() - dayjs(b).valueOf()
-                        )
-                        .map((month) => (
-                          <TableCell
-                            key={month}
-                            align="center"
-                            sx={{ width: "8%", fontWeight: 700 }}
-                          >
-                            {dayjs(month)
-                              .locale(i18n.language)
-                              .format(
-                                i18n.language === "th"
-                                  ? "MMMM BBBB"
-                                  : "MMMM YYYY"
-                              )}
-                          </TableCell>
-                        ))
-                    }
+                    {monthKeys.map((month) => (
+                      <TableCell key={month} align="center" sx={{ width: "8%" }}>
+                        {dayjs(month)
+                          .locale(i18n.language)
+                          .format(i18n.language === "th" ? "MMMM BBBB" : "MMMM YYYY")}
+                      </TableCell>
+                    ))}
                   </TableRow>
                 </TableHead>
 
                 {/* ================= BODY ================= */}
-                <TableBody>
-                  {topUsersData?.data?.map((item, index) => {
+                <TableBody
+                  sx={{
+                    backgroundColor: "var(--tertiary-color)",
+                  }}
+                >
+                  {topUsersData?.data?.length ? (
+                    topUsersData?.data?.map((item, index) => {
                     
-                    return (
-                      <TableRow
-                        key={index}
-                        sx={{
-                          "& td": {
-                            border: "1px solid rgba(var(--primary-color-rgb), 0.5)",
-                            padding: "6px 8px",
-                            color: "var(--primary-color)",
-                          },
-                        }}
-                      >
-                        <TableCell align="center">
-                          {item.rank}
-                        </TableCell>
+                      return (
+                        <TableRow
+                          key={index}
+                          sx={{
+                            "& td": {
+                              border: "1px solid rgba(var(--primary-color-rgb), 0.5)",
+                              padding: "6px 8px",
+                              color: "var(--primary-color)",
+                              whiteSpace: "nowrap",
+                            },
+                          }}
+                        >
+                          <TableCell align="center">
+                            {item.rank}
+                          </TableCell>
 
-                        <TableCell align="center">
-                          {item.user_id}
-                        </TableCell>
+                          <TableCell align="center">
+                            {formatThaiID(item.idcard) ?? "-"}
+                          </TableCell>
 
-                        <TableCell align="center">
-                          {`${item.title ? item.title + " " : ""}${item.firstname} ${item.lastname}`}
-                        </TableCell>
+                          <TableCell align="center">
+                            {`${item.title ? item.title + " " : ""}${item.firstname} ${item.lastname}`}
+                          </TableCell>
 
-                        <TableCell align="center">
-                          {item.phone}
-                        </TableCell>
+                          <TableCell align="center">
+                            {formatPhone(item.phone) ?? "-"}
+                          </TableCell>
 
-                        <TableCell align="center">
-                          {item.ou_name}
-                        </TableCell>
+                          <TableCell align="center">
+                            {item.ou_name}
+                          </TableCell>
 
-                        {Object.entries(item.months)
-                          .sort(
-                            ([a], [b]) =>
-                              dayjs(a).valueOf() - dayjs(b).valueOf()
-                          )
-                          .map(([month, count]) => {
+                          {monthKeys.map((month) => {
+                            const count = item.months?.[month] ?? 0;
+
                             const isCurrentMonth =
-                              dayjs(formData.month_year).format("YYYY-MM") === month;
+                              month === dayjs(formData.month_year).format("YYYY-MM");
 
                             return (
                               <TableCell
                                 key={`${item.user_id}-${month}`}
+                                align="center"
                                 sx={{
                                   backgroundColor: isCurrentMonth
-                                    ? "rgba(var(--primary-color-rgb), 0.5)"
-                                    : "rgba(var(--primary-color-rgb), 0.2)",
-                                  fontWeight: isCurrentMonth ? "bold" : "normal",
+                                    ? "rgba(var(--primary-color-rgb), 0.5) !important"
+                                    : "rgba(var(--primary-color-rgb), 0.2) !important",
+                                  fontWeight: isCurrentMonth ? "700 !important" : "400 !important",
                                   color: isCurrentMonth
-                                    ? "var(--tertiary-color) !important"
-                                    : "var(--primary-color)",
+                                    ? "var(--secondary-color) !important"
+                                    : "var(--primary-color) !important",
                                 }}
-                                align="center"
                               >
                                 {count.toLocaleString()}
                               </TableCell>
                             );
                           })}
-                      </TableRow>
-                    );
-                  })}
+                        </TableRow>
+                      );
+                    })
+                  ) : (
+                    <TableRow
+                      sx={{
+                        backgroundColor: "var(--tertiary-color)",
+                      }}
+                    >
+                      <TableCell 
+                        align="center" 
+                        colSpan={5 + monthKeys.length}
+                        sx={{ color: "var(--secondary-color)" }}
+                      >
+                        {t("text.no-data")}
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -506,7 +533,7 @@ const ChartTopUsers = () => {
             />
           )
         }
-      </div>
+      </Box>
     </section>
   )
 }

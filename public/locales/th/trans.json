@@ -138,7 +138,8 @@
     "export-excel": "กำลังสร้างไฟล์ Excel...",
     "export-pdf": "กำลังสร้างไฟล์ PDF...",
     "complete": "ทำเสร็จ",
-    "number-of-item": "จำนวนรายการ"
+    "number-of-item": "จำนวนรายการ",
+    "no-data": "ไม่มีข้อมูล"
   },
   "dock": {
     "home": "หน้าหลัก",

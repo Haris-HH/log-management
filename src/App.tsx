@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import "./App.css";
 import { useSelector } from 'react-redux';
 
@@ -50,9 +50,13 @@ import { useSse } from "./utils/useSse";
 // Store
 import type { RootState } from "./store/store";
 
-function App() {
+// Hooks
+import { useForceLogout } from "./hooks/useForceLogout";
 
+function App() {
   const dispatch = useAppDispatch();
+  const location = useLocation();
+  const { forceLogout } = useForceLogout();
 
   // i18n
   const { i18n } = useTranslation();
@@ -107,6 +111,26 @@ function App() {
       limit: "100",
     }));
   }, [user, dispatch])
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+
+    if (!token && location.pathname !== "/login") {
+      forceLogout(false);
+    }
+  }, [location.pathname, forceLogout]);
+
+  useEffect(() => {
+    const handleForceLogout = () => {
+      forceLogout(false);
+    };
+
+    window.addEventListener("force-logout", handleForceLogout);
+
+    return () => {
+      window.removeEventListener("force-logout", handleForceLogout);
+    };
+  }, [forceLogout]);
 
   const enabled = Boolean(localStorage.getItem("accessToken") ?? false);
 

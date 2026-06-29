@@ -138,7 +138,8 @@
     "export-excel": "Exporting Excel...",
     "export-pdf": "Exporting PDF...",
     "complete": "Complete",
-    "number-of-item": "Number of items"
+    "number-of-item": "Number of items",
+    "no-data": "No Data"
   },
   "dock": {
     "home": "Home",

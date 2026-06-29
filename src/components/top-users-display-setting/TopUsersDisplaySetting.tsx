@@ -74,7 +74,7 @@ const TopUsersDisplaySetting = ({ open, handleClose, dialogTitle, onSave }: Prop
       <DialogTitle
         sx={{
           backgroundColor: "var(--primary-color)",
-          color: "var(--secondary-color)",
+          color: "var(--tertiary-color)",
           py: 0.2,
           px: 2,
         }}
@@ -85,12 +85,12 @@ const TopUsersDisplaySetting = ({ open, handleClose, dialogTitle, onSave }: Prop
       </DialogTitle>
       <DialogContent
         sx={{
-          backgroundColor: "var(--secondary-color)",
+          backgroundColor: "var(--tertiary-color)",
           border: "1px solid var(--primary-color)"
         }}
       >
         <Box className="flex flex-col gap-1 px-0.5 pt-3">
-          <Typography variant="h6" sx={{ fontSize: "1.2rem", fontWeight: "bold", color: "var(--tertiary-color)" }}>
+          <Typography variant="h6" sx={{ fontSize: "1.2rem", fontWeight: "bold", color: "var(--primary-color)" }}>
             {t("text.internal-police")}
           </Typography>
           <Box className="grid grid-cols-[1fr_100px] items-center gap-2">
@@ -117,7 +117,7 @@ const TopUsersDisplaySetting = ({ open, handleClose, dialogTitle, onSave }: Prop
               }}
             />
           </Box>
-          <Typography variant="h6" sx={{ fontSize: "1.2rem", fontWeight: "bold", color: "var(--tertiary-color)" }}>
+          <Typography variant="h6" sx={{ fontSize: "1.2rem", fontWeight: "bold", color: "var(--primary-color)" }}>
             {t("text.external-police")}
           </Typography>
           <Box className="grid grid-cols-[1fr_100px] items-center gap-2">
@@ -150,7 +150,7 @@ const TopUsersDisplaySetting = ({ open, handleClose, dialogTitle, onSave }: Prop
               sx={{
                 width: 90,
                 height: 40,
-                backgroundColor: "var(--secondary-color)",
+                backgroundColor: "var(--tertiary-color)",
                 color: "var(--primary-color)",
                 border: "1px solid var(--primary-color)",
                 "&:hover": {
@@ -169,7 +169,7 @@ const TopUsersDisplaySetting = ({ open, handleClose, dialogTitle, onSave }: Prop
                 width: 90,
                 height: 40,
                 backgroundColor: "var(--primary-color)",
-                color: "var(--secondary-color)",
+                color: "var(--tertiary-color)",
                 "&:hover": {
                   backgroundColor: "rgba(var(--primary-color-rgb), 0.8)",
                 },

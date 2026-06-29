@@ -48,12 +48,11 @@ const PaginationBelowTableComponent: React.FC<PaginationProps> = ({
           className="h-8 min-w-25 w-25"
           size="medium"
           sx={{
-            backgroundColor: "var(--secondary-color)",
             color: "var(--primary-color)",
             border: "1px solid var(--primary-color)",
             "& .MuiSvgIcon-root": {
               color: "var(--primary-color)",
-            },
+            }
           }}
           MenuProps={{
             slotProps: {
