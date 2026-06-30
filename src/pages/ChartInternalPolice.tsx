@@ -21,9 +21,11 @@ import usePageTitle from '../hooks/usePageTitle';
 
 // Types
 import type { UsageChartResponse } from "../types/response";
+import type { NsbOrg } from "../types/common";
 
 // API
 import { getUsagePoliceChart } from "../features/usage-chart/api/UsageChartApi";
+import { getOrg } from "../features/dropdown/api/DropdownApi";
 
 // i18n
 import { useTranslation } from 'react-i18next';
@@ -43,14 +45,15 @@ const ChartInternalPolice = () => {
 
   // Data
   const [data, setData] = useState<UsageChartResponse | null>(null);
-  
+  const [org, setOrg] = useState<NsbOrg[]>([]);
+
   // Form Data
   const [formData, setFormData] = useState<FormData>({
     month_year: dayjs().toDate(),
   });
 
   // Slice
-  const { org } = useSelector((state: RootState) => state.dropdown);
+  const { bh } = useSelector((state: RootState) => state.dropdown);
   
   usePageTitle(t("pages.chart-internal-police"));
 
@@ -59,6 +62,20 @@ const ChartInternalPolice = () => {
 
     fetchData();
   }, [formData.month_year, monthRange]);
+
+  const fetchOrgList = useCallback(async (bkCodeList: string[]) => {
+    try {
+      const params: Record<string, string> = {
+        limit: "100",
+        filter: `org_code=${bkCodeList.join("|")}`
+      };
+
+      const res = await getOrg(params);
+      setOrg(res.data ?? []);
+    } catch (error) {
+      setOrg([]);
+    }
+  }, []);
 
   const chartColumns = useMemo(() => {
     return org
@@ -94,6 +111,14 @@ const ChartInternalPolice = () => {
       setIsLoading(true);
 
       const res = await getUsagePoliceChart(getFilters());
+      const orgList = [
+        ...new Set(
+          res.data.flatMap(item =>
+            item.access.map(org => org.org_code)
+          )
+        ),
+      ];
+      await fetchOrgList(orgList);
 
       setData(res);
     } 

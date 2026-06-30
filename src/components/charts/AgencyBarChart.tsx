@@ -41,10 +41,14 @@ const AgencyBarChart = ({ data, columns, selectedMonthYear }: Props) => {
 
     return {
       ...group,
-      access: columns.map((column) => ({
-        org_code: column.key,
-        count: accessMap.get(column.key) ?? 0,
-      })),
+      access: columns
+        .filter((column) =>
+          group.access.some((item) => item.org_code === column.key)
+        )
+        .map((column) => ({
+          org_code: column.key,
+          count: accessMap.get(column.key) ?? 0,
+        })),
     };
   });
 
@@ -232,6 +236,13 @@ const AgencyBarChart = ({ data, columns, selectedMonthYear }: Props) => {
                   </div>
                 );
               })}
+            {
+              [...normalizedData].length === 0 && (
+                <div className="flex justify-center items-center w-full text-(--secondary-color) text-sm py-2">
+                  {t('text.no-data')}
+                </div>
+              )
+            }
           </div>
         </div>
       </div>

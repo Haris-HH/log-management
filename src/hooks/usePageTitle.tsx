@@ -8,7 +8,7 @@ const usePageTitle = (title: string) => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    document.title = `${title} | ${t('project.title')}`;
+    document.title = title ? `${title} | ${t('project.title')}` : t('project.title');
   }, [title]);
 };
 
