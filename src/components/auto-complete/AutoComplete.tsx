@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 // Material UI
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
-import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
+import Autocomplete from "@mui/material/Autocomplete";
 
 // i18n
 import { useTranslation } from "react-i18next";
@@ -42,8 +42,6 @@ type AutoCompleteProps = {
   register?: any;
   freeSolo?: boolean;
 };
-
-const filter = createFilterOptions<OptionType>();
 
 const AutoComplete: React.FC<AutoCompleteProps> = ({
   id,

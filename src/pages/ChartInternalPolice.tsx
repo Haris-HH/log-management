@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/th';
-import { useSelector } from 'react-redux';
+// import { useSelector } from 'react-redux';
 
 // Store
-import type { RootState } from "../store/store";
+// import type { RootState } from "../store/store";
 
 // Material UI
 import Box from "@mui/material/Box";
@@ -53,7 +53,7 @@ const ChartInternalPolice = () => {
   });
 
   // Slice
-  const { bh } = useSelector((state: RootState) => state.dropdown);
+  // const { bh } = useSelector((state: RootState) => state.dropdown);
   
   usePageTitle(t("pages.chart-internal-police"));
 
