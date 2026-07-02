@@ -88,6 +88,7 @@ const OverallCheckpoints = () => {
 
   // State
   const [isLoading, setIsLoading] = useState(false);
+  const [searchTrigger, setSearchTrigger] = useState(0);
 
   // Data
   const [totalItems, setTotalItems] = useState(0);
@@ -195,14 +196,15 @@ const OverallCheckpoints = () => {
     setColumnOptions(column);
   }, [column, t, i18n.language, i18n.isInitialized]);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (filterData: FormData = formData) => {
     try {
       setIsLoading(true);
 
-      const res = await getOverallCheckpoint({
-        page: page.toString(),
-        limit: rowsPerPage.toString(),
-      });
+      const res = await getOverallCheckpoint(
+        {
+          ...getFilters(filterData),
+        }
+      );
       const cameras = res.data ?? [];
 
       const updated = await mapCameraRows(cameras);
@@ -245,6 +247,10 @@ const OverallCheckpoints = () => {
     fetchData,
     page,
     rowsPerPage,
+    searchTrigger,
+    formData.province_id,
+    formData.project_id,
+    formData.area_id,
   ]);
 
   const filteredRows = useMemo(() => {
@@ -898,6 +904,44 @@ const OverallCheckpoints = () => {
     return mapped
   };
 
+  const handleSearchOnEnter = (
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (event.key === "Enter") {
+      setPage(1);
+      setSearchTrigger((prev) => prev + 1);
+    }
+  };
+
+  const getFilters = useCallback((formData: FormData) => {
+    const filters: Record<string, string> = {
+      page: page.toString(),
+      limit: rowsPerPage.toString(),
+    };
+
+    if (formData.area_id !== "") {
+      filters.police_region_id = formData.area_id;
+    }
+
+    if (formData.province_id !== "0") {
+      filters.province_code = formData.province_id;
+    }
+
+    if (formData.project_id !== "0") {
+      filters.project_id = formData.project_id;
+    }
+
+    if (formData.search) {
+      filters.camera_name = `*${formData.search}*`;
+    }
+    return filters;
+  }, [
+    formData.area_id,
+    formData.province_id,
+    formData.project_id,
+    searchTrigger,
+  ])
+
   return (
     <section id='overall-checkpoints' className="flex flex-col h-full w-full p-2">
       { isLoading && <Loading /> }
@@ -945,6 +989,7 @@ const OverallCheckpoints = () => {
               onChange={(event) =>
                 handleTextChange("search", event.target.value)
               }
+              onKeyDown={handleSearchOnEnter}
             />
           </Box>
 
@@ -1108,6 +1153,21 @@ const OverallCheckpoints = () => {
                     })}
                   </TableRow>
                 ))}
+                {paginatedRows.length === 0 && (
+                  <TableRow
+                    sx={{
+                      "& .MuiTableCell-root": {
+                        backgroundColor: "var(--tertiary-color)",
+                        color: "var(--secondary-color)",
+                        borderBottom: "1px solid var(--primary-color)",
+                      },
+                    }}
+                  >
+                    <TableCell colSpan={3 + visibleColumns.length} align="center">
+                      {t("text.data-not-found")}
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </TableContainer>

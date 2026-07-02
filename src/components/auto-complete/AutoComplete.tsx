@@ -70,10 +70,12 @@ const AutoComplete: React.FC<AutoCompleteProps> = ({
   const inputValue = controlledInputValue ?? innerInputValue;
 
   const selectedValue = useMemo<AutoCompleteValue>(() => {
-    if (!value) return null;
+    if (value === null || value === undefined) {
+      return null;
+    }
 
     const matched = options.find(
-      (option) => String(option.value) === String(value)
+      option => String(option.value) === String(value)
     );
 
     return matched ?? (freeSolo ? String(value) : null);
@@ -82,13 +84,13 @@ const AutoComplete: React.FC<AutoCompleteProps> = ({
   useEffect(() => {
     if (controlledInputValue !== undefined) return;
 
-    if (!value) {
+    if (value === null || value === undefined) {
       setInnerInputValue("");
       return;
     }
 
     const matched = options.find(
-      (option) => String(option.value) === String(value)
+      option => String(option.value) === String(value)
     );
 
     setInnerInputValue(matched?.label ?? String(value));
