@@ -412,8 +412,8 @@ export interface UsageLog {
 }
 
 export interface LocationWebUI {
-  lat: number;
-  lng: number;
+  latitude: number;
+  longitude: number;
 }
 
 export interface LocationApi {

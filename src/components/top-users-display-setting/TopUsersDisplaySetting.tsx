@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
+import Divider from '@mui/material/Divider';
 import Box from '@mui/material/Box';
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
@@ -67,26 +68,27 @@ const TopUsersDisplaySetting = ({ open, handleClose, dialogTitle, onSave }: Prop
           sx: {
             width: "400px",
             borderRadius: "8px",
+            backgroundColor: "var(--tertiary-color)",
+            border: "1px solid rgba(var(--primary-color-rgb), 0.35)",
           },
         }
       }}
     >
       <DialogTitle
         sx={{
-          backgroundColor: "var(--primary-color)",
-          color: "var(--tertiary-color)",
-          py: 0.2,
+          color: "var(--primary-color)",
+          py: 1,
           px: 2,
         }}
       >
-        <Box className='flex items-center text-[1rem]'>
+        <Box className='flex flex-col items-center text-[1.2rem]'>
           <span>{dialogTitle}</span>
+          <Divider orientation='horizontal' sx={{ width: "100%", borderColor: "rgba(var(--primary-color-rgb), 0.35)" }} />
         </Box>
       </DialogTitle>
       <DialogContent
         sx={{
           backgroundColor: "var(--tertiary-color)",
-          border: "1px solid var(--primary-color)"
         }}
       >
         <Box className="flex flex-col gap-1 px-0.5 pt-3">

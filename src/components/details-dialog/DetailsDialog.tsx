@@ -3,6 +3,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import IconButton from '@mui/material/IconButton';
+import Divider from '@mui/material/Divider';
 import CloseIcon from '@mui/icons-material/Close';
 
 type Props = {
@@ -28,29 +29,41 @@ const DetailsDialog = ({ open, handleClose, dialogTitle, children }: Props) => {
           sx: {
             width: "450px",
             borderRadius: "8px",
+            backgroundColor: "var(--tertiary-color)",
+            border: "1px solid rgba(var(--primary-color-rgb), 0.35)",
           },
         }
       }}
     >
       <DialogTitle
         sx={{
-          backgroundColor: "var(--primary-color)",
-          color: "var(--tertiary-color)",
           py: 0,
           px: 2,
+          color: "var(--primary-color)",
         }}
       >
-        <div className='flex justify-between items-center'>
-          <span>{dialogTitle}</span>
-          <IconButton>
-            <CloseIcon onClick={handleClose} sx={{ color: "var(--tertiary-color)", mr: "-10px" }} />
-          </IconButton>
+        <div className='flex flex-col'>
+          <div className='flex justify-between items-center'>
+            <span>{dialogTitle}</span>
+            <IconButton>
+              <CloseIcon 
+                onClick={handleClose} 
+                sx={{ 
+                  color: "var(--primary-color)", 
+                  mr: "-10px",
+                  ":hover": {
+                    scale: 1.1,
+                  }
+                }} 
+              />
+            </IconButton>
+          </div>
+          <Divider orientation='horizontal' sx={{ width: "100%", borderColor: "rgba(var(--primary-color-rgb), 0.35)" }} />
         </div>
       </DialogTitle>
       <DialogContent
         sx={{
           backgroundColor: "var(--tertiary-color)",
-          border: "1px solid var(--primary-color)",
         }}
       >
         {children}

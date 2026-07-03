@@ -661,8 +661,8 @@ const StatisticAccessLog = () => {
         data.idcard,
         dayjs(data.log_timestamp).format(i18n.language === "th" ? "DD/MM/BBBB HH:mm:ss" : "DD/MM/YYYY HH:mm:ss"),
         data.request_ip,
-        data.location_webui?.lat && data.location_webui?.lng
-          ? `${data.location_webui.lat}, ${data.location_webui.lng}`
+        data.location_webui?.latitude && data.location_webui?.longitude
+          ? `${data.location_webui.latitude}, ${data.location_webui.longitude}`
           : "-",
         data.user_agent,
         data.ou_name,
@@ -711,7 +711,7 @@ const StatisticAccessLog = () => {
               data.idcard ?? "-",
               dayjs(data.log_timestamp).format(i18n.language === "th" ? "DD/MM/BBBB HH:mm:ss" : "DD/MM/YYYY HH:mm:ss"),
               data.request_ip ?? "-",
-              data.location_webui?.lat || data.location_webui?.lng ? "-" : `${data.location_webui?.lat || "-"}, ${data.location_webui?.lng || "-"}`,
+              data.location_webui?.latitude || data.location_webui?.longitude ? "-" : `${data.location_webui?.latitude || "-"}, ${data.location_webui?.longitude || "-"}`,
               data.user_agent ?? "-",
               data.ou_name ?? "-",
               data.bh_name ?? "-",
@@ -801,12 +801,33 @@ const StatisticAccessLog = () => {
 
   const showLocationDialog = (event: React.MouseEvent<HTMLTableRowElement>, data: AccessLog) => {
     event.preventDefault();
-    if (!data.location_webui?.lat || !data.location_webui?.lng) return;
-    setSelectedData([{ latitude: data.location_webui.lat, longitude: data.location_webui.lng }, 
-    rows.filter((item) => !(
-      item.location_webui?.lat === data.location_webui?.lat &&
-      item.location_webui?.lng === data.location_webui?.lng
-    )).map((item) => ({ latitude: item.location_webui?.lat, longitude: item.location_webui?.lng }))].flat());
+    if (
+      data.location_webui?.latitude == null ||
+      data.location_webui?.longitude == null
+    ) {
+      return;
+    }
+    const others = rows
+      .filter(item =>
+        item.location_webui?.latitude != null &&
+        item.location_webui?.longitude != null &&
+        !(
+          item.location_webui.latitude === data.location_webui.latitude &&
+          item.location_webui.longitude === data.location_webui.longitude
+        )
+      )
+      .map(item => ({
+        latitude: item.location_webui!.latitude,
+        longitude: item.location_webui!.longitude,
+      }));
+
+    setSelectedData([
+      {
+        latitude: data.location_webui.latitude,
+        longitude: data.location_webui.longitude,
+      },
+      ...others,
+    ]);
     setLocationDialogOpen(true);
   }
 
@@ -887,8 +908,8 @@ const StatisticAccessLog = () => {
     setSelectedData(
       res.data.map((item) => {
         return {
-          latitude: item.location_webui?.lat ?? 0,
-          longitude: item.location_webui?.lng ?? 0
+          latitude: item.location_webui?.latitude ?? 0,
+          longitude: item.location_webui?.longitude ?? 0
         }
       })
     );
@@ -1245,7 +1266,7 @@ const StatisticAccessLog = () => {
                       {data.request_ip}
                     </TableCell>
                     <TableCell>
-                      {!data.location_webui?.lat || !data.location_webui?.lng ? "-" : `${data.location_webui?.lat?.toFixed(5)}, ${data.location_webui?.lng?.toFixed(5)}`}
+                      {!data.location_webui?.latitude || !data.location_webui?.longitude ? "-" : `${data.location_webui?.latitude?.toFixed(5)}, ${data.location_webui?.longitude?.toFixed(5)}`}
                     </TableCell>
                     <TableCell>
                       {data.user_agent}
@@ -1285,7 +1306,7 @@ const StatisticAccessLog = () => {
 
           {/* Location Usage Dialog */}
           {
-            locationDialogOpen && selectedData && (
+            (locationDialogOpen && selectedData) && (
               <LocationUsage
                 open={locationDialogOpen}
                 handleClose={handleLocationDialogClose}

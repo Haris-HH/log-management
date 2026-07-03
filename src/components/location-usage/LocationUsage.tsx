@@ -8,6 +8,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
+import Divider from '@mui/material/Divider';
 
 // Components
 import DatePickerBuddhist from "../../components/date-picker-buddhist/DatePickerBuddhist";
@@ -139,8 +140,9 @@ const LocationUsage = ({
         paper: {
           sx: {
             backgroundColor: "var(--tertiary-color)",
-            border: "1px solid var(--primary-color)",
+            border: "1px solid rgba(var(--primary-color-rgb), 0.35)",
             boxShadow: "2px 2px 2px rgba(0, 0, 0, 0.2)",
+            borderRadius: "5px",
           },
         }
       }}
@@ -151,7 +153,10 @@ const LocationUsage = ({
           fontWeight: "bold",
         }}
       >
-        {dialogTitle}
+        <div className='flex flex-col'>
+          <span className='text-xl'>{dialogTitle}</span>
+          <Divider orientation='horizontal' sx={{ width: "100%", borderColor: "rgba(var(--primary-color-rgb), 0.35)" }} />
+        </div>
       </DialogTitle>
       <DialogContent>
         <Box className="flex flex-col gap-4">

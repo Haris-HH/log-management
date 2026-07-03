@@ -657,7 +657,7 @@ const StatisticUsageLog = () => {
         data.idcard,
         dayjs(data.log_timestamp).format(i18n.language === "th" ? "DD/MM/BBBB HH:mm:ss" : "DD/MM/YYYY HH:mm:ss"),
         data.request_ip,
-        data.location_webui?.lat || data.location_webui?.lng ? "-" : `${data.location_webui?.lat || "-"}, ${data.location_webui?.lng || "-"}`,
+        data.location_webui?.latitude || data.location_webui?.longitude ? "-" : `${data.location_webui?.latitude || "-"}, ${data.location_webui?.longitude || "-"}`,
         data.user_agent,
         data.ou_name,
         data.bh_name,
@@ -705,7 +705,7 @@ const StatisticUsageLog = () => {
               data.idcard ?? "-",
               dayjs(data.log_timestamp).format(i18n.language === "th" ? "DD/MM/BBBB HH:mm:ss" : "DD/MM/YYYY HH:mm:ss"),
               data.request_ip ?? "-",
-              data.location_webui?.lat || data.location_webui?.lng ? "-" : `${data.location_webui?.lat || "-"}, ${data.location_webui?.lng || "-"}`,
+              data.location_webui?.latitude || data.location_webui?.longitude ? "-" : `${data.location_webui?.latitude || "-"}, ${data.location_webui?.longitude || "-"}`,
               data.user_agent ?? "-",
               data.ou_name ?? "-",
               data.bh_name ?? "-",
@@ -797,8 +797,8 @@ const StatisticUsageLog = () => {
 
   const showLocationDialog = (event: React.MouseEvent<HTMLTableRowElement>, data: UsageLog) => {
     event.preventDefault();
-    if (!data.location_webui?.lat || !data.location_webui?.lng) return;
-    setSelectedData([{ latitude: data.location_webui.lat, longitude: data.location_webui.lng }, rows.filter((item) => item.location_webui?.lat !== data.location_webui?.lat && item.location_webui?.lng !== data.location_webui?.lng).map((item) => ({ latitude: item.location_webui?.lat, longitude: item.location_webui?.lng }))].flat());
+    if (!data.location_webui?.latitude || !data.location_webui?.longitude) return;
+    setSelectedData([{ latitude: data.location_webui.latitude, longitude: data.location_webui.longitude }, rows.filter((item) => item.location_webui?.latitude !== data.location_webui?.latitude && item.location_webui?.longitude !== data.location_webui?.longitude).map((item) => ({ latitude: item.location_webui?.latitude, longitude: item.location_webui?.longitude }))].flat());
     setLocationDialogOpen(true);
   }
 
@@ -876,8 +876,8 @@ const StatisticUsageLog = () => {
     setSelectedData(
       res.data.map((item) => {
         return {
-          latitude: item.location_webui?.lat ?? 0,
-          longitude: item.location_webui?.lng ?? 0
+          latitude: item.location_webui?.latitude ?? 0,
+          longitude: item.location_webui?.longitude ?? 0
         }
       })
     );
@@ -1238,7 +1238,7 @@ const StatisticUsageLog = () => {
                       {data.request_ip}
                     </TableCell>
                     <TableCell>
-                      {!data.location_webui?.lat || !data.location_webui?.lng ? "-" : `${data.location_webui?.lat?.toFixed(5)}, ${data.location_webui?.lng?.toFixed(5)}`}
+                      {!data.location_webui?.latitude || !data.location_webui?.longitude ? "-" : `${data.location_webui?.latitude?.toFixed(5)}, ${data.location_webui?.longitude?.toFixed(5)}`}
                     </TableCell>
                     <TableCell>
                       {data.user_agent}

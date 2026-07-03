@@ -1054,6 +1054,9 @@ const StatisticUsageAgency = () => {
                       py: 0.35, 
                       borderRadius: "5px",
                       mt: 1,
+                      ":hover": {
+                        scale: 1.1,
+                      }
                     }}
                     onClick={navigateToPersonUsage}
                   >
