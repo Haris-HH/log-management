@@ -90,7 +90,7 @@ const BaseMap = ({
       <div
         ref={mapRef}
         id="map"
-        className="relative"
+        className="relative map-inner-shadow"
         style={{
           width: width || "100%",
           height: height || "100%",

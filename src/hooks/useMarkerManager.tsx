@@ -186,11 +186,14 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 24px;
-            height: 24px;
+            width: 30px;
+            height: 30px;
             background-color: ${color};
             font-weight: 600;
             color: black;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255,.2);
+            box-shadow: 0 0 5px var(--primary-color);
           ">
             ${loc.total ?? 0}
           </div>
@@ -202,6 +205,7 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
             border-left: 6px solid transparent;
             border-right: 6px solid transparent;
             border-top: 6px solid ${color};
+            filter: drop-shadow(0 0px 5px rgba(var(--primary-color-rgb),.35));
           "></div>
         </div>
       `;
