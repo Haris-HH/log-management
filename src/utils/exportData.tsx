@@ -1,5 +1,23 @@
-import ExcelJS from "exceljs";
+import type ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
+
+// exceljs is ~1.1 MB and only runs when a user exports a spreadsheet, so it is
+// loaded on demand rather than shipped in the initial bundle. Memoised so a
+// chunked export (one workbook per 1000 rows) resolves the module once.
+let excelJsPromise: Promise<typeof ExcelJS> | null = null;
+
+const getExcelJs = (): Promise<typeof ExcelJS> => {
+  if (!excelJsPromise) {
+    excelJsPromise = import("exceljs")
+      .then((mod) => (mod.default ?? mod) as unknown as typeof ExcelJS)
+      .catch((error) => {
+        excelJsPromise = null;
+        throw error;
+      });
+  }
+
+  return excelJsPromise;
+};
 
 type ColumnStyle = {
   alignment?: Partial<ExcelJS.Alignment>;
@@ -18,7 +36,9 @@ type ExportExcelParams<T> = {
 export const generateExcelBlob = async <T,>(
   params: Omit<ExportExcelParams<T>, "fileName">
 ): Promise<Blob> => {
-  const workbook = new ExcelJS.Workbook();
+  const ExcelJs = await getExcelJs();
+
+  const workbook = new ExcelJs.Workbook();
   const sheet = workbook.addWorksheet(params.sheetName);
 
   const headerRow = sheet.addRow(params.headers);

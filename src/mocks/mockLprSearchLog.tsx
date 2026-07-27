@@ -28,8 +28,8 @@ export const mockLprSearchLog: LprSearchLogResponse = {
       "org_code": "CODE001",
       "request_ip": "10.0.0.1",
       "location_webui": {
-        lat: 13.7563,
-        lng: 100.5018
+        latitude: 13.7563,
+        longitude: 100.5018
       },
       "location_api": {
         ip: "test",

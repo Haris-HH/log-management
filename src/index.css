@@ -26,6 +26,7 @@
   --status-network-outage: #F68634;
   --status-device-outage: #FFCA29;
   --status-device-normal: #80B213;
+  --status-device-normal-rgb: 128, 178, 19;
   --status-device-suspended: #FF5C5C;
 }
 

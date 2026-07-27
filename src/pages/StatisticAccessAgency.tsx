@@ -153,20 +153,24 @@ const StatisticAccessAgency = () => {
   }, [bk, t, i18n.language, formData.bh_id]);
 
   // Map
-  const agencyMap = new Map(
-    agency.map(item => [item.ou_code, item])
+  const agencyMap = useMemo(
+    () => new Map(agency.map(item => [item.ou_code, item])),
+    [agency]
   );
 
-  const bhMap = new Map(
-    bh.map(item => [item.bh_code, item])
+  const bhMap = useMemo(
+    () => new Map(bh.map(item => [item.bh_code, item])),
+    [bh]
   );
 
-  const bkMap = new Map(
-    bk.map(item => [item.bk_code, item])
+  const bkMap = useMemo(
+    () => new Map(bk.map(item => [item.bk_code, item])),
+    [bk]
   );
 
-  const orgMap = new Map(
-    org.map(item => [item.org_code, item])
+  const orgMap = useMemo(
+    () => new Map(org.map(item => [item.org_code, item])),
+    [org]
   );
 
   const fetchBkList = useCallback(async (bhCode?: string) => {

@@ -13,6 +13,7 @@ const SERVICE_CHANNEL = import.meta.env.VITE_API_SERVICE_CHANNEL;
 const ACCESS_TOKEN_KEY = "accessToken";
 const REFRESH_TOKEN_KEY = "refreshToken";
 const USER_UID_KEY = "userUid";
+const PERSIST_ROOT_KEY = "persist:root";
 
 let isRefreshing = false;
 
@@ -25,6 +26,11 @@ const clearAuthStorage = () => {
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
   localStorage.removeItem(USER_UID_KEY);
+  // redux-persist keeps the authenticated user (name, hash_id, agency) here.
+  // Leaving it behind means the next visitor sees the previous user's identity
+  // in the navbar/watermark until a fresh login overwrites it.
+  localStorage.removeItem(PERSIST_ROOT_KEY);
+  clearLocationCache();
 };
 
 const redirectToLogin = () => {
@@ -58,11 +64,15 @@ const createHttpError = async (response: Response) => {
 // Location Headers
 // ==============================
 
-const getLocationHeaders = async (): Promise<HeadersInit> => {
-  if (!navigator.geolocation) {
-    return {};
-  }
+// How long a position fix may be reused across requests. Previously every single
+// API call forced a fresh high-accuracy fix (maximumAge: 0), so a page issuing N
+// requests paid N GPS acquisitions and up to N * 5s of added latency.
+const LOCATION_TTL_MS = 30_000;
 
+let cachedLocation: { headers: HeadersInit; expiresAt: number } | null = null;
+let inFlightLocation: Promise<HeadersInit> | null = null;
+
+const requestLocationHeaders = async (): Promise<HeadersInit> => {
   try {
     const position = await new Promise<GeolocationPosition>(
       (resolve, reject) => {
@@ -78,19 +88,50 @@ const getLocationHeaders = async (): Promise<HeadersInit> => {
       }
     );
 
-    const latitude = position.coords.latitude.toString();
-    const longitude = position.coords.longitude.toString();
-
     return {
-      "x-latitude": latitude,
-      "x-longitude": longitude,
+      "x-latitude": position.coords.latitude.toString(),
+      "x-longitude": position.coords.longitude.toString(),
     };
-  } 
+  }
   catch (error) {
     console.error("Cannot get location:", error);
 
+    // Cache the failure too: a denied permission would otherwise re-prompt the
+    // geolocation stack on every request for the rest of the session.
     return {};
   }
+};
+
+const getLocationHeaders = async (): Promise<HeadersInit> => {
+  if (!navigator.geolocation) {
+    return {};
+  }
+
+  if (cachedLocation && cachedLocation.expiresAt > Date.now()) {
+    return cachedLocation.headers;
+  }
+
+  // Concurrent requests share one acquisition instead of each starting their own.
+  if (!inFlightLocation) {
+    inFlightLocation = requestLocationHeaders()
+      .then((headers) => {
+        cachedLocation = {
+          headers,
+          expiresAt: Date.now() + LOCATION_TTL_MS,
+        };
+        return headers;
+      })
+      .finally(() => {
+        inFlightLocation = null;
+      });
+  }
+
+  return inFlightLocation;
+};
+
+/** Drop any cached position — call on logout so a new session re-acquires. */
+export const clearLocationCache = () => {
+  cachedLocation = null;
 };
 
 // ==============================

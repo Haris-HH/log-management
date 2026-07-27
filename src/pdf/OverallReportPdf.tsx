@@ -1,4 +1,3 @@
-import pdfMake from "pdfmake/build/pdfmake";
 import { saveAs } from "file-saver";
 import dayjs from "dayjs";
 import buddhistEra from "dayjs/plugin/buddhistEra";
@@ -18,7 +17,7 @@ export const generateOverallReportPdfBlob = async (
   t: (key: string) => string,
   i18n: any
 ): Promise<Blob> => {
-  await getConfiguredPdfMake();
+  const pdfMake = await getConfiguredPdfMake();
 
   const overallReport: TableCell[][] = [
     [

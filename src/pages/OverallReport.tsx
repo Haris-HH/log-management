@@ -153,16 +153,19 @@ const OverallReport = () => {
   }, [project, formData.province_id, t, i18n.language]);
 
   // Map
-  const areaMap = new Map(
-    area.map(item => [item.id, item])
+  const areaMap = useMemo(
+    () => new Map(area.map(item => [item.id, item])),
+    [area]
   );
 
-  const provinceMap = new Map(
-    province.map(item => [item.province_code, item])
+  const provinceMap = useMemo(
+    () => new Map(province.map(item => [item.province_code, item])),
+    [province]
   );
 
-  const projectMap = new Map(
-    project.map(item => [item.project_id, item])
+  const projectMap = useMemo(
+    () => new Map(project.map(item => [item.project_id, item])),
+    [project]
   );
 
   const getFilters = useCallback((data: FormData, range: ReportRange) => {

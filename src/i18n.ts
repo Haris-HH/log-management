@@ -7,7 +7,9 @@ i18n
   .use(initReactI18next)
   .init({
     fallbackLng: 'th',
-    debug: true,
+    // Verbose i18next logging is a dev aid; leaving it on in a production build
+    // spams the console and advertises the app's internals.
+    debug: import.meta.env.DEV,
     ns: ['trans'],
     defaultNS: 'trans',
     interpolation: {

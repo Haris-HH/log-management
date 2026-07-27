@@ -1,67 +1,76 @@
 import { useEffect, useRef } from "react";
+import { fetchEventSource } from "@microsoft/fetch-event-source";
 
-let globalSse: EventSource | null = null;
-let listenerCount = 0;
+// Env
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const SERVICE_CHANNEL = import.meta.env.VITE_API_SERVICE_CHANNEL;
+
+const ACCESS_TOKEN_KEY = "accessToken";
 
 export function useSse(
-  url: string,
-  token: string,
   eventName: string,
   onMessage: (data: any) => void,
   enabled: boolean,
   isPgNotify: boolean = true,
-  onError?: (err: any) => void,
+  onError?: (err: any) => void
 ) {
   const callbackRef = useRef(onMessage);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     callbackRef.current = onMessage;
   }, [onMessage]);
-  
+
   useEffect(() => {
-    if (!url || !eventName || !enabled) return;
+    if (!eventName || !enabled) return;
 
-    const finalUrl = token
-      ? `${url}${url.includes("?") ? "&" : "?"}token=${encodeURIComponent(token)}`
-      : url;
+    const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
+    const controller = new AbortController();
 
-    if (!globalSse) {
-      globalSse = new EventSource(finalUrl, { withCredentials: false });
-      console.log("SSE Connection Opened");
-    }
+    abortControllerRef.current = controller;
 
-    listenerCount++;
+    const finalUrl = `${API_BASE_URL}/events`;
 
-    const handler = (event: MessageEvent) => {
-      try {
-        const data = JSON.parse(event.data);
-        const processedData = isPgNotify 
-          ? (data.operation === "DELETE" ? data.data.old : data.data.new)
-          : data.data;
+    fetchEventSource(finalUrl, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      signal: controller.signal,
+      openWhenHidden: true,
 
-        callbackRef.current(processedData);
-      } catch (err) {
-        console.error("Failed to parse SSE data:", err);
-      }
-    };
+      async onopen(response) {
+        if (!response.ok) {
+          throw new Error(`SSE failed with status ${response.status}`);
+        }
 
-    globalSse.addEventListener(eventName, handler);
+        console.log("SSE Connection Opened");
+      },
 
-    if (onError) {
-      globalSse.onerror = onError;
-    }
+      onmessage(event) {
+        if (event.event !== eventName) return;
+
+        try {
+          const data = JSON.parse(event.data);
+          if (data.serviceChannel !== SERVICE_CHANNEL) return;
+          callbackRef.current(data);
+        } catch (err) {
+          console.error("Failed to parse SSE data:", err);
+        }
+      },
+
+      onerror(err) {
+        console.error("SSE Error:", err);
+        onError?.(err);
+
+        throw err;
+      },
+    });
 
     return () => {
-      if (globalSse) {
-        globalSse.removeEventListener(eventName, handler);
-        listenerCount--;
-
-        if (listenerCount <= 0) {
-          globalSse.close();
-          globalSse = null;
-          console.log("SSE Connection Closed (No listeners left)");
-        }
-      }
+      controller.abort();
+      abortControllerRef.current = null;
+      console.log("SSE Connection Closed");
     };
-  }, [url, token, eventName, enabled, isPgNotify]);
+  }, [eventName, enabled, isPgNotify, onError]);
 }

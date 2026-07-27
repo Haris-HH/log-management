@@ -134,14 +134,13 @@ function App() {
 
   const enabled = Boolean(localStorage.getItem("accessToken") ?? false);
 
-  const handleSseMessage = () => {
-  };
+  const handleAutoLogout = async () => {
+    await forceLogout(true);
+  }
 
   useSse(
-    "",
-    "",
-    "",
-    handleSseMessage,
+    "force-logout",
+    handleAutoLogout,
     enabled
   );
 

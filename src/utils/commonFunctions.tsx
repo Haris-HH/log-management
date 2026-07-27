@@ -34,6 +34,24 @@ export const loadImageAsBase64 = async (url: string): Promise<string> => {
   }
 }
 
+const HTML_ESCAPES: Record<string, string> = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#39;",
+};
+
+/**
+ * Escape a server-supplied value before interpolating it into an HTML string.
+ * Leaflet's divIcon/bindPopup/bindTooltip assign their content via innerHTML,
+ * so any unescaped value there is an XSS sink.
+ */
+export const escapeHtml = (value: unknown): string => {
+  if (value === null || value === undefined) return "";
+  return String(value).replace(/[&<>"']/g, (char) => HTML_ESCAPES[char]);
+};
+
 export const buildOptions = (
   list: any[],
   defaultLabel: string,

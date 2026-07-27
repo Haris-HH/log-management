@@ -1,4 +1,3 @@
-import pdfMake from "pdfmake/build/pdfmake";
 import { saveAs } from "file-saver";
 import dayjs from "dayjs";
 import type { TDocumentDefinitions, TableCell } from "pdfmake/interfaces";
@@ -15,7 +14,7 @@ export const generateStatisticAccessLogPdfBlob = async (
   t: (key: string) => string,
   i18n: any
 ): Promise<Blob> => {
-  await getConfiguredPdfMake();
+  const pdfMake = await getConfiguredPdfMake();
 
   const body: TableCell[][] = [
     [
@@ -37,7 +36,7 @@ export const generateStatisticAccessLogPdfBlob = async (
       { text: item.idcard } as TableCell,
       { text: dayjs(item.log_timestamp).format(i18n.language === "th" ? "DD/MM/BBBB HH:mm" : "DD/MM/YYYY HH:mm")} as TableCell,
       { text: item.request_ip } as TableCell,
-      { text: `${item.location_webui?.lat?.toFixed(5)}, ${item.location_webui?.lng?.toFixed(5)}`} as TableCell,
+      { text: `${item.location_webui?.latitude?.toFixed(5)}, ${item.location_webui?.longitude?.toFixed(5)}`} as TableCell,
       { text: item.user_agent } as TableCell,
       { text: item.ou_name } as TableCell,
       { text: item.bh_name } as TableCell,

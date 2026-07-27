@@ -121,16 +121,19 @@ const OverallMap = () => {
   }, [deviceStatus, t, i18n.language]);
 
   // Map
-  const areaMap = new Map(
-    area.map(item => [item.id, item])
+  const areaMap = useMemo(
+    () => new Map(area.map(item => [item.id, item])),
+    [area]
   );
 
-  const provinceMap = new Map(
-    province.map(item => [item.province_code, item])
+  const provinceMap = useMemo(
+    () => new Map(province.map(item => [item.province_code, item])),
+    [province]
   );
 
-  const deviceStatusMap = new Map(
-    deviceStatus.map(item => [item.status_code, item])
+  const deviceStatusMap = useMemo(
+    () => new Map(deviceStatus.map(item => [item.status_code, item])),
+    [deviceStatus]
   );
 
   useEffect(() => {

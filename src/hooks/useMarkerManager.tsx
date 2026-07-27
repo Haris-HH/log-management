@@ -19,6 +19,7 @@ import type { RootState } from "../store/store";
 
 // Utils
 import { DEVICE_STATUS_COLOR } from '../constants/color';
+import { escapeHtml } from '../utils/commonFunctions';
 
 export const useMarkerManager = (map: LeafletMap | null) =>{
   // Data
@@ -195,7 +196,7 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
             border: 2px solid rgba(255, 255, 255,.2);
             box-shadow: 0 0 5px var(--primary-color);
           ">
-            ${loc.total ?? 0}
+            ${escapeHtml(loc.total ?? 0)}
           </div>
 
           <div style="
@@ -264,7 +265,11 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
 
   const createOverallPopup = (marker: L.Marker<any>, detail: CameraInCheckpoint) => {
     const cameraLength = detail.total;
-    const sortStatus = detail.cameras.sort((a, b) => (a.device_status_id ?? -1) - (b.device_status_id ?? -1));
+    // Copy before sorting — Array.prototype.sort mutates, and `detail.cameras`
+    // is state owned by the caller.
+    const sortStatus = [...detail.cameras].sort(
+      (a, b) => (a.device_status_id ?? -1) - (b.device_status_id ?? -1)
+    );
 
     const cameraIconHtml = ReactDOMServer.renderToStaticMarkup(
       <CameraIcon style={{ width: "20px", height: "15px", marginTop: "5px", color:'var(--primary-color)' }} />
@@ -280,8 +285,8 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
           <div style="display: flex; justify-content: start; align-items: start; gap: 10px">
             ${cameraIconHtml}
             <div style="display: flex; flex-direction: column; justify-content: center; align-items: start;">
-              <label style="font-weight: bold; font-size: 20px; color: var(--primary-color);">${t('text.camera-checkpoint')} : ${detail.checkpoint_name ?? '-'}</label>
-              <p style="color: var(--primary-color); margin-top: 0px;">${t('text.total-2')} ${cameraLength} จุด</p>
+              <label style="font-weight: bold; font-size: 20px; color: var(--primary-color);">${t('text.camera-checkpoint')} : ${escapeHtml(detail.checkpoint_name ?? '-')}</label>
+              <p style="color: var(--primary-color); margin-top: 0px;">${t('text.total-2')} ${escapeHtml(cameraLength)} จุด</p>
             </div>
           </div>
           <div style="padding: 0px 5px; display: flex;">
@@ -301,7 +306,7 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
                     return `
                       <div style="display: flex; align-items: center; gap: 10px;">
                         <span style="color: var(--primary-color); font-size: 20px; font-weight: 500;">
-                          ${item}
+                          ${escapeHtml(item)}
                         </span>
 
                         ${
@@ -349,7 +354,7 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
                           <div style="width: 20px; height: 20px; background-color: ${cameraColor}; border-radius: 50%;"></div>
                           
                           <label style="color: var(--primary-color); font-size: 20px; font-weight: 500;">
-                            ${item.status_name}<span> : ${item.count}</span>
+                            ${escapeHtml(item.status_name)}<span> : ${escapeHtml(item.count)}</span>
                           </label>
                         </div>
                       `;
@@ -389,17 +394,17 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
                           const cameraColor =
                             deviceStatusOptions.find((opt) => opt.id === Number(item.device_status_id))?.color ?? "#FFFFFF";
                           return `
-                            <tr key="${item.device_name}_${index}" style="border-bottom: 1px solid rgba(var(--primary-color-rgb), 0.1); font-size: 16px; color: var(--primary-color); height: 50px;">
-                              <td style="padding: 0px 10px;">${item.device_name}</td>
+                            <tr key="${escapeHtml(item.device_name)}_${index}" style="border-bottom: 1px solid rgba(var(--primary-color-rgb), 0.1); font-size: 16px; color: var(--primary-color); height: 50px;">
+                              <td style="padding: 0px 10px;">${escapeHtml(item.device_name)}</td>
 
                               <td style="padding: 0px 10px; vertical-align: middle;">
                                 <div style="display: flex; justify-content: center; align-items: center; gap: 10px;">
                                   <div style="width: 20px; height: 20px; background-color: ${cameraColor}; border-radius: 50%;"></div>
-                                  <span>${item.device_status_name}</span>
+                                  <span>${escapeHtml(item.device_status_name)}</span>
                                 </div>
                               </td>
 
-                              <td style="padding: 0px 10px;">${item.route}</td>
+                              <td style="padding: 0px 10px;">${escapeHtml(item.route)}</td>
                               <td style="text-align: center;">${item.lane === "1" ? t('text.exit') : t('text.in')}</td>
                             </tr>
                           `;

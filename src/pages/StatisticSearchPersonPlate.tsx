@@ -214,28 +214,34 @@ const StatisticSearchPersonPlate = () => {
   }, [lprRegion, t, i18n.language]);
 
   // Map
-  const agencyMap = new Map(
-    agency.map(item => [item.ou_code, item])
+  const agencyMap = useMemo(
+    () => new Map(agency.map(item => [item.ou_code, item])),
+    [agency]
   );
 
-  const bhMap = new Map(
-    bh.map(item => [item.bh_code, item])
+  const bhMap = useMemo(
+    () => new Map(bh.map(item => [item.bh_code, item])),
+    [bh]
   );
 
-  const bkMap = new Map(
-    bk.map(item => [item.bk_code, item])
+  const bkMap = useMemo(
+    () => new Map(bk.map(item => [item.bk_code, item])),
+    [bk]
   );
 
-  const orgMap = new Map(
-    org.map(item => [item.org_code, item])
+  const orgMap = useMemo(
+    () => new Map(org.map(item => [item.org_code, item])),
+    [org]
   );
 
-  const titleMap = new Map(
-    title.map(item => [item.id, item])
+  const titleMap = useMemo(
+    () => new Map(title.map(item => [item.id, item])),
+    [title]
   );
 
-  const provinceMap = new Map(
-    lprRegion.map(item => [item.region_code, item])
+  const provinceMap = useMemo(
+    () => new Map(lprRegion.map(item => [item.region_code, item])),
+    [lprRegion]
   );
 
   const fetchBkList = useCallback(async (bhCode?: string) => {

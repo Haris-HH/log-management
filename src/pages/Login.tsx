@@ -210,6 +210,7 @@ const Login = () => {
               label=""
               placeholder={t("placeholder.pid")}
               value={formData.username}
+              autoComplete="username"
               onChange={(e) =>
                 handleTextChange("username", e.target.value)
               }

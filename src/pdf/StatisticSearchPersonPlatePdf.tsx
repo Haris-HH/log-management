@@ -1,4 +1,3 @@
-import pdfMake from "pdfmake/build/pdfmake";
 import { saveAs } from "file-saver";
 import dayjs from "dayjs";
 import type { TDocumentDefinitions, TableCell } from "pdfmake/interfaces";
@@ -14,7 +13,7 @@ export const generateStatisticSearchPersonPlatePdfBlob = async (
   data: SearchPersonPlatePdfData,
   t: (key: string) => string,
 ): Promise<Blob> => {
-  await getConfiguredPdfMake();
+  const pdfMake = await getConfiguredPdfMake();
 
   const body: TableCell[][] = [
     [
