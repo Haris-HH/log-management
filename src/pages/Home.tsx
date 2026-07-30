@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
@@ -7,14 +7,47 @@ import Box from "@mui/material/Box";
 
 // Hooks
 import { useDockItems } from "../hooks/useDockItems";
+import { useReducedMotion } from "../hooks/useReducedMotion";
+
+// Constants
+import { MOTION_EASE_ARRAY } from "../constants/motion";
 
 const Home = () => {
   const navigate = useNavigate();
   const dockItems = useDockItems();
 
+  const prefersReducedMotion = useReducedMotion();
+
   // Data
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const [mousePosition, setMousePosition] = useState<Record<number, { x: number; y: number }>>({});
+
+  /*
+    ตำแหน่งเมาส์เก็บใน ref ไม่ใช่ state
+
+    เดิมเก็บใน state แล้ว `onMouseMove` เรียก `setMousePosition` ทุกอีเวนต์ ทำให้
+    Home re-render หลายร้อยครั้งต่อวินาทีขณะเลื่อนเมาส์ และยังทำให้เกิดบั๊กด้วย:
+    ค่า `pointer` ที่ป้อนให้ `clipPath` เปลี่ยนไปเรื่อย ๆ ระหว่างที่วงกลมกำลัง
+    ขยาย จุดศูนย์กลางจึงวิ่งตามเมาส์แทนที่จะอยู่ที่จุดที่เมาส์เข้ามาครั้งแรก และ
+    ตอน exit ก็หุบเข้าหาตำแหน่งล่าสุดไม่ใช่ตำแหน่งเดิม
+
+    ตอนนี้จึงบันทึกลง ref (ไม่ re-render) แล้วเขียนลง CSS variable ของการ์ด
+    "ครั้งเดียวตอน hover เริ่ม" — จุดศูนย์กลางถูกล็อกไว้ และการขยายวงเป็นงานของ
+    CSS transition ล้วน ๆ
+  */
+  const pointerRef = useRef<Record<number, { x: number; y: number }>>({});
+  const cardRefs = useRef<Record<number, HTMLDivElement | null>>({});
+
+  const handleHoverStart = (index: number) => {
+    const pointer = pointerRef.current[index] ?? { x: 50, y: 50 };
+    const card = cardRefs.current[index];
+
+    if (card) {
+      card.style.setProperty("--fill-x", `${pointer.x}%`);
+      card.style.setProperty("--fill-y", `${pointer.y}%`);
+    }
+
+    setHoveredIndex(index);
+  };
 
   return (
     <section id="home" className="h-full w-full overflow-y-auto">
@@ -31,22 +64,22 @@ const Home = () => {
       >
         {dockItems.filter((item) => item.subMenu).map((item, index) => {
           const isHovered = hoveredIndex === index;
-          const pointer = mousePosition[index] || { x: 50, y: 50 };
 
           return (
             <motion.div
               key={item.label}
-              onHoverStart={() => setHoveredIndex(index)}
+              ref={(node: HTMLDivElement | null) => {
+                cardRefs.current[index] = node;
+              }}
+              onHoverStart={() => handleHoverStart(index)}
               onHoverEnd={() => setHoveredIndex(null)}
               onMouseMove={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
-                const x = ((e.clientX - rect.left) / rect.width) * 100;
-                const y = ((e.clientY - rect.top) / rect.height) * 100;
 
-                setMousePosition((prev) => ({
-                  ...prev,
-                  [index]: { x, y },
-                }));
+                pointerRef.current[index] = {
+                  x: ((e.clientX - rect.left) / rect.width) * 100,
+                  y: ((e.clientY - rect.top) / rect.height) * 100,
+                };
               }}
               className="
                 menu relative flex cursor-pointer flex-col overflow-hidden
@@ -57,33 +90,20 @@ const Home = () => {
                 backgroundColor: "rgba(var(--tertiary-color-rgb), 0.8)",
               }}
             >
-              <AnimatePresence mode="wait">
-                {isHovered && (
-                  <motion.div
-                    key={`hover-bg-${index}`}
-                    initial={{
-                      clipPath: `circle(0% at ${pointer.x}% ${pointer.y}%)`,
-                      opacity: 1,
-                    }}
-                    animate={{
-                      clipPath: `circle(150% at ${pointer.x}% ${pointer.y}%)`,
-                      opacity: 1,
-                    }}
-                    exit={{
-                      clipPath: `circle(0% at ${pointer.x}% ${pointer.y}%)`,
-                      opacity: 1,
-                    }}
-                    transition={{
-                      duration: 0.55,
-                      ease: "easeInOut",
-                    }}
-                    className="absolute inset-0 z-0"
-                    style={{
-                      background: "rgba(var(--secondary-color-rgb), 0.1)",
-                    }}
-                  />
-                )}
-              </AnimatePresence>
+              {/*
+                วงกลมที่แผ่ออกจากจุดที่เมาส์เข้ามา ทำด้วย CSS ทั้งหมด (ดู
+                `.menu .menu-fill` ใน src/App.css) จุดศูนย์กลางมาจาก CSS variable
+                ที่เขียนไว้ครั้งเดียวตอน hover เริ่ม จึงไม่วิ่งตามเมาส์อีก และเพราะ
+                เป็น CSS transition มันจึง retarget กลางทางได้เอง — กวาดเมาส์ผ่าน
+                หลายการ์ดติดกันไม่ต้องรอคิวแบบ AnimatePresence mode="wait" เดิม
+              */}
+              <div
+                aria-hidden="true"
+                className="menu-fill absolute inset-0 z-0"
+                style={{
+                  background: "rgba(var(--secondary-color-rgb), 0.1)",
+                }}
+              />
 
               {/* Label Container */}
               <motion.div
@@ -115,11 +135,11 @@ const Home = () => {
               <AnimatePresence>
                 {isHovered && item.subMenu && (
                   <motion.div
-                    initial={{ opacity: 0, y: 40 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 40 }}
+                    animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
                     transition={{
-                      duration: 0.4,
-                      ease: "easeOut",
+                      duration: prefersReducedMotion ? 0.15 : 0.4,
+                      ease: MOTION_EASE_ARRAY.entrance,
                     }}
                     className="
                       relative z-10
@@ -129,11 +149,11 @@ const Home = () => {
                     {item.subMenu.map((sub, subIndex) => (
                       <motion.div
                         key={sub.label}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
+                        initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, x: -20 }}
+                        animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, x: 0 }}
                         transition={{
-                          duration: 0.35,
-                          delay: subIndex * 0.08,
+                          duration: prefersReducedMotion ? 0.15 : 0.35,
+                          delay: prefersReducedMotion ? 0 : subIndex * 0.08,
                         }}
                         className="
                           rounded-xl border border-(--primary-color)
@@ -142,7 +162,7 @@ const Home = () => {
                           text-(--secondary-color)
                           hover:bg-(--primary-color)
                           hover:text-(--tertiary-color)
-                          transition-all duration-300
+                          transition-colors duration-150
                         "
                         onClick={() => navigate(sub.path)}
                       >

@@ -20,6 +20,7 @@ import { X } from "lucide-react";
 // Hooks
 import { useMapSearch } from "../hooks/useOpenStreetMapSearch";
 import usePageTitle from "../hooks/usePageTitle";
+import { useReducedMotion } from "../hooks/useReducedMotion";
 
 // Store
 import type { RootState } from "../store/store";
@@ -54,6 +55,8 @@ const OverallMap = () => {
   const { t, i18n } = useTranslation();
 
   usePageTitle(t("pages.overall-map"));
+
+  const prefersReducedMotion = useReducedMotion();
 
   // State
   const [showFilter, setShowFilter] = useState(false);
@@ -319,15 +322,27 @@ const OverallMap = () => {
         <AnimatePresence>
           {showFilter && (
             <motion.div 
-              initial={{ x: -100, opacity: 0, scaleX: 0.5, originX: 0 }}
-              animate={{ x: 0, opacity: 1, scaleX: 1 }}
-              exit={{ x: -50, opacity: 0, scaleX: 0, transition: { duration: 0.2 } }}
-              transition={{ 
-                type: "spring", 
-                stiffness: 100,
-                damping: 15,
-                mass: 1
-              }}
+              /* ลดการเคลื่อนไหว: จางเข้า/ออกอยู่ที่เดิม ไม่เลื่อนและไม่ยืดหด */
+              initial={
+                prefersReducedMotion
+                  ? { opacity: 0 }
+                  : { x: -100, opacity: 0, scaleX: 0.5, originX: 0 }
+              }
+              animate={
+                prefersReducedMotion
+                  ? { opacity: 1 }
+                  : { x: 0, opacity: 1, scaleX: 1 }
+              }
+              exit={
+                prefersReducedMotion
+                  ? { opacity: 0, transition: { duration: 0.15 } }
+                  : { x: -50, opacity: 0, scaleX: 0, transition: { duration: 0.2 } }
+              }
+              transition={
+                prefersReducedMotion
+                  ? { duration: 0.15 }
+                  : { type: "spring", stiffness: 100, damping: 15, mass: 1 }
+              }
               className="absolute top-0 left-0 z-1000"
             >
               <Box

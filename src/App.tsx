@@ -26,6 +26,7 @@ import StatisticSearchLogPlate from "./pages/StatisticSearchLogPlate";
 import OverallCheckpoints from "./pages/OverallCheckpoints";
 import OverallMap from "./pages/OverallMap";
 import OverallReport from "./pages/OverallReport";
+import NotFound from "./pages/NotFound";
 
 // API
 import {
@@ -175,6 +176,11 @@ function App() {
           <Route path="overall-checkpoints" element={<OverallCheckpoints />} />
           <Route path="overall-map" element={<OverallMap />} />
           <Route path="overall-report" element={<OverallReport />} />
+          {/* Catch-all — sits inside MainLayout so an unknown URL still has the
+              navbar and the menu to get out with. `/login` is matched by its own
+              route above, and a request with no token is redirected there by the
+              guard effect before this ever renders. */}
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
     </>

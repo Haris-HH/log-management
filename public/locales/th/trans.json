@@ -6,7 +6,18 @@
   "navbar": {
     "logout": "ออกจากระบบ",
     "language": "ภาษา",
-    "theme": "ธีม"
+    "theme": "ธีม",
+    "nav-position": "ตำแหน่งเมนู"
+  },
+  "nav": {
+    "menu": "เมนู",
+    "close": "ปิดเมนู"
+  },
+  "nav-position": {
+    "left": "ซ้าย",
+    "top": "บน",
+    "right": "ขวา",
+    "bottom": "ล่าง"
   },
   "pages": {
     "chart-internal-police": "แผนภูมิหน่วยงานภายใน ตร.",
@@ -24,7 +35,8 @@
     "statistic-access-log": "Log การเข้าใช้งาน",
     "statistic-search-agency-plate": "สถิติการค้นป้ายทะเบียน (หน่วยงาน)",
     "statistic-search-person-plate": "สถิติการค้นป้ายทะเบียน (รายบุคคล)",
-    "statistic-search-log-plate": "Log การค้นป้ายทะเบียน"
+    "statistic-search-log-plate": "Log การค้นป้ายทะเบียน",
+    "not-found": "ไม่พบหน้าที่ต้องการ"
   },
   "component": {
     "main-month": "เดือนหลัก",
@@ -91,7 +103,10 @@
     "monthly-report": "รายงานรายเดือน",
     "login": "เข้าสู่ระบบ",
     "loading": "กำลังโหลด...",
-    "confirm": "ยืนยัน"
+    "confirm": "ยืนยัน",
+    "back-home": "กลับหน้าหลัก",
+    "go-back": "ย้อนกลับ",
+    "skip-intro": "ข้ามอินโทร"
   },
   "text": {
     "month": "เดือน",
@@ -139,7 +154,9 @@
     "export-pdf": "กำลังสร้างไฟล์ PDF...",
     "complete": "ทำเสร็จ",
     "number-of-item": "จำนวนรายการ",
-    "no-data": "ไม่มีข้อมูล"
+    "no-data": "ไม่มีข้อมูล",
+    "not-found-message": "ไม่พบหน้าที่คุณเรียก อาจถูกย้าย ถูกลบ หรือ URL ไม่ถูกต้อง",
+    "not-found-path": "ที่อยู่ที่เรียก"
   },
   "dock": {
     "home": "หน้าหลัก",

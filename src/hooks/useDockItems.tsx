@@ -9,7 +9,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import { useTranslation } from "react-i18next";
 import { useMemo } from "react";
 
-type DockSubMenuItem = {
+export type DockSubMenuItem = {
   label: string;
   path: string;
 };
@@ -19,6 +19,17 @@ export type DockItem = {
   label: string;
   path?: string;
   subMenu?: DockSubMenuItem[];
+};
+
+/*
+  A menu entry is active when it *is* the current page, or when it owns it.
+  Shared by every navigation shape (dock, sidebar, top menu) so they agree on
+  which entry to highlight.
+*/
+export const isDockItemActive = (item: DockItem, pathname: string): boolean => {
+  return (
+    item.path === pathname || !!item.subMenu?.some((sub) => sub.path === pathname)
+  );
 };
 
 export const useDockItems = (): DockItem[] => {

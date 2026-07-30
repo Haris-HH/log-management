@@ -4,6 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 // i18n
 import { useTranslation } from "react-i18next";
 
+// Hooks
+import { useReducedMotion } from "../../hooks/useReducedMotion";
+
 type Particle = {
   id: number;
   char: string;
@@ -19,12 +22,21 @@ const LetterChargeEffect = () => {
   // i18n
   const { t } = useTranslation();
 
+  // Hooks
+  const prefersReducedMotion = useReducedMotion();
+
   // Data
   const [particles, setParticles] = useState<Particle[]>([]);
 
   const CHARS = t('project.title');
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    /*
+      45 อนุภาคพุ่งกระจายจากจุดคลิกคือการเคลื่อนไหวแบบที่ผู้ใช้ซึ่งขอลดการ
+      เคลื่อนไหวไม่ต้องการที่สุด และเป็นเอฟเฟกต์ตกแต่งล้วน ๆ จึงไม่สร้างเลย
+    */
+    if (prefersReducedMotion) return;
+
     const clickX = e.clientX;
     const clickY = e.clientY;
 

@@ -6,7 +6,10 @@ import { useNavigate } from "react-router-dom";
 
 // Material UI
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
+
+import SkipNextIcon from "@mui/icons-material/SkipNext";
 
 // Components
 import MatrixRainingCode from "../components/matrix-raining-effect/MatrixRainingEffect";
@@ -31,6 +34,7 @@ import { useAppDispatch } from "../store/hooks";
 
 // Hooks
 import usePageTitle from '../hooks/usePageTitle';
+import { useReducedMotion } from "../hooks/useReducedMotion";
 
 type FormData = {
   username: string;
@@ -47,9 +51,19 @@ const Login = () => {
 
   usePageTitle("");
 
-  // State
-  const [introDone, setIntroDone] = useState(false);
-  const [skipIntro, setSkipIntro] = useState(false);
+  // Hooks
+  const prefersReducedMotion = useReducedMotion();
+
+  /*
+    State
+
+    ผู้ใช้ที่ขอลดการเคลื่อนไหวไม่ควรถูกบังคับดู intro 5.5 วินาที (บวกอีก 0.4
+    วินาทีที่ overlay ค่อย ๆ จาง) จึงเริ่มที่สถานะ "intro จบแล้ว" ไปเลย — ตั้งค่า
+    ตอน initialise ไม่ใช่ setState ใน effect เพื่อไม่ให้ render รอบแรกโชว์ intro
+    แล้วกระตุกหายไป
+  */
+  const [introDone, setIntroDone] = useState(prefersReducedMotion);
+  const [skipIntro, setSkipIntro] = useState(prefersReducedMotion);
   const [loading, setLoading] = useState(false);
 
   // Form Data
@@ -66,17 +80,46 @@ const Login = () => {
   } = useForm<FormData>();
 
   useEffect(() => {
+    if (prefersReducedMotion) return;
+
     const timer = setTimeout(() => {
       setIntroDone(true);
     }, 5500);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [prefersReducedMotion]);
 
   const finishIntro = () => {
     setSkipIntro(true);
     setIntroDone(true);
   };
+
+  /*
+    เดิมข้าม intro ได้ด้วยการคลิกที่ไหนก็ได้อย่างเดียว ซึ่งคนใช้คีย์บอร์ดหรือ
+    screen reader ไม่มีทางรู้และไม่มีทางทำ — เพิ่มปุ่มที่โฟกัสได้จริง พร้อมรับ
+    Escape / Enter / Space จากทั้งหน้าไว้ด้วย
+  */
+  useEffect(() => {
+    if (introDone) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (
+        event.key === "Escape" ||
+        event.key === "Enter" ||
+        event.key === " " ||
+        event.key === "Spacebar"
+      ) {
+        event.preventDefault();
+        finishIntro();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [introDone]);
 
   const handleTextChange = (key: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
@@ -153,21 +196,54 @@ const Login = () => {
             initial={{ opacity: 1 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 1 }}
+            /* 1 วินาทีคือเวลาที่ผู้ใช้ต้องรออีกต่อหนึ่งหลัง intro จบแล้ว ย่อลงมา
+               อยู่ในงบของ overlay (400ms) */
+            transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
           >
             <CinematicTitle skipIntro={skipIntro} />
+
+            {/* ปุ่มข้าม — โฟกัสได้ด้วยคีย์บอร์ดและ screen reader อ่านออก
+                ต่างจากการคลิกที่พื้นหลังซึ่งไม่มีอะไรบอกว่าทำได้ */}
+            <Button
+              variant="outlined"
+              startIcon={<SkipNextIcon />}
+              onClick={(event) => {
+                event.stopPropagation();
+                finishIntro();
+              }}
+              sx={{
+                position: "absolute",
+                bottom: 32,
+                right: 32,
+                zIndex: 60,
+                fontSize: "14px",
+                height: "36px",
+                px: 2.5,
+                textTransform: "capitalize",
+                border: "1px solid var(--primary-color)",
+                color: "var(--primary-color)",
+                backgroundColor: "rgba(var(--tertiary-color-rgb), 0.6)",
+                "&:hover": {
+                  border: "1px solid var(--primary-color)",
+                  backgroundColor: "rgba(var(--primary-color-rgb), 0.1)",
+                },
+              }}
+            >
+              {t("button.skip-intro")}
+            </Button>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* LOGIN CARD */}
       <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{
-          opacity: introDone ? 1 : 0,
-          y: introDone ? 0 : 40,
-        }}
-        transition={{ duration: 0.8 }}
+        initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 40 }}
+        animate={
+          prefersReducedMotion
+            ? { opacity: introDone ? 1 : 0 }
+            : { opacity: introDone ? 1 : 0, y: introDone ? 0 : 40 }
+        }
+        transition={{ duration: prefersReducedMotion ? 0.2 : 0.8 }}
         className="flex flex-col w-122 h-90 rounded-lg z-30"
         style={{
           backgroundColor: "rgba(var(--tertiary-color-rgb),0.8)",

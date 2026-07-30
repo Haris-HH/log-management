@@ -1,5 +1,8 @@
 import { useEffect, useRef } from "react";
 
+// Hooks
+import { useReducedMotion } from "../../hooks/useReducedMotion";
+
 // Add props type so className is accepted
 type MatrixRainingCodeProps = {
   className?: string;
@@ -8,6 +11,8 @@ type MatrixRainingCodeProps = {
 const MatrixRainingCode = ({ className = "" }: MatrixRainingCodeProps) => {
   // Properly type canvas ref
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -32,18 +37,41 @@ const MatrixRainingCode = ({ className = "" }: MatrixRainingCodeProps) => {
     let lastFrameTime = Date.now();
     let animationId: number;
 
-    const draw = () => {
-      const secondaryColor = getComputedStyle(document.documentElement)
+    /*
+      อ่านสีจาก CSS variable แค่ครั้งเดียว แล้วเก็บไว้
+
+      เดิมเรียก `getComputedStyle()` สองครั้งในทุกเฟรม (25 เฟรม/วินาที = 50
+      ครั้ง/วินาที) ซึ่งเป็น forced style recalculation — เบราว์เซอร์ต้องคำนวณ
+      style ที่ค้างอยู่ให้เสร็จทันทีก่อนคืนค่า สีเปลี่ยนเฉพาะเวลาสลับธีม จึงใช้
+      MutationObserver คอย invalidate cache แทนการอ่านซ้ำทุกเฟรม
+    */
+    let trailColor = "";
+    let textColor = "";
+
+    const readThemeColors = () => {
+      const rootStyle = getComputedStyle(document.documentElement);
+
+      trailColor = `rgba(${rootStyle
         .getPropertyValue("--tertiary-color-rgb")
-        .trim();
-      ctx.fillStyle = `rgba(${secondaryColor}, 0.12)`;
+        .trim()}, 0.12)`;
+      textColor = rootStyle.getPropertyValue("--primary-color").trim();
+    };
+
+    readThemeColors();
+
+    /* `useTheme` เขียน `data-theme` กับ CSS variable ลงบน <html> ตอนสลับธีม */
+    const themeObserver = new MutationObserver(readThemeColors);
+
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme", "style"],
+    });
+
+    const draw = () => {
+      ctx.fillStyle = trailColor;
       ctx.fillRect(0, 0, width, height);
 
-      const primaryColor = getComputedStyle(document.documentElement)
-        .getPropertyValue("--primary-color")
-        .trim();
-
-      ctx.fillStyle = primaryColor;
+      ctx.fillStyle = textColor;
       ctx.font = "15px Noto Sans Thai, sans-serif";
 
       for (let i = 0; i < drops.length; i++) {
@@ -70,6 +98,18 @@ const MatrixRainingCode = ({ className = "" }: MatrixRainingCodeProps) => {
       animationId = requestAnimationFrame(animate);
     };
 
+    /*
+      ลดการเคลื่อนไหว: วาดเฟรมนิ่งเฟรมเดียวแล้วจบ ไม่เปิด rAF loop เลย
+      ยังเห็นพื้นหลังเป็นตัวอักษรเหมือนเดิม แต่ไม่มีอะไรตกลงมา
+    */
+    if (prefersReducedMotion) {
+      draw();
+
+      return () => {
+        themeObserver.disconnect();
+      };
+    }
+
     animate();
 
     const handleResize = () => {
@@ -91,12 +131,13 @@ const MatrixRainingCode = ({ className = "" }: MatrixRainingCodeProps) => {
 
     return () => {
       cancelAnimationFrame(animationId);
+      themeObserver.disconnect();
 
       if (!isMobileDevice) {
         window.removeEventListener("resize", handleResize);
       }
     };
-  }, []);
+  }, [prefersReducedMotion]);
 
   return (
     <canvas

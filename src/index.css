@@ -39,3 +39,31 @@ body {
   margin: 0;
   padding: 0;
 }
+
+/*
+  ลดการเคลื่อนไหวทั้งแอป (WCAG 2.3.3 Animation from Interactions)
+
+  ชั้นนี้รับสิ่งที่คุมด้วย CSS ล้วน ๆ ได้:
+    - animation ที่วนไม่รู้จบ เหลือรอบเดียว
+    - transition ที่ยาวจนอ่านเป็น "การเคลื่อนที่" ถูกย่อเหลือ 120ms
+      (ไม่ตัดเป็น 0 เพราะการเปลี่ยนสี/ความทึบยังช่วยให้เข้าใจสถานะ —
+       แนวทางคือ "เบาลง ไม่ใช่ตัดทิ้ง")
+
+  ส่วนที่ต้องเลือกระหว่าง "ขยับ" กับ "จางเข้า" (framer-motion, วิดีโอพื้นหลัง,
+  canvas) ตัดสินใจที่ระดับ component ผ่าน `useReducedMotion()` ใน
+  `src/hooks/useReducedMotion.ts` เพราะ selector แบบครอบทั้งแอปแยกสองอย่างนี้
+  ออกจากกันไม่ได้ และถ้าใช้ `animation: none` แบบเหวี่ยงจะทำให้บาง element
+  ค้างอยู่ที่เฟรมสุดท้ายซึ่งอาจเป็น opacity 0 (เนื้อหาหายไปเลย)
+*/
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-iteration-count: 1 !important;
+    transition-duration: 120ms !important;
+  }
+}

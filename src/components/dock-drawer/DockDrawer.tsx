@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import IconButton from "@mui/material/IconButton";
@@ -13,6 +13,9 @@ import Fade from "@mui/material/Fade";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 
 import { useDockItems } from "../../hooks/useDockItems";
+
+// Constants
+import { transitionOf } from "../../constants/motion";
 
 type DockDrawerProps = {
   open: boolean;
@@ -45,6 +48,14 @@ const DockDrawer = ({ open, setOpen }: DockDrawerProps) => {
       handleSubMenuClose();
     }, 250);
   };
+
+  /*
+    MainLayout unmounts the dock on the home route and whenever the menu moves
+    to another edge, either of which can happen while a close timer is still
+    pending; without this the callback would still fire against an unmounted
+    component.
+  */
+  useEffect(() => clearCloseTimer, []);
 
   const handleSubMenuOpen = (
     event: React.MouseEvent<HTMLElement>,
@@ -103,7 +114,12 @@ const DockDrawer = ({ open, setOpen }: DockDrawerProps) => {
             : "translateY(120%) scale(0.9)",
           opacity: open ? 1 : 0,
           pointerEvents: open ? "auto" : "none",
-          transition: "all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)",
+          /*
+            ระบุ property ให้ชัด แทน `all` — เดิมเบราว์เซอร์เฝ้าดูทุก property
+            รวมถึงสีพื้นหลังที่มาจาก CSS variable ทำให้ตอนสลับธีมสีของ dock
+            ค่อย ๆ ไล่ 0.35 วินาทีพร้อมเด้ง overshoot แทนที่จะเปลี่ยนทันที
+          */
+          transition: transitionOf(["transform", "opacity"], "slow", "emphasized"),
         }}
       >
         {dockItems.map((item, index) => (
@@ -127,9 +143,15 @@ const DockDrawer = ({ open, setOpen }: DockDrawerProps) => {
               flexDirection: "column",
               alignItems: "center",
               cursor: "pointer",
-              transition: "transform 0.25s ease",
-              "&:hover": {
-                transform: "translateY(-10px) scale(1.15)",
+              transition: transitionOf(["transform"], "fast"),
+              /*
+                ครอบด้วย hover: hover เพราะบนจอสัมผัส การแตะจะยิง hover ปลอม
+                แล้วค้างอยู่ — ไอคอนจะยกตัวค้างไว้ตลอดหลังแตะ
+              */
+              "@media (hover: hover) and (pointer: fine)": {
+                "&:hover": {
+                  transform: "translateY(-4px) scale(1.06)",
+                },
               },
             }}
           >

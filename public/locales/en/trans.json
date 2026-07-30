@@ -6,7 +6,18 @@
   "navbar": {
     "logout": "Logout",
     "language": "Language",
-    "theme": "Theme"
+    "theme": "Theme",
+    "nav-position": "Menu Position"
+  },
+  "nav": {
+    "menu": "Menu",
+    "close": "Close menu"
+  },
+  "nav-position": {
+    "left": "Left",
+    "top": "Top",
+    "right": "Right",
+    "bottom": "Bottom"
   },
   "pages": {
     "chart-internal-police": "Chart Internal Police",
@@ -24,7 +35,8 @@
     "statistic-access-log": "Statistic Access Log",
     "statistic-search-agency-plate": "Statistic Search Agency Plate",
     "statistic-search-person-plate": "Statistic Search Person Plate",
-    "statistic-search-log-plate": "Statistic Search Log Plate"
+    "statistic-search-log-plate": "Statistic Search Log Plate",
+    "not-found": "Page Not Found"
   },
   "component": {
     "main-month": "Main Month",
@@ -91,7 +103,10 @@
     "monthly-report": "Monthly Report",
     "login": "Login",
     "loading": "Loading...",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "back-home": "Back to Home",
+    "go-back": "Go Back",
+    "skip-intro": "Skip Intro"
   },
   "text": {
     "month": "Month",
@@ -139,7 +154,9 @@
     "export-pdf": "Exporting PDF...",
     "complete": "Complete",
     "number-of-item": "Number of items",
-    "no-data": "No Data"
+    "no-data": "No Data",
+    "not-found-message": "The page you requested does not exist. It may have been moved or removed, or the URL is incorrect.",
+    "not-found-path": "Requested path"
   },
   "dock": {
     "home": "Home",

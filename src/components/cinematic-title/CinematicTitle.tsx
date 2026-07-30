@@ -3,6 +3,9 @@ import { motion } from "framer-motion";
 // i18n
 import { useTranslation } from "react-i18next";
 
+// Hooks
+import { useReducedMotion } from "../../hooks/useReducedMotion";
+
 const AnimatedText = ({
   text,
   delay = 0,
@@ -44,14 +47,17 @@ const AnimatedText = ({
 const CinematicTitle = ({ skipIntro = false }: { skipIntro?: boolean }) => {
   // i18n
   const { t } = useTranslation();
-  
+
+  // Hooks
+  const prefersReducedMotion = useReducedMotion();
+
   return (
     <motion.div 
-      exit={{
-        opacity: 0,
-        y: -100,
-        scale: 0.5,
-      }}
+      exit={
+        prefersReducedMotion
+          ? { opacity: 0 }
+          : { opacity: 0, y: -100, scale: 0.5 }
+      }
       transition={{
         duration: skipIntro ? 0.8 : 0.5,
         ease: "easeOut",
@@ -62,18 +68,11 @@ const CinematicTitle = ({ skipIntro = false }: { skipIntro?: boolean }) => {
       <motion.img
         src="/project-logo/logo.png"
         alt="Logo"
-        initial={{ 
-          scale: 5, 
-          opacity: 1, 
-          x: 0 
-        }}
-        animate={{
-          scale: 2,
-          opacity: 1,
-          x: 0,
-        }}
+        /* ลดการเคลื่อนไหว: โลโก้ปรากฏที่ขนาดสุดท้ายเลย ไม่ซูมจาก 5 เท่า */
+        initial={prefersReducedMotion ? { scale: 2, opacity: 0 } : { scale: 5 }}
+        animate={prefersReducedMotion ? { scale: 2, opacity: 1 } : { scale: 2 }}
         transition={{
-          duration: skipIntro ? 0.8 : 1.8,
+          duration: prefersReducedMotion ? 0.2 : skipIntro ? 0.8 : 1.8,
           ease: "easeIn",
         }}
         className="mx-4 w-24 h-24"
@@ -107,14 +106,17 @@ const CinematicTitle = ({ skipIntro = false }: { skipIntro?: boolean }) => {
           background: "rgba(var(--primary-color-rgb),0.1)",
           filter: "blur(90px)",
         }}
-        animate={{
-          scale: [1, 1.3, 1],
-          opacity: [0.4, 0.8, 0.4],
-        }}
-        transition={{
-          duration: 3,
-          repeat: Infinity,
-        }}
+        /* ลดการเคลื่อนไหว: แสงเรืองค้างที่ความสว่างกลาง ไม่หายใจเข้าออกไม่รู้จบ */
+        animate={
+          prefersReducedMotion
+            ? { scale: 1, opacity: 0.6 }
+            : { scale: [1, 1.3, 1], opacity: [0.4, 0.8, 0.4] }
+        }
+        transition={
+          prefersReducedMotion
+            ? { duration: 0 }
+            : { duration: 3, repeat: Infinity, ease: "easeInOut" }
+        }
       />
     </motion.div>
   );

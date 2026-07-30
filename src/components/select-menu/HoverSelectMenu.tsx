@@ -23,6 +23,10 @@ type HoverSelectMenuProps<T> = {
   renderItemPrefix?: (item: T, selected: boolean) => React.ReactNode;
   selectedColor?: string;
   className?: string;
+  /* Drop the trigger's label and leave just the icon, for when the navbar has
+     to give its width to something else. The dropdown is unchanged, so the
+     current value is still visible the moment the menu opens. */
+  iconOnly?: boolean;
 };
 
 function HoverSelectMenu<T>({
@@ -36,6 +40,7 @@ function HoverSelectMenu<T>({
   renderItemPrefix,
   selectedColor = "var(--primary-color)",
   className = "",
+  iconOnly = false,
 }: HoverSelectMenuProps<T>) {
   const [openMenu, setOpenMenu] = useState(false);
   const [openGroup, setOpenGroup] = useState<string | null>(null);
@@ -59,20 +64,23 @@ function HoverSelectMenu<T>({
     >
       <div
         ref={anchorRef}
-        className="flex gap-1 items-center opacity-80 hover:opacity-100 cursor-pointer transition-all duration-200"
+        aria-label={iconOnly ? getLabel(selectedItem) : undefined}
+        className="flex gap-1 items-center opacity-80 hover:opacity-100 cursor-pointer transition-opacity duration-150"
       >
         {icon}
 
-        <Typography
-          variant="body1"
-          sx={{
-            fontSize: "0.8rem",
-            color: selectedColor,
-            fontWeight: 700,
-          }}
-        >
-          {getLabel(selectedItem)}
-        </Typography>
+        {!iconOnly && (
+          <Typography
+            variant="body1"
+            sx={{
+              fontSize: "0.8rem",
+              color: selectedColor,
+              fontWeight: 700,
+            }}
+          >
+            {getLabel(selectedItem)}
+          </Typography>
+        )}
       </div>
 
       <Popper

@@ -10,20 +10,44 @@ body .swal2-backdrop-show {
   z-index: 99998 !important;
 }
 
+/*
+  วงกลมที่แผ่จากจุดที่เมาส์เข้ามาในการ์ดเมนู (หน้า Home)
+
+  จุดศูนย์กลางมาจาก `--fill-x` / `--fill-y` ที่ `Home.tsx` เขียนลงบน `.menu`
+  ครั้งเดียวตอน hover เริ่ม แล้วขยายรัศมีด้วย CSS transition — ไม่ต้อง re-render
+  React และวงไม่วิ่งตามเมาส์ระหว่างขยายเหมือนตอนที่ค่าถูกป้อนใหม่ทุกเฟรม
+*/
+.menu .menu-fill {
+  clip-path: circle(0% at var(--fill-x, 50%) var(--fill-y, 50%));
+  transition: clip-path 250ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.menu:hover .menu-fill {
+  clip-path: circle(150% at var(--fill-x, 50%) var(--fill-y, 50%));
+}
+
+/*
+  เส้นใต้ชื่อเมนู — `transform: scaleX()` ไม่ใช่ `width`
+
+  เดิม `transition: width 0.9s ease` คือ 900 มิลลิวินาทีสำหรับ hover (งบคือ
+  150-250ms) และ `width` ยังบังคับ layout ใหม่ทุกเฟรมด้วย
+*/
 .menu .menu-title::after {
   content: "";
   position: absolute;
   bottom: 0;
   left: 0;
   height: 3px;
-  width: 0;
+  width: 100%;
   background-color: white;
-  transition: width 0.9s ease;
   border-radius: 9999px;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 200ms ease;
 }
 
 .menu:hover .menu-title::after {
-  width: 100%;
+  transform: scaleX(1);
 }
 
 .custom-map-popup .leaflet-popup-content-wrapper {

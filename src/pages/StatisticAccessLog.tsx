@@ -29,6 +29,7 @@ import ExportLoadingScreen from '../components/loading-screen/ExportLoadingScree
 import GroupExportButton from '../components/group-export-button/GroupExportButton';
 
 // Constants
+import { transitionOf } from "../constants/motion";
 import { ROWS_PER_PAGE_OPTIONS } from "../constants/dropdown";
 
 // PDF
@@ -1225,7 +1226,7 @@ const StatisticAccessLog = () => {
                         backgroundColor: "var(--tertiary-color)",
                         color: "var(--secondary-color)",
                         borderBottom: "1px solid var(--primary-color)",
-                        transition: "background-color 0.2s ease",
+                        transition: transitionOf(["background-color"], "fast"),
                         py: 1,
                         px: 1,
                       },
