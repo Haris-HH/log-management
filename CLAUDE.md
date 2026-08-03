@@ -59,6 +59,28 @@ Every network call goes through `fetchClient<T>(endpoint, options)`. It is the o
 
 `useSse` (`src/utils/useSse.tsx`) uses `@microsoft/fetch-event-source` against `${VITE_API_BASE_URL}/events` and ignores messages whose `serviceChannel` doesn't match `VITE_API_SERVICE_CHANNEL`.
 
+### Permissions
+
+`getUserApi` returns `permissions.ui[<service>]` per console; this app reads only its own entry, `ui["log-management"]` (`LOG_MANAGEMENT_UI_KEY`). Shape: `{ enabled, groups: {page: "none" | "active" | "edit"}, prints: {page: boolean} }`.
+
+- **none** — no menu entry, and the route redirects to `/`.
+- **active** — page renders read-only; every create/edit control is hidden.
+- **edit** — everything.
+- `prints[page]` is a separate axis (a read-only page can still export), bounded by `canView`.
+- A key the server never sent resolves to `"none"` — new pages stay hidden until the backend grants them.
+
+The tree is stored on the `authUser` slice as `user.permission`, set at login and **refreshed on every app load** in `App.tsx` so a revoked grant does not wait for the next login. `undefined` means "not known yet" and is distinct from `null` ("none"): gates hold rather than deny while it is undefined, or a reload would bounce the user off the page they were reading.
+
+Three enforcement points, all driven by `PAGE_PERMISSIONS` in `src/constants/permissions.ts` (route path → group key) so menu and router cannot drift:
+
+1. `PermissionRoute` wraps every gated route in `App.tsx`.
+2. `useDockItems` filters entries and drops groups it empties — this covers the dock, sidebar, top menu and Home cards at once.
+3. `GroupExportButton` checks `canPrint` itself, so pages only pass it a `groupKey`. `OverallReport` has its own download menu and repeats the check inline.
+
+`/` (Home) is deliberately ungated — it is the redirect target for a blocked route. `/chart-external-police` has no key of its own and rides on `chart-internal-police`.
+
+Read grants with `usePermission(groupKey)`; for many keys at once use the pure `resolvePermission(permission, groupKey)`.
+
 ### State
 
 `src/store/store.ts` combines only two reducers: `dropdown` and `authUser`. Everything else is component-local `useState`. The `dropdown` slice caches the shared reference lists (area, agency/ou, bh, bk, org, province, deviceStatus, title, lprRegion, …) — `App.tsx` dispatches the `fetchX` thunks once after a user appears, and pages read them via `useSelector((s: RootState) => s.dropdown)`.

@@ -1120,6 +1120,7 @@ const StatisticAccessLog = () => {
               {t('button.clear')}
             </Button>
             <GroupExportButton 
+              groupKey="statistic-access-log"
               handleExportExcel={handleExportExcel}
               handleExportPdf={handleExportPdf}
             />

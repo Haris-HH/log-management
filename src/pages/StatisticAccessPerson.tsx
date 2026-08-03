@@ -1095,6 +1095,7 @@ const StatisticAccessPerson = () => {
               {t('button.clear')}
             </Button>
             <GroupExportButton 
+              groupKey="statistic-access-person"
               handleExportExcel={handleExportExcel}
               handleExportPdf={handleExportPdf}
             />

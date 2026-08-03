@@ -1,10 +1,58 @@
 import { describe, it, expect } from "vitest";
 import { renderHook } from "@testing-library/react";
+import { Provider } from "react-redux";
+import { configureStore } from "@reduxjs/toolkit";
 
 import { useColumn } from "./useColumn";
 import { useStatusOptions } from "./useStatusOptions";
 import { useDockItems } from "./useDockItems";
 import usePageTitle from "./usePageTitle";
+
+import AuthUserReducer from "../features/auth-user/api/AuthUserSlice";
+import DropdownReducer from "../features/dropdown/api/DropdownSlice";
+import { PAGE_PERMISSIONS } from "../constants/permissions";
+import type { PermissionMode, Permissions } from "../types/common";
+
+/*
+  The navigation is permission-filtered, so these render against a store rather
+  than bare. `grantAll` mirrors the shape the API returns for a user who may
+  reach every page.
+*/
+const permissionOf = (mode: PermissionMode): Permissions => ({
+  ui: {
+    "log-management": {
+      enabled: true,
+      groups: Object.fromEntries(
+        Object.values(PAGE_PERMISSIONS).map((key) => [key, mode])
+      ),
+      prints: {},
+    },
+  },
+});
+
+const renderDockItems = (permission: Permissions | null) => {
+  const store = configureStore({
+    reducer: { authUser: AuthUserReducer, dropdown: DropdownReducer },
+    preloadedState: {
+      authUser: {
+        user: {
+          user_id: "u1",
+          hash_id: "h1",
+          title_name_th: "",
+          title_name_en: "",
+          first_name: "",
+          last_name: "",
+          image_url: "",
+          permission,
+        },
+      },
+    },
+  });
+
+  return renderHook(() => useDockItems(), {
+    wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
+  });
+};
 
 describe("useColumn", () => {
   it("returns every checkpoint column enabled by default", () => {
@@ -57,14 +105,14 @@ describe("useStatusOptions", () => {
 
 describe("useDockItems", () => {
   it("builds the navigation tree", () => {
-    const { result } = renderHook(() => useDockItems());
+    const { result } = renderDockItems(permissionOf("edit"));
 
     expect(result.current[0].path).toBe("/");
     expect(result.current.length).toBeGreaterThan(1);
   });
 
   it("gives every leaf an absolute route", () => {
-    const { result } = renderHook(() => useDockItems());
+    const { result } = renderDockItems(permissionOf("edit"));
 
     for (const item of result.current) {
       if (item.path) expect(item.path.startsWith("/")).toBe(true);
@@ -75,13 +123,67 @@ describe("useDockItems", () => {
   });
 
   it("exposes no duplicate routes", () => {
-    const { result } = renderHook(() => useDockItems());
+    const { result } = renderDockItems(permissionOf("edit"));
     const paths = result.current.flatMap((item) => [
       ...(item.path ? [item.path] : []),
       ...(item.subMenu ?? []).map((s) => s.path),
     ]);
 
     expect(new Set(paths).size).toBe(paths.length);
+  });
+
+  it('shows a page granted "active" — read-only still reaches the menu', () => {
+    const { result } = renderDockItems(permissionOf("active"));
+
+    const paths = result.current.flatMap((item) =>
+      (item.subMenu ?? []).map((s) => s.path)
+    );
+
+    expect(paths).toContain("/statistic-access-log");
+  });
+
+  it('hides a page granted "none" and collapses the group it empties', () => {
+    const { result } = renderDockItems({
+      ui: {
+        "log-management": {
+          enabled: true,
+          groups: {
+            "overall-map": "active",
+            "overall-report": "none",
+            "overall-checkpoints": "none",
+          },
+          prints: {},
+        },
+      },
+    });
+
+    const overview = result.current.find((item) =>
+      item.subMenu?.some((sub) => sub.path === "/overall-map")
+    );
+
+    expect(overview?.subMenu?.map((sub) => sub.path)).toEqual(["/overall-map"]);
+
+    // Every other group lost all of its entries and must be gone entirely.
+    expect(result.current.map((item) => item.path)).toEqual(["/", undefined]);
+  });
+
+  it("hides everything gated when the service itself is disabled", () => {
+    const { result } = renderDockItems({
+      ui: {
+        "log-management": {
+          ...permissionOf("edit").ui!["log-management"],
+          enabled: false,
+        },
+      },
+    });
+
+    expect(result.current.map((item) => item.path)).toEqual(["/"]);
+  });
+
+  it("keeps Home but nothing else when no permissions were sent", () => {
+    const { result } = renderDockItems(null);
+
+    expect(result.current.map((item) => item.path)).toEqual(["/"]);
   });
 });
 

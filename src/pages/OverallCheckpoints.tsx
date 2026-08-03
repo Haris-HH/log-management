@@ -1046,6 +1046,7 @@ const OverallCheckpoints = () => {
               {t('button.clear')}
             </Button>
             <GroupExportButton 
+              groupKey="overall-checkpoints"
               handleExportExcel={handleExportExcel}
               handleExportPdf={handleExportPdf}
             />

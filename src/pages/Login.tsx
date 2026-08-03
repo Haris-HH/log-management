@@ -151,6 +151,7 @@ const Login = () => {
             first_name: userResponse.data[0]?.firstname ?? "-",
             last_name: userResponse.data[0]?.lastname ?? "-",
             image_url: userResponse.data[0]?.image_url ?? "-",
+            permission: userResponse.data[0]?.permissions ?? null,
             agency: {
               ou_code: userResponse.data[0]?.ou_code,
               ou_abbr_th: nsbOuData.data[0]?.ou_abbr_th ?? "-",

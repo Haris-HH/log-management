@@ -238,12 +238,38 @@ export interface Tokens {
   serviceChannel: string;
 }
 
+/*
+  How much of a page a user gets:
+
+  - "none"   the page does not exist for them — no menu entry, no route.
+  - "active" read-only: the page renders, every create/edit control is hidden.
+  - "edit"   full access.
+
+  A key that the server never sent is treated as "none", so a page added to the
+  front-end before the backend knows about it stays hidden rather than open.
+*/
+export type PermissionMode = "none" | "active" | "edit";
+
+/*
+  One service's slice of the permission tree. `groups` and `prints` are keyed by
+  the same page keys ("statistic-access-log", "overall-map", …); `prints` is a
+  separate axis, so a read-only page can still be exportable and an editable one
+  need not be. `enabled: false` switches the whole service off at once.
+*/
+export interface PermissionUi {
+  groups?: Record<string, PermissionMode>;
+  prints?: Record<string, boolean>;
+  enabled?: boolean;
+}
+
+/*
+  The `permissions` object on a user, as the API returns it. `ui` is keyed by
+  service ("log-management", "user-management", "lpr-center", …) — this app only
+  ever reads its own entry, the rest belong to sibling consoles.
+*/
 export interface Permissions {
-  lpr_center: Record<string, unknown>;
-  api_connect: Record<string, unknown>;
-  log_management: Record<string, unknown>;
-  ops_management: Record<string, unknown>;
-  user_management: Record<string, unknown>;
+  ui?: Record<string, PermissionUi>;
+  checkpoint_ids?: string[];
 }
 
 export interface NsbOu {

@@ -889,6 +889,7 @@ const StatisticAccessAgency = () => {
               {t('button.clear')}
             </Button>
             <GroupExportButton 
+              groupKey="statistic-access-agency"
               handleExportExcel={handleExportExcel}
               handleExportPdf={handleExportPdf}
             />

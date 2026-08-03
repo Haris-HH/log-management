@@ -1092,6 +1092,7 @@ const StatisticUsageLog = () => {
               {t('button.clear')}
             </Button>
             <GroupExportButton 
+              groupKey="statistic-usage-log"
               handleExportExcel={handleExportExcel}
               handleExportPdf={handleExportPdf}
             />

@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 
 // Components
 import MainLayout from "./layout/MainLayout";
+import PermissionRoute from "./components/permission-route/PermissionRoute";
 // import CustomCursor from "./components/custom-cursor/CustomCursor";
 
 // Pages
@@ -38,6 +39,11 @@ import {
   fetchTitle,
   fetchLprRegion,
 } from "./features/dropdown/api/DropdownSlice";
+import { getUserApi } from "./features/users/api/UsersApi";
+import {
+  setAuthPermission,
+  resolveAuthPermission,
+} from "./features/auth-user/api/AuthUserSlice";
 
 // i18n
 import { useTranslation } from 'react-i18next';
@@ -113,6 +119,43 @@ function App() {
     }));
   }, [user, dispatch])
 
+  /*
+    Re-read the permission tree on every load rather than trusting the copy
+    redux-persist restored. Revoking a page server-side otherwise would not
+    reach the user until their next login, and sessions persisted before
+    permissions were stored at all carry none.
+
+    Keyed on the id, not the user object, so writing the result back does not
+    re-trigger the fetch.
+  */
+  const userId = user?.user_id;
+
+  useEffect(() => {
+    if (!userId) return;
+
+    let cancelled = false;
+
+    const refreshPermission = async () => {
+      try {
+        const response = await getUserApi({ filter: `user_id=${userId}` });
+
+        if (cancelled) return;
+
+        dispatch(setAuthPermission(response.data[0]?.permissions ?? null));
+      } catch {
+        // A failed refresh keeps whatever is already persisted; it only settles
+        // the "not known yet" case so the UI stops waiting on it.
+        if (!cancelled) dispatch(resolveAuthPermission());
+      }
+    };
+
+    refreshPermission();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, dispatch]);
+
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
 
@@ -155,27 +198,146 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />
+          {/*
+            Every page below is wrapped in PermissionRoute so a route the user
+            has no grant for cannot be reached by URL, not just hidden from the
+            menu. The group keys come from PAGE_PERMISSIONS, which useDockItems
+            reads too — the two stay in step by construction.
+          */}
           {/* Chart Internal police */}
-          <Route path="chart-internal-police" element={<ChartInternalPolice />} />
-          <Route path="chart-internal-nsb" element={<ChartInternalNsb />} />
-          <Route path="chart-external-police" element={<ChartExternalPolice />} />
-          <Route path="chart-top-users" element={<ChartTopUsers />} />
+          <Route
+            path="chart-internal-police"
+            element={
+              <PermissionRoute groupKey="chart-internal-police">
+                <ChartInternalPolice />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="chart-internal-nsb"
+            element={
+              <PermissionRoute groupKey="chart-internal-nsb">
+                <ChartInternalNsb />
+              </PermissionRoute>
+            }
+          />
+          {/* No key of its own — granted together with the internal police chart. */}
+          <Route
+            path="chart-external-police"
+            element={
+              <PermissionRoute groupKey="chart-internal-police">
+                <ChartExternalPolice />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="chart-top-users"
+            element={
+              <PermissionRoute groupKey="chart-top-users">
+                <ChartTopUsers />
+              </PermissionRoute>
+            }
+          />
           {/* Statistic Access */}
-          <Route path="statistic-access-agency" element={<StatisticAccessAgency />} />
-          <Route path="statistic-access-person" element={<StatisticAccessPerson />} />
-          <Route path="statistic-access-log" element={<StatisticAccessLog />} />
+          <Route
+            path="statistic-access-agency"
+            element={
+              <PermissionRoute groupKey="statistic-access-agency">
+                <StatisticAccessAgency />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="statistic-access-person"
+            element={
+              <PermissionRoute groupKey="statistic-access-person">
+                <StatisticAccessPerson />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="statistic-access-log"
+            element={
+              <PermissionRoute groupKey="statistic-access-log">
+                <StatisticAccessLog />
+              </PermissionRoute>
+            }
+          />
           {/* Statistic Search Plate */}
-          <Route path="statistic-search-agency-plate" element={<StatisticSearchAgencyPlate />} />
-          <Route path="statistic-search-person-plate" element={<StatisticSearchPersonPlate />} />
-          <Route path="statistic-search-log-plate" element={<StatisticSearchLogPlate />} />
+          <Route
+            path="statistic-search-agency-plate"
+            element={
+              <PermissionRoute groupKey="statistic-search-agency-plate">
+                <StatisticSearchAgencyPlate />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="statistic-search-person-plate"
+            element={
+              <PermissionRoute groupKey="statistic-search-person-plate">
+                <StatisticSearchPersonPlate />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="statistic-search-log-plate"
+            element={
+              <PermissionRoute groupKey="statistic-search-log-plate">
+                <StatisticSearchLogPlate />
+              </PermissionRoute>
+            }
+          />
           {/* Statistic Usage */}
-          <Route path="statistic-usage-agency" element={<StatisticUsageAgency />} />
-          <Route path="statistic-usage-person" element={<StatisticUsagePerson />} />
-          <Route path="statistic-usage-log" element={<StatisticUsageLog />} />
+          <Route
+            path="statistic-usage-agency"
+            element={
+              <PermissionRoute groupKey="statistic-usage-agency">
+                <StatisticUsageAgency />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="statistic-usage-person"
+            element={
+              <PermissionRoute groupKey="statistic-usage-person">
+                <StatisticUsagePerson />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="statistic-usage-log"
+            element={
+              <PermissionRoute groupKey="statistic-usage-log">
+                <StatisticUsageLog />
+              </PermissionRoute>
+            }
+          />
           {/* Overall */}
-          <Route path="overall-checkpoints" element={<OverallCheckpoints />} />
-          <Route path="overall-map" element={<OverallMap />} />
-          <Route path="overall-report" element={<OverallReport />} />
+          <Route
+            path="overall-checkpoints"
+            element={
+              <PermissionRoute groupKey="overall-checkpoints">
+                <OverallCheckpoints />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="overall-map"
+            element={
+              <PermissionRoute groupKey="overall-map">
+                <OverallMap />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="overall-report"
+            element={
+              <PermissionRoute groupKey="overall-report">
+                <OverallReport />
+              </PermissionRoute>
+            }
+          />
           {/* Catch-all — sits inside MainLayout so an unknown URL still has the
               navbar and the menu to get out with. `/login` is matched by its own
               route above, and a request with no token is redirected there by the

@@ -992,6 +992,7 @@ const StatisticSearchAgencyPlate = () => {
               {t('button.clear')}
             </Button>
             <GroupExportButton 
+              groupKey="statistic-search-agency-plate"
               handleExportExcel={handleExportExcel}
               handleExportPdf={handleExportPdf}
             />

@@ -31,6 +31,7 @@ import LoadingScreen from '../components/loading-screen/LoadingScreen';
 
 // Hooks
 import usePageTitle from '../hooks/usePageTitle';
+import { usePermission } from '../hooks/usePermission';
 
 // Types
 import type { TopUsersResponse } from "../types/response";
@@ -58,6 +59,12 @@ const ChartTopUsers = () => {
   const { t, i18n } = useTranslation();
   
   usePageTitle(t("pages.chart-top-users"));
+
+  /*
+    The display setting is the only control on this console that writes anything
+    back, so it is the only one "active" (read-only) has to take away.
+  */
+  const { canEdit } = usePermission("chart-top-users");
 
   // State
   const [policeState, setPoliceState] = useState<"internal" | "external">("internal");
@@ -295,22 +302,24 @@ const ChartTopUsers = () => {
                   maxDate={dayjs()}
                 />
               </Box>
-              <Box className="-mt-1">
-                <IconButton 
-                  sx={{
-                    backgroundColor: displaySettingOpen ? "var(--primary-color)" : "var(--tertiary-color)",
-                    border: "1px solid var(--primary-color)",
-                    "&:hover": {
-                      backgroundColor: "rgba(var(--primary-color-rgb), 0.2)",
-                    },
-                    borderRadius: "5px",
-                    padding: "5px",
-                  }}
-                  onClick={() => setDisplaySettingOpen(true)}
-                >
-                  <SettingsIcon sx={{ color: displaySettingOpen ? "var(--tertiary-color)" : "var(--primary-color)" }} />
-                </IconButton>
-              </Box>
+              {canEdit && (
+                <Box className="-mt-1">
+                  <IconButton
+                    sx={{
+                      backgroundColor: displaySettingOpen ? "var(--primary-color)" : "var(--tertiary-color)",
+                      border: "1px solid var(--primary-color)",
+                      "&:hover": {
+                        backgroundColor: "rgba(var(--primary-color-rgb), 0.2)",
+                      },
+                      borderRadius: "5px",
+                      padding: "5px",
+                    }}
+                    onClick={() => setDisplaySettingOpen(true)}
+                  >
+                    <SettingsIcon sx={{ color: displaySettingOpen ? "var(--tertiary-color)" : "var(--primary-color)" }} />
+                  </IconButton>
+                </Box>
+              )}
             </Box>
             <Box className='flex justify-between mt-5'>
               <Box className='flex gap-3 items-center'>

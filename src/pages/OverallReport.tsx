@@ -44,6 +44,9 @@ import type { OverallReportPdfData } from "../types/pdf"
 import { exportExcel } from "../utils/exportData";
 import { buildOptions, getPercent, formatNumber, formatPercent } from "../utils/commonFunctions";
 
+// Hooks
+import { usePermission } from "../hooks/usePermission";
+
 // API
 import { getOverallReport, searchOverallProblemReport } from "../features/overall/api/OverallApi";
 import { getProject } from "../features/dropdown/api/DropdownApi";
@@ -85,6 +88,8 @@ const OverallReport = () => {
   const { area, province } = useSelector(
     (state: RootState) => state.dropdown
   );
+
+  const { canPrint } = usePermission("overall-report");
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const openMenu = Boolean(anchorEl);
@@ -796,71 +801,79 @@ const OverallReport = () => {
                 {t("button.clear")}
               </Button>
 
-              <IconButton
-                sx={{
-                  border: "1px solid var(--primary-color)",
-                  width: "40px",
-                  height: "40px",
-                  borderRadius: "5px",
-                  ":hover": {
-                    backgroundColor: "rgba(var(--primary-color-rgb), 0.2)",
-                  },
-                }}
-                onClick={handleOpenMenu}
-              >
-                <DownloadIcon
-                  className="h-5 w-5"
-                  style={{ color: "var(--primary-color)" }}
-                />
-              </IconButton>
-
-              <Menu
-                anchorEl={anchorEl}
-                open={openMenu}
-                onClose={handleCloseMenu}
-                anchorOrigin={{
-                  vertical: "bottom",
-                  horizontal: "left",
-                }}
-                transformOrigin={{
-                  vertical: "top",
-                  horizontal: "left",
-                }}
-                sx={{
-                  "& .MuiPaper-root": {
-                    backgroundColor: "var(--tertiary-color)",
+              {/*
+                This page exports through its own download menu rather than
+                GroupExportButton, so the `prints` check has to be repeated here.
+              */}
+              {canPrint && (
+                <>
+                <IconButton
+                  sx={{
                     border: "1px solid var(--primary-color)",
-                    borderRadius: "8px",
-                    overflow: "hidden",
-                  },
-                  "& .MuiMenu-list": {
-                    p: 0,
-                  },
-                  "& .MuiMenuItem-root": {
-                    px: "20px",
-                    py: "8px",
-                    "&:not(:last-of-type)": {
-                      borderBottom: "1px solid var(--primary-color)",
-                    },
-                    "&:hover": {
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "5px",
+                    ":hover": {
                       backgroundColor: "rgba(var(--primary-color-rgb), 0.2)",
                     },
-                  },
-                  "& .MuiTypography-root": {
-                    fontSize: "16px",
-                    fontWeight: 600,
-                    color: "var(--primary-color)",
-                  },
-                }}
-              >
-                <MenuItem onClick={() => handleExport("pdf")}>
-                  <ListItemText primary="PDF" />
-                </MenuItem>
+                  }}
+                  onClick={handleOpenMenu}
+                >
+                  <DownloadIcon
+                    className="h-5 w-5"
+                    style={{ color: "var(--primary-color)" }}
+                  />
+                </IconButton>
 
-                <MenuItem onClick={() => handleExport("excel")}>
-                  <ListItemText primary="Excel" />
-                </MenuItem>
-              </Menu>
+                <Menu
+                  anchorEl={anchorEl}
+                  open={openMenu}
+                  onClose={handleCloseMenu}
+                  anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "left",
+                  }}
+                  transformOrigin={{
+                    vertical: "top",
+                    horizontal: "left",
+                  }}
+                  sx={{
+                    "& .MuiPaper-root": {
+                      backgroundColor: "var(--tertiary-color)",
+                      border: "1px solid var(--primary-color)",
+                      borderRadius: "8px",
+                      overflow: "hidden",
+                    },
+                    "& .MuiMenu-list": {
+                      p: 0,
+                    },
+                    "& .MuiMenuItem-root": {
+                      px: "20px",
+                      py: "8px",
+                      "&:not(:last-of-type)": {
+                        borderBottom: "1px solid var(--primary-color)",
+                      },
+                      "&:hover": {
+                        backgroundColor: "rgba(var(--primary-color-rgb), 0.2)",
+                      },
+                    },
+                    "& .MuiTypography-root": {
+                      fontSize: "16px",
+                      fontWeight: 600,
+                      color: "var(--primary-color)",
+                    },
+                  }}
+                >
+                  <MenuItem onClick={() => handleExport("pdf")}>
+                    <ListItemText primary="PDF" />
+                  </MenuItem>
+
+                  <MenuItem onClick={() => handleExport("excel")}>
+                    <ListItemText primary="Excel" />
+                  </MenuItem>
+                </Menu>
+                </>
+              )}
             </Box>
           </Box>
         </Box>

@@ -8,6 +8,19 @@ import SearchIcon from "@mui/icons-material/Search";
 // i18n
 import { useTranslation } from "react-i18next";
 import { useMemo } from "react";
+import { useSelector } from "react-redux";
+
+// Types
+import type { Permissions } from "../types/common";
+
+// Hooks
+import { resolvePermission } from "./usePermission";
+
+// Constants
+import { PAGE_PERMISSIONS } from "../constants/permissions";
+
+// Store
+import type { RootState } from "../store/store";
 
 export type DockSubMenuItem = {
   label: string;
@@ -32,8 +45,31 @@ export const isDockItemActive = (item: DockItem, pathname: string): boolean => {
   );
 };
 
+/*
+  A destination is shown when the user may open it. Anything absent from
+  PAGE_PERMISSIONS is ungated by design (Home), so it always shows; anything
+  listed there follows its grant, and an unknown permission tree hides it —
+  failing closed for the moment before the refresh in `App.tsx` lands.
+*/
+const isPathVisible = (
+  path: string | undefined,
+  permission: Permissions | null | undefined
+): boolean => {
+  if (!path) return false;
+
+  const groupKey = PAGE_PERMISSIONS[path];
+
+  if (!groupKey) return true;
+
+  return resolvePermission(permission, groupKey).canView;
+};
+
 export const useDockItems = (): DockItem[] => {
   const { t, i18n } = useTranslation();
+
+  const permission = useSelector(
+    (state: RootState) => state.authUser.user?.permission
+  );
 
   return useMemo(
     () => [
@@ -97,7 +133,27 @@ export const useDockItems = (): DockItem[] => {
           { label: t("menu.statistic-usage-log"), path: "/statistic-usage-log" },
         ],
       },
-    ],
-    [t, i18n.language]
+    ]
+      /*
+        Drop what the user cannot open, then drop any group left with nothing
+        under it — an expandable heading over an empty list is a dead end, and
+        worse, it advertises pages the user is not allowed to know about.
+      */
+      .map((item) =>
+        item.subMenu
+          ? {
+              ...item,
+              subMenu: item.subMenu.filter((sub) =>
+                isPathVisible(sub.path, permission)
+              ),
+            }
+          : item
+      )
+      .filter((item) =>
+        item.subMenu
+          ? item.subMenu.length > 0
+          : isPathVisible(item.path, permission)
+      ),
+    [t, i18n.language, permission]
   )
 };

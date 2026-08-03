@@ -1171,6 +1171,7 @@ const StatisticSearchLogPlate = () => {
                 {t('button.clear')}
               </Button>
               <GroupExportButton 
+                groupKey="statistic-search-log-plate"
                 handleExportExcel={handleExportExcel}
                 handleExportPdf={handleExportPdf}
               />

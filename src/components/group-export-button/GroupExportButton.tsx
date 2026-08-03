@@ -5,15 +5,29 @@ import IconButton from "@mui/material/IconButton";
 import ExportExcelIcon from "../../assets/icons/export-excel.png";
 import ExportPdfIcon from "../../assets/icons/export-pdf.png";
 
+// Hooks
+import { usePermission } from "../../hooks/usePermission";
+
 type Props = {
+  /*
+    Page this pair of buttons belongs to. Exporting is its own permission axis
+    (`prints`), independent of whether the page is read-only, so the check lives
+    here rather than being repeated by every page that exports.
+  */
+  groupKey: string;
   handleExportExcel: () => void;
   handleExportPdf: () => void;
 }
 
 const GroupExportButton = ({
+  groupKey,
   handleExportExcel,
   handleExportPdf,
 }: Props) => {
+  const { canPrint } = usePermission(groupKey);
+
+  if (!canPrint) return null;
+
   return (
     <>
       <IconButton 
