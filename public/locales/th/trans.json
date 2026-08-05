@@ -150,6 +150,7 @@
     "monthly-performance-report": "รายงานประสิทธิภาพเชิงพื้นที่ (รายเดือน)",
     "all-checkpoint": "จุดตรวจทั้งหมด",
     "app-version": "App Version",
+    "signed-in-elsewhere": "บัญชีนี้ถูกเข้าสู่ระบบจากที่อื่น ระบบจึงออกจากระบบนี้ให้อัตโนมัติ",
     "export-excel": "กำลังสร้างไฟล์ Excel...",
     "export-pdf": "กำลังสร้างไฟล์ PDF...",
     "complete": "ทำเสร็จ",

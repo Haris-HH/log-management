@@ -57,7 +57,9 @@ Every network call goes through `fetchClient<T>(endpoint, options)`. It is the o
 2. `App.tsx` route guard — no token and not on `/login`
 3. Server-pushed SSE `force-logout` event via `useSse`
 
-`useSse` (`src/utils/useSse.tsx`) uses `@microsoft/fetch-event-source` against `${VITE_API_BASE_URL}/events` and ignores messages whose `serviceChannel` doesn't match `VITE_API_SERVICE_CHANNEL`.
+`useSse` (`src/utils/useSse.tsx`) uses `@microsoft/fetch-event-source` against `${VITE_API_BASE_URL}/events`, sending the bearer token and `x-service-channel`. It ignores messages naming a `serviceChannel` other than `VITE_API_SERVICE_CHANNEL`, but **acts on one that names no channel at all** — the stream is already user-scoped, so dropping an untagged event would leave the tab running against a session the server has discarded. `onerror` returns a capped backoff delay (2s → 30s, reset on open) instead of throwing, so a proxy timeout doesn't end force-logout coverage for the session; only a 404 (`FatalSseError`, route not deployed) stops it for good. The access token is re-read from `localStorage` before each retry, since `fetchClient` may have refreshed it. Pass `{ closeOnEvent: true }` for one-shot streams like `force-logout`.
+
+The SSE logout records `setLogoutReason("signed-in-elsewhere")` (`src/utils/logoutReason.ts` — module scope, cleared on read) so `Login.tsx` can explain the eviction instead of leaving it looking like an ordinary session timeout, and calls `forceLogout(false)`: the server has already discarded the session, so the logout API call would only fail.
 
 ### Permissions
 

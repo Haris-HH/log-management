@@ -53,6 +53,7 @@ import { useAppDispatch } from "./store/hooks";
 
 // Utils
 import { useSse } from "./utils/useSse";
+import { setLogoutReason } from "./utils/logoutReason";
 
 // Store
 import type { RootState } from "./store/store";
@@ -178,14 +179,23 @@ function App() {
 
   const enabled = Boolean(localStorage.getItem("accessToken") ?? false);
 
+  /*
+    The server has already discarded this session, so there is nothing left to
+    log out from - calling the API would only fail. Clear locally and record
+    why, so the login page can say what happened instead of leaving the
+    operator to read it as an unexplained session timeout.
+  */
   const handleAutoLogout = async () => {
-    await forceLogout(true);
+    setLogoutReason("signed-in-elsewhere");
+
+    await forceLogout(false);
   }
 
   useSse(
     "force-logout",
     handleAutoLogout,
-    enabled
+    enabled,
+    { closeOnEvent: true }
   );
 
   return (

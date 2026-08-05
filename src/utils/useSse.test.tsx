@@ -11,7 +11,7 @@ import { useSse } from "./useSse";
 type Handlers = {
   onopen: (r: Response) => Promise<void>;
   onmessage: (e: { event: string; data: string }) => void;
-  onerror: (e: unknown) => void;
+  onerror: (e: unknown) => number | void;
 };
 
 const lastOptions = () => fetchEventSource.mock.calls.at(-1)![1] as Handlers &
@@ -19,6 +19,9 @@ const lastOptions = () => fetchEventSource.mock.calls.at(-1)![1] as Handlers &
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // The hook's own retry loop replaces fetch-event-source's, so the mock must
+  // resolve rather than return undefined — the code chains .catch() onto it.
+  fetchEventSource.mockResolvedValue(undefined);
   vi.spyOn(console, "log").mockImplementation(() => {});
   vi.spyOn(console, "error").mockImplementation(() => {});
 });
@@ -43,6 +46,7 @@ describe("useSse - connection", () => {
     expect(url).toBe("https://api.test/api/v0/events");
     expect(options.method).toBe("GET");
     expect(options.headers.Authorization).toBe("Bearer tok-123");
+    expect(options.headers["x-service-channel"]).toBe("log-management");
     expect(options.openWhenHidden).toBe(true);
     expect(options.signal).toBeInstanceOf(AbortSignal);
   });
@@ -84,6 +88,23 @@ describe("useSse - connection", () => {
 
     await expect(onopen(new Response(null, { status: 200 }))).resolves
       .toBeUndefined();
+  });
+
+  it("re-reads the access token before each reconnect", () => {
+    localStorage.setItem("accessToken", "stale");
+    renderHook(() => useSse("force-logout", vi.fn(), true));
+
+    const options = lastOptions() as unknown as {
+      headers: Record<string, string>;
+      onerror: (e: unknown) => number | void;
+    };
+    expect(options.headers.Authorization).toBe("Bearer stale");
+
+    // fetchClient refreshes the token between the drop and the retry.
+    localStorage.setItem("accessToken", "fresh");
+    options.onerror(new Error("dropped"));
+
+    expect(options.headers.Authorization).toBe("Bearer fresh");
   });
 });
 
@@ -137,6 +158,15 @@ describe("useSse - message routing", () => {
     expect(onMessage).not.toHaveBeenCalled();
   });
 
+  it("acts on a payload that names no channel rather than running on a discarded session", () => {
+    const onMessage = vi.fn();
+    renderHook(() => useSse("force-logout", onMessage, true));
+
+    act(() => emit(lastOptions(), "force-logout", { reason: "displaced" }));
+
+    expect(onMessage).toHaveBeenCalledWith({ reason: "displaced" });
+  });
+
   it("swallows malformed JSON instead of tearing down the stream", () => {
     const onMessage = vi.fn();
     renderHook(() => useSse("force-logout", onMessage, true));
@@ -145,6 +175,33 @@ describe("useSse - message routing", () => {
       act(() => emit(lastOptions(), "force-logout", "{not json"))
     ).not.toThrow();
     expect(onMessage).not.toHaveBeenCalled();
+  });
+
+  it("closes the stream after the first match when asked to", () => {
+    const onMessage = vi.fn();
+    renderHook(() =>
+      useSse("force-logout", onMessage, true, { closeOnEvent: true })
+    );
+    const { signal } = lastOptions() as unknown as { signal: AbortSignal };
+
+    act(() =>
+      emit(lastOptions(), "force-logout", { serviceChannel: "log-management" })
+    );
+
+    expect(onMessage).toHaveBeenCalledTimes(1);
+    expect(signal.aborted).toBe(true);
+  });
+
+  it("keeps the stream open after a match by default", () => {
+    const onMessage = vi.fn();
+    renderHook(() => useSse("force-logout", onMessage, true));
+    const { signal } = lastOptions() as unknown as { signal: AbortSignal };
+
+    act(() =>
+      emit(lastOptions(), "force-logout", { serviceChannel: "log-management" })
+    );
+
+    expect(signal.aborted).toBe(false);
   });
 
   it("uses the latest callback without reconnecting", () => {
@@ -167,19 +224,48 @@ describe("useSse - message routing", () => {
 });
 
 describe("useSse - errors", () => {
-  it("forwards errors to the optional handler and rethrows", () => {
+  it("forwards errors to the optional handler and reconnects", () => {
     const onError = vi.fn();
-    renderHook(() =>
-      useSse("force-logout", vi.fn(), true, true, onError)
-    );
+    renderHook(() => useSse("force-logout", vi.fn(), true, { onError }));
 
     const err = new Error("stream died");
-    expect(() => lastOptions().onerror(err)).toThrow("stream died");
+    // A number tells fetch-event-source to retry after that many ms; throwing
+    // would end force-logout coverage for the rest of the session.
+    expect(lastOptions().onerror(err)).toBe(2_000);
     expect(onError).toHaveBeenCalledWith(err);
   });
 
-  it("rethrows even without an error handler", () => {
+  it("backs off on repeated failures up to the cap", () => {
     renderHook(() => useSse("force-logout", vi.fn(), true));
-    expect(() => lastOptions().onerror(new Error("boom"))).toThrow("boom");
+    const { onerror } = lastOptions();
+
+    const delays = Array.from({ length: 6 }, () => onerror(new Error("down")));
+
+    expect(delays).toEqual([2_000, 4_000, 8_000, 16_000, 30_000, 30_000]);
+  });
+
+  it("resets the backoff once a connection opens", async () => {
+    renderHook(() => useSse("force-logout", vi.fn(), true));
+    const { onopen, onerror } = lastOptions();
+
+    onerror(new Error("down"));
+    onerror(new Error("down"));
+    await onopen(new Response(null, { status: 200 }));
+
+    expect(onerror(new Error("down"))).toBe(2_000);
+  });
+
+  it("stops for good when the route is missing on this host", async () => {
+    renderHook(() => useSse("force-logout", vi.fn(), true));
+    const { onopen, onerror } = lastOptions();
+
+    const fatal = await onopen(new Response(null, { status: 404 })).catch(
+      (err: unknown) => err
+    );
+
+    // Rethrowing is what stops fetch-event-source from retrying a 404 forever.
+    expect(() => onerror(fatal)).toThrow(
+      "SSE route is not available on this host"
+    );
   });
 });

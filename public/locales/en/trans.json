@@ -150,6 +150,7 @@
     "monthly-performance-report": "Monthly Performance Report at",
     "all-checkpoint": "All Checkpoints",
     "app-version": "App Version",
+    "signed-in-elsewhere": "This account was signed in elsewhere, so this session was ended.",
     "export-excel": "Exporting Excel...",
     "export-pdf": "Exporting PDF...",
     "complete": "Complete",
