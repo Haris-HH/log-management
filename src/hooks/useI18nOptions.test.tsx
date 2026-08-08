@@ -1,7 +1,8 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { renderHook } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
+import { useTranslation } from "react-i18next";
 
 import { useColumn } from "./useColumn";
 import { useStatusOptions } from "./useStatusOptions";
@@ -206,5 +207,26 @@ describe("usePageTitle", () => {
 
     rerender({ title: "b" });
     expect(document.title).toBe("b | project.title");
+  });
+
+  it("updates once translations resolve, with the title unchanged", () => {
+    // The XHR backend resolves after first paint in a build, so the first `t`
+    // echoes keys and a later one translates. Only `t` changes here.
+    const mocked = vi.mocked(useTranslation);
+    const original = mocked.getMockImplementation()!;
+    const i18n = { language: "th", changeLanguage: vi.fn() };
+
+    mocked.mockReturnValue({ t: (key: string) => key, i18n } as never);
+    const { rerender } = renderHook(() => usePageTitle("pages.statistic-access-log"));
+    expect(document.title).toBe("pages.statistic-access-log | project.title");
+
+    mocked.mockReturnValue({
+      t: (key: string) => (key === "project.title" ? "NSB Log Management" : key),
+      i18n,
+    } as never);
+    rerender();
+    expect(document.title).toBe("pages.statistic-access-log | NSB Log Management");
+
+    mocked.mockImplementation(original);
   });
 });

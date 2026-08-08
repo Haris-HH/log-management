@@ -13,8 +13,10 @@ vi.mock("react-i18next", () => {
   const t = (key: string) => key;
   const i18n = { language: "th", changeLanguage: vi.fn() };
 
+  // Wrapped in vi.fn so a test can override the pair for one render (e.g. to
+  // simulate translations landing after first paint). Default is unchanged.
   return {
-    useTranslation: () => ({ t, i18n }),
+    useTranslation: vi.fn(() => ({ t, i18n })),
     initReactI18next: { type: "3rdParty", init: vi.fn() },
     Trans: ({ children }: { children?: unknown }) => children,
   };
