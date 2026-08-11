@@ -49,11 +49,50 @@ const MainLayout = () => {
     isSidebarPosition || (!isWideViewport && navPosition === "top");
 
   return (
-    <div className="relative min-h-screen overflow-hidden"
-      style={{
-        background: "linear-gradient(180deg, rgba(var(--tertiary-color-rgb),1), rgba(var(--tertiary-color-rgb),0.92))"
-      }}
-    >
+    <div className="relative min-h-screen overflow-hidden">
+      {/*
+        Background Video
+
+        Fixed to the viewport rather than scoped inside `main`: `main`'s width
+        is what animates when the sidebar opens/closes (via its margin), so a
+        video sized to `main` would leave the strip behind the sidebar
+        uncovered for the length of that transition — the gap read as a
+        flash of the page's plain white background instead of the theme.
+        Anchoring here means the video (and its theme-tint overlay) always
+        cover the full viewport regardless of sidebar state.
+
+        วิดีโอที่เล่นวนอยู่เบื้องหลังทุกหน้าคือการเคลื่อนไหวถาวรที่ผู้ใช้หยุด
+        ไม่ได้ และยังต้องถอดรหัสวิดีโอตลอดเวลา เมื่อผู้ใช้ขอลดการเคลื่อนไหวจึง
+        หยุดที่เฟรมแรกแทน (ยังคงภาพพื้นหลังไว้ ไม่ได้ตัดทิ้งจนหน้าจอโล่ง)
+      */}
+      <video
+        autoPlay={!prefersReducedMotion}
+        loop={!prefersReducedMotion}
+        muted
+        playsInline
+        aria-hidden="true"
+        style={{
+          position: "fixed",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          zIndex: -2,
+        }}
+      >
+        <source src={backgroundVideo} type="video/mp4" />
+      </video>
+
+      {/* Overlay */}
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          backgroundColor: "rgba(var(--tertiary-color-rgb),0.85)",
+          zIndex: -1,
+        }}
+      />
+
       <Navbar />
 
       <Watermark text={nsbOu} hashPid={hashPid} />
@@ -74,41 +113,6 @@ const MainLayout = () => {
           transition: transitionOf(["margin"], "base", "movement"),
         }}
       >
-        {/*
-          Background Video
-
-          วิดีโอที่เล่นวนอยู่เบื้องหลังทุกหน้าคือการเคลื่อนไหวถาวรที่ผู้ใช้หยุด
-          ไม่ได้ และยังต้องถอดรหัสวิดีโอตลอดเวลา เมื่อผู้ใช้ขอลดการเคลื่อนไหวจึง
-          หยุดที่เฟรมแรกแทน (ยังคงภาพพื้นหลังไว้ ไม่ได้ตัดทิ้งจนหน้าจอโล่ง)
-        */}
-        <video
-          autoPlay={!prefersReducedMotion}
-          loop={!prefersReducedMotion}
-          muted
-          playsInline
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            inset: 0,
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            zIndex: -2,
-          }}
-        >
-          <source src={backgroundVideo} type="video/mp4" />
-        </video>
-
-        {/* Overlay */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            backgroundColor: "rgba(var(--tertiary-color-rgb),0.85)",
-            zIndex: -1,
-          }}
-        />
-
         {/* Page Content */}
         <div className="relative h-full w-full">
           <Outlet />
