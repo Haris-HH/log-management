@@ -1122,7 +1122,7 @@ const OverallCheckpoints = () => {
                     >
                       <Box className="flex items-center justify-center gap-2">
                         <img src={data.active ? DatabaseOnline : DatabaseOffline} alt="Database Status" className="h-6 w-6" />
-                        <WifiIcon className="h-6 w-6" color={data.alive ? "#2FA534" : "#DD2025"} />
+                        <WifiIcon className="h-6 w-6" color={data.alive ? "var(--status-device-normal)" : "var(--status-device-suspended)"} />
                       </Box>
                     </TableCell>
                     <TableCell 

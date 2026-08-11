@@ -245,7 +245,7 @@ const AutoComplete: React.FC<AutoCompleteProps> = ({
                 },
 
                 "&.Mui-error fieldset": {
-                  borderColor: "#d32f2f",
+                  borderColor: "var(--danger-color)",
                   borderWidth: "2px",
                 },
 

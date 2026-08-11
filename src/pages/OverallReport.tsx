@@ -993,7 +993,7 @@ const OverallReport = () => {
                           "& td": {
                             border: "1px solid rgba(var(--secondary-color-rgb), 0.3)",
                             padding: "8.5px 8px",
-                            color: "#124692",
+                            color: "var(--text-chart-table-color)",
                           },
                           "& .MuiTableCell-root": {
                             color: "var(--primary-color) !important",
@@ -1050,7 +1050,7 @@ const OverallReport = () => {
                         "& td": {
                           border: "1px solid rgba(var(--secondary-color-rgb), 0.3)",
                           padding: "8.5px 8px",
-                          color: "#124692",
+                          color: "var(--text-chart-table-color)",
                           fontWeight: 700,
                           backgroundColor: "var(--total-bg-color)",
                         },

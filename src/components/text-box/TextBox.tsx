@@ -158,7 +158,7 @@ const TextBox: React.FC<TextBoxProps> = ({
           },
 
           "& .Mui-disabled": {
-            backgroundColor: "#DDD",
+            backgroundColor: "rgba(var(--tertiary-color-rgb), 0.5)",
           },
 
           ...sx,
