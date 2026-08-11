@@ -2,7 +2,7 @@
 import type { OverallProblemReportResponse } from "../types/response";
 
 export const mockOverallProblemReport: OverallProblemReportResponse = {
-  "endpoint": "https://nsb-core.local/api/v0/ops-management/devices/statistics/problem-report",
+  "endpoint": "https://nsb-api.corelpr.com/api/v0/ops-management/devices/statistics/problem-report",
   "statusCode": 200,
   "status": "Successful",
   "success": true,

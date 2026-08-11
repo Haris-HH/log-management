@@ -32,7 +32,7 @@ Coverage uses v8 with per-directory thresholds (`src/api`, `src/utils`, `src/hoo
 
 `.env` (checked in) holds:
 
-- `VITE_API_BASE_URL` — API root, e.g. `https://nsb-core.local/api/v0`
+- `VITE_API_BASE_URL` — API root, e.g. `https://nsb-api.corelpr.com/api/v0`
 - `VITE_API_SERVICE_CHANNEL` — sent as the `x-service-channel` header and used to filter SSE events
 
 `VITE_IS_DEV` is read by every `features/*/api/*Api.tsx` module: when truthy the API function returns the corresponding fixture from `src/mocks/` instead of calling the network. It is **not** in `.env`, so mocks are off by default — set it to work offline.
