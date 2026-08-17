@@ -314,6 +314,8 @@
   "popup": {
     "login-failed-title": "Login Failed",
     "login-failed-message": "Please check your PID and password, then try again",
+    "login-access-denied-title": "Access Denied",
+    "login-access-denied-message": "Your account does not have permission to access this system. Please contact your administrator",
     "logout-failed-title": "Logout Failed",
     "logout-failed-message": "Logout failed, please try again",
     "logout-title": "Confirm Logout",

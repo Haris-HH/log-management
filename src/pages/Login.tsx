@@ -40,6 +40,7 @@ import { useReducedMotion } from "../hooks/useReducedMotion";
 
 // Constants
 import { MOTION_DURATION } from "../constants/motion";
+import { LOG_MANAGEMENT_UI_KEY } from "../constants/permissions";
 
 type FormData = {
   username: string;
@@ -150,9 +151,25 @@ const Login = () => {
 
       if (result.userId) {
         const userResponse = await getUserApi({ filter: `user_id=${result.userId}` });
+
+        /*
+          ui["log-management"].enabled === false means the account's access to
+          this console was revoked. The token above is only valid long enough
+          to fetch the user record — pull it back out so a disabled account
+          never ends up holding a session, and stop before touching redux or
+          navigating away from /login.
+        */
+        const isServiceEnabled = userResponse.data[0]?.permissions?.ui?.[LOG_MANAGEMENT_UI_KEY]?.enabled === true;
+
+        if (!isServiceEnabled) {
+          localStorage.removeItem("accessToken");
+          await PopupMessage(t("popup.login-access-denied-title"), t("popup.login-access-denied-message"), "warning");
+          return;
+        }
+
         const titleData = await getTitle({ filter: `id=${userResponse.data[0]?.title_id}` });
         const nsbOuData = await getAgency({ filter: `ou_code=${userResponse.data[0]?.ou_code}` });
-        
+
         dispatch(
           setAuthUser({
             user_id: userResponse.data[0]?.user_id ?? "-",
