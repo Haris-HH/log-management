@@ -95,10 +95,10 @@ const LetterChargeEffect = () => {
               position: "fixed",
               left: 0,
               top: 0,
-              color: "var(--primary-color)",
+              color: "var(--theme-accent)",
               fontSize: "18px",
               fontWeight: "bold",
-              textShadow: "0 0 8px var(--primary-color)",
+              textShadow: "0 0 8px var(--theme-accent)",
               pointerEvents: "none",
             }}
           >

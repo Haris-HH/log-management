@@ -101,10 +101,10 @@ const NavTopButton = ({
         height: 38,
         px: 1.25,
         border: "none",
-        borderBottom: `2px solid ${active ? "var(--primary-color)" : "transparent"}`,
+        borderBottom: `2px solid ${active ? "var(--theme-accent)" : "transparent"}`,
         background: "transparent",
         cursor: "pointer",
-        color: "var(--primary-color)",
+        color: "var(--theme-accent)",
         opacity: active ? 1 : 0.75,
         fontSize: "0.85rem",
         fontWeight: active ? 700 : 500,
@@ -155,10 +155,10 @@ const NavTopGroup = ({ item, pathname, onNavigate }: NavTopGroupProps) => {
               mt: 1,
               minWidth: 200,
               borderRadius: "16px",
-              backgroundColor: "var(--tertiary-color)",
-              boxShadow: "0 8px 24px rgba(var(--secondary-color-rgb), 0.15)",
-              border: "1px solid rgba(var(--secondary-color-rgb), 0.18)",
-              color: "var(--primary-color)",
+              backgroundColor: "var(--theme-border-input)",
+              boxShadow: "0 8px 24px rgba(var(--theme-accent-soft-rgb),0.15)",
+              border: "1px solid rgba(var(--theme-accent-soft-rgb),0.18)",
+              color: "var(--theme-accent)",
             },
           },
         }}
@@ -169,15 +169,15 @@ const NavTopGroup = ({ item, pathname, onNavigate }: NavTopGroupProps) => {
             selected={subItem.path === pathname}
             onClick={() => handleSelect(subItem.path)}
             sx={{
-              color: "var(--primary-color)",
+              color: "var(--theme-accent)",
               fontSize: "0.82rem",
               py: 1.1,
               px: 2,
               "&.Mui-selected": {
-                backgroundColor: "rgba(var(--primary-color-rgb), 0.12)",
+                backgroundColor: "rgba(var(--theme-accent-rgb),0.12)",
               },
               "&:hover": {
-                backgroundColor: "rgba(var(--primary-color-rgb), 0.08)",
+                backgroundColor: "rgba(var(--theme-accent-rgb),0.08)",
               },
             }}
           >

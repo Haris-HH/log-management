@@ -29,8 +29,8 @@ const DetailsDialog = ({ open, handleClose, dialogTitle, children }: Props) => {
           sx: {
             width: "450px",
             borderRadius: "8px",
-            backgroundColor: "var(--tertiary-color)",
-            border: "1px solid rgba(var(--primary-color-rgb), 0.35)",
+            backgroundColor: "var(--theme-border-input)",
+            border: "1px solid rgba(var(--theme-accent-rgb),0.35)",
           },
         }
       }}
@@ -39,7 +39,7 @@ const DetailsDialog = ({ open, handleClose, dialogTitle, children }: Props) => {
         sx={{
           py: 0,
           px: 2,
-          color: "var(--primary-color)",
+          color: "var(--theme-accent)",
         }}
       >
         <div className='flex flex-col'>
@@ -49,7 +49,7 @@ const DetailsDialog = ({ open, handleClose, dialogTitle, children }: Props) => {
               <CloseIcon 
                 onClick={handleClose} 
                 sx={{ 
-                  color: "var(--primary-color)", 
+                  color: "var(--theme-accent)", 
                   mr: "-10px",
                   ":hover": {
                     scale: 1.1,
@@ -58,12 +58,12 @@ const DetailsDialog = ({ open, handleClose, dialogTitle, children }: Props) => {
               />
             </IconButton>
           </div>
-          <Divider orientation='horizontal' sx={{ width: "100%", borderColor: "rgba(var(--primary-color-rgb), 0.35)" }} />
+          <Divider orientation='horizontal' sx={{ width: "100%", borderColor: "rgba(var(--theme-accent-rgb),0.35)" }} />
         </div>
       </DialogTitle>
       <DialogContent
         sx={{
-          backgroundColor: "var(--tertiary-color)",
+          backgroundColor: "var(--theme-border-input)",
         }}
       >
         {children}

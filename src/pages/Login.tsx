@@ -188,7 +188,7 @@ const Login = () => {
       onClick={finishIntro}
       className="h-screen w-screen flex items-center justify-center relative overflow-hidden"
       style={{
-        backgroundColor: "rgba(var(--secondary-color-rgb), 0.1)"
+        backgroundColor: "rgba(var(--theme-accent-soft-rgb),0.1)"
       }}
     >
       {
@@ -203,7 +203,7 @@ const Login = () => {
           <motion.div
             className="absolute inset-0 z-50 flex flex-col items-center justify-center"
             style={{
-              background: "var(--tertiary-color)",
+              background: "var(--theme-border-input)",
             }}
             initial={{ opacity: 1 }}
             animate={{ opacity: 1 }}
@@ -232,12 +232,12 @@ const Login = () => {
                 height: "36px",
                 px: 2.5,
                 textTransform: "capitalize",
-                border: "1px solid var(--primary-color)",
-                color: "var(--primary-color)",
-                backgroundColor: "rgba(var(--tertiary-color-rgb), 0.6)",
+                border: "1px solid var(--theme-accent)",
+                color: "var(--theme-accent)",
+                backgroundColor: "rgba(var(--theme-panel-rgb),0.6)",
                 "&:hover": {
-                  border: "1px solid var(--primary-color)",
-                  backgroundColor: "rgba(var(--primary-color-rgb), 0.1)",
+                  border: "1px solid var(--theme-accent)",
+                  backgroundColor: "rgba(var(--theme-accent-rgb),0.1)",
                 },
               }}
             >
@@ -264,9 +264,9 @@ const Login = () => {
           transition={{ duration: MOTION_DURATION.slow / 1000 }}
           className="w-122 px-4 py-2.5 rounded-lg text-center text-sm"
           style={{
-            backgroundColor: "rgba(var(--tertiary-color-rgb), 0.8)",
-            border: "1px solid var(--primary-color)",
-            color: "var(--primary-color)",
+            backgroundColor: "rgba(var(--theme-panel-rgb),0.8)",
+            border: "1px solid var(--theme-accent)",
+            color: "var(--theme-accent)",
           }}
         >
           {t("text.signed-in-elsewhere")}
@@ -283,8 +283,8 @@ const Login = () => {
         transition={{ duration: prefersReducedMotion ? 0.2 : 0.8 }}
         className="flex flex-col w-122 h-90 rounded-lg"
         style={{
-          backgroundColor: "rgba(var(--tertiary-color-rgb),0.8)",
-          border: "1px solid var(--primary-color)",
+          backgroundColor: "rgba(var(--theme-panel-rgb),0.8)",
+          border: "1px solid var(--theme-accent)",
         }}
       >
         {/* Header */}
@@ -295,17 +295,17 @@ const Login = () => {
             className="w-17 h-17"
           />
           <div
-            className="flex flex-col text-(--primary-color)"
+            className="flex flex-col text-(--theme-accent)"
           >
             <Typography
               variant="h6"
-              sx={{ fontSize: "1.8rem", fontWeight: "bold", textShadow: "1px 2px 2px var(--tertiary-color)" }}
+              sx={{ fontSize: "1.8rem", fontWeight: "bold", textShadow: "1px 2px 2px var(--theme-border-input)" }}
             >
               {t('project.title')}
             </Typography>
             <Typography
               variant="h6"
-              sx={{ fontSize: "0.8rem", mt: -1, textShadow: "1px 1px 2px var(--tertiary-color)" }}
+              sx={{ fontSize: "0.8rem", mt: -1, textShadow: "1px 1px 2px var(--theme-border-input)" }}
             >
               {t('project.subtitle')}
             </Typography>
@@ -366,12 +366,12 @@ const Login = () => {
             disabled={loading}
             whileHover={{ scale: loading ? 1 : 1.05 }}
             style={{
-              backgroundColor: "var(--primary-color)",
+              backgroundColor: "var(--theme-accent)",
               width: "100%",
               height: "50px",
               borderRadius: "5px",
               marginTop: "10px",
-              color: "var(--tertiary-color)",
+              color: "var(--theme-border-input)",
               opacity: loading ? 0.6 : 1,
               cursor: loading ? "not-allowed" : "pointer",
             }}
@@ -384,14 +384,14 @@ const Login = () => {
         <div
           className="flex justify-center items-center w-full h-15"
           style={{
-            backgroundColor: "rgba(var(--primary-color-rgb), 0.1)",
+            backgroundColor: "rgba(var(--theme-accent-rgb),0.1)",
           }}
         >
           <Typography
             variant="subtitle2"
             sx={{
               fontSize: "0.9rem",
-              color: "var(--primary-color)",
+              color: "var(--theme-accent)",
             }}
           >
             {`${t('text.app-version')}: ${version}`}

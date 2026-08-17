@@ -957,12 +957,12 @@ const OverallCheckpoints = () => {
       }
       {/* Main Title */}
       <MainTitle title={t("pages.overall-checkpoints")} />
-      <div className='flex flex-col p-4 bg-(--main-bg-color) flex-1 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-y-auto gap-2'>
+      <div className='flex flex-col p-4 bg-(--theme-bg-body) flex-1 min-h-0 w-full rounded-lg border border-(--theme-accent) overflow-y-auto gap-2'>
         {/* Search Filters */}
         <Box
-          className="border border-(--primary-color) rounded-[10px] p-4 gap-2 bg-(--tertiary-color)"
+          className="border border-(--theme-accent) rounded-[10px] p-4 gap-2 bg-(--theme-border-input)"
           sx={{
-            boxShadow: "0px 2px 8px rgba(var(--tertiary-color-rgb),0.1)",
+            boxShadow: "0px 2px 8px rgba(var(--theme-panel-rgb),0.1)",
             display: "grid",
             gap: 2,
             gridTemplateColumns: {
@@ -1029,15 +1029,15 @@ const OverallCheckpoints = () => {
           <Box className="flex gap-2 items-end">
             <Button 
               variant="contained" 
-              startIcon={<ClearIcon className="h-6 w-6" style={{ color: "var(--tertiary-color)" }} />} 
+              startIcon={<ClearIcon className="h-6 w-6" style={{ color: "var(--theme-border-input)" }} />} 
               sx={{ 
-                backgroundColor: "var(--primary-color)", 
+                backgroundColor: "var(--theme-accent)", 
                 fontSize: "14px", 
                 width: t('button.clear-width'),
                 height: "40px",
-                color: "var(--tertiary-color)",
+                color: "var(--theme-border-input)",
                 ":hover": {
-                  backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
+                  backgroundColor: "rgba(var(--theme-accent-rgb),0.5)",
                 },
                 textTransform: "capitalize",
               }}
@@ -1072,14 +1072,14 @@ const OverallCheckpoints = () => {
             component={Paper}
           >
             <Table
-              sx={{ minWidth: 650, backgroundColor: "var(--tertiary-color)", border: "1px solid var(--primary-color)" }}
+              sx={{ minWidth: 650, backgroundColor: "var(--theme-border-input)", border: "1px solid var(--theme-accent)" }}
               stickyHeader
             >
               <TableHead
                 sx={{
                   "& .MuiTableCell-head": {
-                    color: "var(--tertiary-color)",
-                    backgroundColor: "var(--primary-color)",
+                    color: "var(--theme-border-input)",
+                    backgroundColor: "var(--theme-accent)",
                   },
                 }}
               >
@@ -1095,15 +1095,15 @@ const OverallCheckpoints = () => {
                   ))}
                 </TableRow>
               </TableHead>
-              <TableBody sx={{ backgroundColor: "var(--tertiary-color)" }}>
+              <TableBody sx={{ backgroundColor: "var(--theme-border-input)" }}>
                 {paginatedRows.map((data, index) => (
                   <TableRow
                     key={index}
                     sx={{
                       "& .MuiTableCell-root": {
-                        backgroundColor: "var(--tertiary-color)",
-                        color: "var(--secondary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
+                        backgroundColor: "var(--theme-border-input)",
+                        color: "var(--theme-accent-soft)",
+                        borderBottom: "1px solid var(--theme-accent)",
                         p: "8px 1px",
                       }
                     }}
@@ -1158,9 +1158,9 @@ const OverallCheckpoints = () => {
                   <TableRow
                     sx={{
                       "& .MuiTableCell-root": {
-                        backgroundColor: "var(--tertiary-color)",
-                        color: "var(--secondary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
+                        backgroundColor: "var(--theme-border-input)",
+                        color: "var(--theme-accent-soft)",
+                        borderBottom: "1px solid var(--theme-accent)",
                       },
                     }}
                   >

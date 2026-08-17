@@ -32,7 +32,7 @@
   height: 36px;
   opacity: 0;
   animation: move 3s linear infinite;
-  color: var(--primary-color);
+  color: var(--theme-accent);
 }
 
 #load div:nth-child(2) {

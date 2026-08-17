@@ -149,12 +149,12 @@ const ChartInternalPolice = () => {
       { isLoading && <LoadingScreen /> }
       {/* Main Title */}
       <MainTitle title={t("pages.chart-internal-police")} />
-      <div className='p-2 bg-(--main-bg-color) flex-1 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-hidden'>
+      <div className='p-2 bg-(--theme-bg-body) flex-1 min-h-0 w-full rounded-lg border border-(--theme-accent) overflow-hidden'>
         {/* Chart */}
         <Box 
           className="w-full h-full p-4 flex flex-col gap-4"
           sx={{
-            boxShadow: "-2px 3px 2px rgba(var(--secondary-color-rgb),0.1)"
+            boxShadow: "-2px 3px 2px rgba(var(--theme-accent-soft-rgb),0.1)"
           }}
         >
           <Box className='flex gap-2'>
@@ -192,11 +192,11 @@ const ChartInternalPolice = () => {
                 sx={{
                   width: t('button.1-month-width'),
                   height: 40,
-                  backgroundColor: monthRange === 1 ? "var(--primary-color)" : "var(--tertiary-color)",
-                  color: monthRange === 1 ? "var(--tertiary-color)" : "var(--primary-color)",
-                  border: monthRange === 1 ? "none" : "1px solid var(--primary-color)",
+                  backgroundColor: monthRange === 1 ? "var(--theme-accent)" : "var(--theme-border-input)",
+                  color: monthRange === 1 ? "var(--theme-border-input)" : "var(--theme-accent)",
+                  border: monthRange === 1 ? "none" : "1px solid var(--theme-accent)",
                   "&:hover": {
-                    backgroundColor: monthRange === 1 ? "rgba(var(--primary-color-rgb), 0.5)" : "rgba(var(--primary-color-rgb), 0.2)",
+                    backgroundColor: monthRange === 1 ? "rgba(var(--theme-accent-rgb),0.5)" : "rgba(var(--theme-accent-rgb),0.2)",
                   },
                   fontWeight: 700,
                   textTransform: "capitalize",
@@ -210,11 +210,11 @@ const ChartInternalPolice = () => {
                 sx={{
                   width: t('button.3-month-width'),
                   height: 40,
-                  backgroundColor: monthRange === 3 ? "var(--primary-color)" : "var(--tertiary-color)",
-                  color: monthRange === 3 ? "var(--tertiary-color)" : "var(--primary-color)",
-                  border: monthRange === 3 ? "none" : "1px solid var(--primary-color)",
+                  backgroundColor: monthRange === 3 ? "var(--theme-accent)" : "var(--theme-border-input)",
+                  color: monthRange === 3 ? "var(--theme-border-input)" : "var(--theme-accent)",
+                  border: monthRange === 3 ? "none" : "1px solid var(--theme-accent)",
                   "&:hover": {
-                    backgroundColor: monthRange === 3 ? "rgba(var(--primary-color-rgb), 0.5)" : "rgba(var(--primary-color-rgb), 0.2)",
+                    backgroundColor: monthRange === 3 ? "rgba(var(--theme-accent-rgb),0.5)" : "rgba(var(--theme-accent-rgb),0.2)",
                   },
                   fontWeight: 700,
                   textTransform: "capitalize",

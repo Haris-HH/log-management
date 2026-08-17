@@ -264,10 +264,10 @@ const ChartTopUsers = () => {
       { isLoading && <LoadingScreen /> }
       {/* Main Title */}
       <MainTitle title={t("pages.chart-top-users")} />
-      <Box className='p-4 flex flex-col gap-2 bg-(--main-bg-color) min-h-0 h-full w-full rounded-lg border border-(--primary-color) overflow-y-auto'>
+      <Box className='p-4 flex flex-col gap-2 bg-(--theme-bg-body) min-h-0 h-full w-full rounded-lg border border-(--theme-accent) overflow-y-auto'>
         {/* Chart */}
         <Box 
-          className="w-full bg-(--tertiary-color) p-4 flex flex-col gap-4"
+          className="w-full bg-(--theme-border-input) p-4 flex flex-col gap-4"
           sx={{
             boxShadow: "-2px 3px 2px rgba(0,0,0,0.1)"
           }}
@@ -306,17 +306,17 @@ const ChartTopUsers = () => {
                 <Box className="-mt-1">
                   <IconButton
                     sx={{
-                      backgroundColor: displaySettingOpen ? "var(--primary-color)" : "var(--tertiary-color)",
-                      border: "1px solid var(--primary-color)",
+                      backgroundColor: displaySettingOpen ? "var(--theme-accent)" : "var(--theme-border-input)",
+                      border: "1px solid var(--theme-accent)",
                       "&:hover": {
-                        backgroundColor: "rgba(var(--primary-color-rgb), 0.2)",
+                        backgroundColor: "rgba(var(--theme-accent-rgb),0.2)",
                       },
                       borderRadius: "5px",
                       padding: "5px",
                     }}
                     onClick={() => setDisplaySettingOpen(true)}
                   >
-                    <SettingsIcon sx={{ color: displaySettingOpen ? "var(--tertiary-color)" : "var(--primary-color)" }} />
+                    <SettingsIcon sx={{ color: displaySettingOpen ? "var(--theme-border-input)" : "var(--theme-accent)" }} />
                   </IconButton>
                 </Box>
               )}
@@ -328,11 +328,11 @@ const ChartTopUsers = () => {
                   sx={{
                     width: 180,
                     height: 40,
-                    backgroundColor: policeState === "internal" ? "var(--primary-color)" : "var(--tertiary-color)",
-                    color: policeState === "internal" ? "var(--tertiary-color)" : "var(--primary-color)",
-                    border: policeState === "internal" ? "none" : "1px solid var(--primary-color)",
+                    backgroundColor: policeState === "internal" ? "var(--theme-accent)" : "var(--theme-border-input)",
+                    color: policeState === "internal" ? "var(--theme-border-input)" : "var(--theme-accent)",
+                    border: policeState === "internal" ? "none" : "1px solid var(--theme-accent)",
                     "&:hover": {
-                      backgroundColor: policeState === "internal" ? "rgba(var(--primary-color-rgb), 0.8)" : "rgba(var(--primary-color-rgb), 0.2)",
+                      backgroundColor: policeState === "internal" ? "rgba(var(--theme-accent-rgb),0.8)" : "rgba(var(--theme-accent-rgb),0.2)",
                     },
                     fontWeight: 700,
                     textTransform: "capitalize",
@@ -346,11 +346,11 @@ const ChartTopUsers = () => {
                   sx={{
                     width: 180,
                     height: 40,
-                    backgroundColor: policeState === "external" ? "var(--primary-color)" : "var(--tertiary-color)",
-                    color: policeState === "external" ? "var(--tertiary-color)" : "var(--primary-color)",
-                    border: policeState === "external" ? "none" : "1px solid var(--primary-color)",
+                    backgroundColor: policeState === "external" ? "var(--theme-accent)" : "var(--theme-border-input)",
+                    color: policeState === "external" ? "var(--theme-border-input)" : "var(--theme-accent)",
+                    border: policeState === "external" ? "none" : "1px solid var(--theme-accent)",
                     "&:hover": {
-                      backgroundColor: policeState === "external" ? "rgba(var(--primary-color-rgb), 0.8)" : "rgba(var(--primary-color-rgb), 0.2)",
+                      backgroundColor: policeState === "external" ? "rgba(var(--theme-accent-rgb),0.8)" : "rgba(var(--theme-accent-rgb),0.2)",
                     },
                     fontWeight: 700,
                     textTransform: "capitalize",
@@ -361,7 +361,7 @@ const ChartTopUsers = () => {
                 </Button>
               </Box>
               <Box className='flex items-end'>
-                <Typography className="text-(--primary-color)" sx={{ fontSize: "14px" }}>
+                <Typography className="text-(--theme-accent)" sx={{ fontSize: "14px" }}>
                   {t("text.usage-count-more-than")} :{" "}
                   <span className="font-bold">{policeState === "internal" ? topInternalValue.toLocaleString() : topExternalValue.toLocaleString()}</span>{" "}
                   {t("text.time")}
@@ -383,7 +383,7 @@ const ChartTopUsers = () => {
             >
               <Table
                 size="small"
-                sx={{ minWidth: 650, backgroundColor: "var(--secondary-color)" }}
+                sx={{ minWidth: 650, backgroundColor: "var(--theme-accent-soft)" }}
                 stickyHeader
               >
                 {/* ================= HEADER ================= */}
@@ -395,9 +395,9 @@ const ChartTopUsers = () => {
                         padding: "6px 8px",
                       },
                       "& .MuiTableCell-root": {
-                        backgroundColor: "var(--primary-color)",
-                        color: "var(--tertiary-color)",
-                        border: "1px solid rgba(var(--secondary-color-rgb), 0.5)",
+                        backgroundColor: "var(--theme-accent)",
+                        color: "var(--theme-border-input)",
+                        border: "1px solid rgba(var(--theme-accent-soft-rgb),0.5)",
                         fontWeight: 700
                       },
                     }}
@@ -431,7 +431,7 @@ const ChartTopUsers = () => {
                 {/* ================= BODY ================= */}
                 <TableBody
                   sx={{
-                    backgroundColor: "var(--tertiary-color)",
+                    backgroundColor: "var(--theme-border-input)",
                   }}
                 >
                   {topUsersData?.data?.length ? (
@@ -442,9 +442,9 @@ const ChartTopUsers = () => {
                           key={index}
                           sx={{
                             "& td": {
-                              border: "1px solid rgba(var(--primary-color-rgb), 0.5)",
+                              border: "1px solid rgba(var(--theme-accent-rgb),0.5)",
                               padding: "6px 8px",
-                              color: "var(--primary-color)",
+                              color: "var(--theme-accent)",
                               whiteSpace: "nowrap",
                             },
                           }}
@@ -481,12 +481,12 @@ const ChartTopUsers = () => {
                                 align="center"
                                 sx={{
                                   backgroundColor: isCurrentMonth
-                                    ? "rgba(var(--primary-color-rgb), 0.5) !important"
-                                    : "rgba(var(--primary-color-rgb), 0.2) !important",
+                                    ? "rgba(var(--theme-accent-rgb),0.5) !important"
+                                    : "rgba(var(--theme-accent-rgb),0.2) !important",
                                   fontWeight: isCurrentMonth ? "700 !important" : "400 !important",
                                   color: isCurrentMonth
-                                    ? "var(--secondary-color) !important"
-                                    : "var(--primary-color) !important",
+                                    ? "var(--theme-accent-soft) !important"
+                                    : "var(--theme-accent) !important",
                                 }}
                               >
                                 {count.toLocaleString()}
@@ -499,13 +499,13 @@ const ChartTopUsers = () => {
                   ) : (
                     <TableRow
                       sx={{
-                        backgroundColor: "var(--tertiary-color)",
+                        backgroundColor: "var(--theme-border-input)",
                       }}
                     >
                       <TableCell 
                         align="center" 
                         colSpan={5 + monthKeys.length}
-                        sx={{ color: "var(--secondary-color)" }}
+                        sx={{ color: "var(--theme-accent-soft)" }}
                       >
                         {t("text.no-data")}
                       </TableCell>

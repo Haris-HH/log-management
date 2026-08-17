@@ -73,7 +73,7 @@ const PaginationComponent: React.FC<PaginationProps> = ({
     <div className='flex [@media(max-width:1500px)]:flex-col items-center justify-between w-full'>
       {
         !isShowColumn && (
-          <p className="text-(--primary-color) text-[16px] font-semibold">{`${t('text.all')} ${totalItems?.toLocaleString()} ${t('text.list')} : ${t('text.total')} ${totalUsage?.toLocaleString()} ${t('text.time')}`}</p>
+          <p className="text-(--theme-accent) text-[16px] font-semibold">{`${t('text.all')} ${totalItems?.toLocaleString()} ${t('text.list')} : ${t('text.total')} ${totalUsage?.toLocaleString()} ${t('text.time')}`}</p>
         )
       }
       {
@@ -86,32 +86,32 @@ const PaginationComponent: React.FC<PaginationProps> = ({
                   className="h-4.25 w-4.25 mr-1.2"
                   stroke={
                     openMenu
-                      ? "var(--primary-color)"
+                      ? "var(--theme-accent)"
                       : hasUnchecked
                       ? "var(--has-filter-color)"
-                      : "var(--primary-color)"
+                      : "var(--theme-accent)"
                   }
                 />
               }
               onClick={handleOpenMenu}
               sx={{
                 backgroundColor: openMenu
-                  ? "rgba(var(--primary-color-rgb), 0.2)"
+                  ? "rgba(var(--theme-accent-rgb),0.2)"
                   : hasUnchecked
                   ? "var(--has-filter-bg-color)"
-                  : "var(--tertiary-color)",
+                  : "var(--theme-border-input)",
 
                 color: openMenu
-                  ? "var(--primary-color)"
+                  ? "var(--theme-accent)"
                   : hasUnchecked
                   ? "var(--has-filter-color)"
-                  : "var(--primary-color)",
+                  : "var(--theme-accent)",
 
                 border: openMenu
-                  ? "1px solid var(--primary-color)"
+                  ? "1px solid var(--theme-accent)"
                   : hasUnchecked
                   ? "1px solid var(--has-filter-bg-color)"
-                  : "1px solid var(--primary-color)",
+                  : "1px solid var(--theme-accent)",
 
                 fontSize: "14px",
                 width: "120px",
@@ -135,21 +135,21 @@ const PaginationComponent: React.FC<PaginationProps> = ({
               }}
               sx={{
                 "& .MuiList-root": {
-                  backgroundColor: "var(--tertiary-color)",
-                  border: "1px solid var(--primary-color)",
+                  backgroundColor: "var(--theme-border-input)",
+                  border: "1px solid var(--theme-accent)",
                 },
                 "& .MuiMenuItem-root": {
                   p: "1px 8px",
-                  backgroundColor: "var(--tertiary-color)",
-                  color: "var(--primary-color)",
+                  backgroundColor: "var(--theme-border-input)",
+                  color: "var(--theme-accent)",
                 },
                 "& .MuiTypography-root": {
                   fontSize: "14px"
                 },
                 "& .MuiSvgIcon-root": {
                   fontSize: 20,
-                  backgroundColor: "var(--tertiary-color)",
-                  color: "var(--primary-color)",
+                  backgroundColor: "var(--theme-border-input)",
+                  color: "var(--theme-accent)",
                 },
               }}
             >
@@ -169,11 +169,11 @@ const PaginationComponent: React.FC<PaginationProps> = ({
               onChange={handleRowsPerPageChange}
               className="h-8.75 min-w-25 w-25"
               sx={{
-                backgroundColor: "var(--tertiary-color)",
-                color: "var(--primary-color)",
-                border: "1px solid var(--primary-color)",
+                backgroundColor: "var(--theme-border-input)",
+                color: "var(--theme-accent)",
+                border: "1px solid var(--theme-accent)",
                 "& .MuiSvgIcon-root": {
-                  color: "var(--primary-color)",
+                  color: "var(--theme-accent)",
                 },
                 width: "120px",
                 height: "35px",
@@ -182,25 +182,25 @@ const PaginationComponent: React.FC<PaginationProps> = ({
                 slotProps: {
                   paper: {
                     sx: {
-                      backgroundColor: "var(--tertiary-color)",
-                      border: "1px solid var(--primary-color)",
+                      backgroundColor: "var(--theme-border-input)",
+                      border: "1px solid var(--theme-accent)",
 
                       "& .MuiMenuItem-root": {
-                        color: "var(--primary-color)",
-                        backgroundColor: "var(--tertiary-color)",
+                        color: "var(--theme-accent)",
+                        backgroundColor: "var(--theme-border-input)",
 
                         "&:hover": {
-                          backgroundColor: "rgba(var(--primary-color-rgb), 0.15)",
+                          backgroundColor: "rgba(var(--theme-accent-rgb),0.15)",
                         },
 
                         "&.Mui-selected": {
-                          color: "var(--tertiary-color)",
-                          backgroundColor: "var(--primary-color) !important",
+                          color: "var(--theme-border-input)",
+                          backgroundColor: "var(--theme-accent) !important",
                         },
 
                         "&.Mui-selected:hover": {
                           backgroundColor:
-                            "rgba(var(--primary-color-rgb), 0.8) !important",
+                            "rgba(var(--theme-accent-rgb),0.8) !important",
                         },
                       },
                     },
@@ -222,7 +222,7 @@ const PaginationComponent: React.FC<PaginationProps> = ({
         {
           !isShowColumn && (
             <div className="flex items-center gap-4">
-              <p className="text-(--primary-color) text-[16px] font-medium">{t("text.number-of-item")}</p>
+              <p className="text-(--theme-accent) text-[16px] font-medium">{t("text.number-of-item")}</p>
               <Select
                 id="row-per-page-select"
                 value={rowsPerPage.toString()}
@@ -230,36 +230,36 @@ const PaginationComponent: React.FC<PaginationProps> = ({
                 className="h-8.75 min-w-25 w-25"
                 size="medium"
                 sx={{
-                  backgroundColor: "var(--tertiary-color)",
-                  color: "var(--primary-color)",
-                  border: "1px solid var(--primary-color)",
+                  backgroundColor: "var(--theme-border-input)",
+                  color: "var(--theme-accent)",
+                  border: "1px solid var(--theme-accent)",
                   "& .MuiSvgIcon-root": {
-                    color: "var(--primary-color)",
+                    color: "var(--theme-accent)",
                   },
                 }}
                 MenuProps={{
                   slotProps: {
                     paper: {
                       sx: {
-                        backgroundColor: "var(--tertiary-color)",
-                        border: "1px solid var(--primary-color)",
+                        backgroundColor: "var(--theme-border-input)",
+                        border: "1px solid var(--theme-accent)",
 
                         "& .MuiMenuItem-root": {
-                          color: "var(--primary-color)",
-                          backgroundColor: "var(--tertiary-color)",
+                          color: "var(--theme-accent)",
+                          backgroundColor: "var(--theme-border-input)",
 
                           "&:hover": {
-                            backgroundColor: "rgba(var(--primary-color-rgb), 0.15)",
+                            backgroundColor: "rgba(var(--theme-accent-rgb),0.15)",
                           },
 
                           "&.Mui-selected": {
-                            color: "var(--tertiary-color)",
-                            backgroundColor: "var(--primary-color) !important",
+                            color: "var(--theme-border-input)",
+                            backgroundColor: "var(--theme-accent) !important",
                           },
 
                           "&.Mui-selected:hover": {
                             backgroundColor:
-                              "rgba(var(--primary-color-rgb), 0.8) !important",
+                              "rgba(var(--theme-accent-rgb),0.8) !important",
                           },
                         },
                       },
@@ -276,31 +276,31 @@ const PaginationComponent: React.FC<PaginationProps> = ({
             </div>
           )
         }
-        <p className="text-(--primary-color) text-[16px] font-medium">{`${(page - 1) * rowsPerPage + 1}-${Math.min(page * rowsPerPage, totalPages * rowsPerPage)} จาก ${totalItems} รายการ`}</p>
+        <p className="text-(--theme-accent) text-[16px] font-medium">{`${(page - 1) * rowsPerPage + 1}-${Math.min(page * rowsPerPage, totalPages * rowsPerPage)} จาก ${totalItems} รายการ`}</p>
         <Stack spacing={2}>
           <Pagination
             sx={{
               display: 'flex',
               justifyContent: 'end',
               "& .MuiPaginationItem-page": {
-                color: "var(--tertiary-color)",
-                backgroundColor: "rgba(var(--primary-color-rgb), 0.4)",
+                color: "var(--theme-border-input)",
+                backgroundColor: "rgba(var(--theme-accent-rgb),0.4)",
               },
               "& .MuiPaginationItem-page:hover": {
-                backgroundColor: "rgba(var(--primary-color-rgb), 0.7)",
-                color: "var(--tertiary-color)",
+                backgroundColor: "rgba(var(--theme-accent-rgb),0.7)",
+                color: "var(--theme-border-input)",
               },
               "& .MuiPaginationItem-previousNext": {
-                color: "var(--tertiary-color)",
-                backgroundColor: "rgba(var(--primary-color-rgb), 0.7)",
-                border: "1px solid var(--primary-color)",
+                color: "var(--theme-border-input)",
+                backgroundColor: "rgba(var(--theme-accent-rgb),0.7)",
+                border: "1px solid var(--theme-accent)",
               },
               "& .MuiPaginationItem-ellipsis": {
-                color: "var(--tertiary-color)",
+                color: "var(--theme-border-input)",
               },
               "& .MuiPaginationItem-page.Mui-selected": {
-                backgroundColor: "var(--primary-color)",
-                color: "var(--tertiary-color)",
+                backgroundColor: "var(--theme-accent)",
+                color: "var(--theme-border-input)",
               },
             }}
             count={totalPages}

@@ -40,7 +40,7 @@ export const useMap = (config: Partial<MapConfig> = {}, onFilterClick?: () => vo
         {
           name: 'Light (Default)',
           icon: ReactDOMServer.renderToString(
-            <MapIcon style={{ color: "var(--primary-color)" }} />
+            <MapIcon style={{ color: "var(--theme-accent)" }} />
           ),
           layer: L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap',
@@ -50,7 +50,7 @@ export const useMap = (config: Partial<MapConfig> = {}, onFilterClick?: () => vo
         {
           name: 'Outdoor',
           icon: ReactDOMServer.renderToString(
-            <OutdoorIcon style={{ color: "var(--primary-color)" }} />
+            <OutdoorIcon style={{ color: "var(--theme-accent)" }} />
           ),
           layer: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenTopoMap',
@@ -60,7 +60,7 @@ export const useMap = (config: Partial<MapConfig> = {}, onFilterClick?: () => vo
         {
           name: 'Night',
           icon: ReactDOMServer.renderToString(
-            <DarkModeIcon style={{ color: "var(--primary-color)" }} />
+            <DarkModeIcon style={{ color: "var(--theme-accent)" }} />
           ),
           layer: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; CartoDB',
@@ -70,7 +70,7 @@ export const useMap = (config: Partial<MapConfig> = {}, onFilterClick?: () => vo
         {
           name: 'Satellite',
           icon: ReactDOMServer.renderToString(
-            <SatelliteIcon style={{ color: "var(--primary-color)" }} />
+            <SatelliteIcon style={{ color: "var(--theme-accent)" }} />
           ),
           layer: L.tileLayer(
             'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -130,13 +130,13 @@ export const useMap = (config: Partial<MapConfig> = {}, onFilterClick?: () => vo
             const button = L.DomUtil.create('a', '', container);
             button.href = '#';
             button.title = tileLayers[currentLayerIndex].name;
-            button.style.backgroundColor = "var(--tertiary-color)";
+            button.style.backgroundColor = "var(--theme-border-input)";
 
             const iconContainer = L.DomUtil.create('div', '', button);
             iconContainer.innerHTML = tileLayers[currentLayerIndex].icon;;
             iconContainer.style.width = '20px';
             iconContainer.style.height = '20px';
-            iconContainer.style.backgroundColor = "var(--tertiary-color)";
+            iconContainer.style.backgroundColor = "var(--theme-border-input)";
 
             L.DomEvent.disableClickPropagation(button);
 

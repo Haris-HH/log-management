@@ -45,7 +45,7 @@ const ExportLoadingScreen = ({
       aria-busy="true"
       className="fixed inset-0 z-99999 flex items-center justify-center overflow-hidden"
       style={{
-        backgroundColor: "rgba(var(--tertiary-color-rgb), 0.9)"
+        backgroundColor: "rgba(var(--theme-panel-rgb),0.9)"
       }}
     >
       <motion.div
@@ -58,7 +58,7 @@ const ExportLoadingScreen = ({
         }
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
         style={{
-          backgroundColor: "rgba(var(--primary-color-rgb), 0.5)"
+          backgroundColor: "rgba(var(--theme-accent-rgb),0.5)"
         }}
       />
 
@@ -93,7 +93,7 @@ const ExportLoadingScreen = ({
 
           <motion.path
             d={PATH_D}
-            stroke="var(--primary-color)"
+            stroke="var(--theme-accent)"
             strokeWidth="8"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -132,7 +132,7 @@ const ExportLoadingScreen = ({
           <div
             className="text-xl font-semibold"
             style={{
-              color: "var(--primary-color)",
+              color: "var(--theme-accent)",
             }}
           >
             {text}
@@ -141,7 +141,7 @@ const ExportLoadingScreen = ({
           <div
             className="text-sm"
             style={{
-              color: "var(--secondary-color)",
+              color: "var(--theme-accent-soft)",
             }}
           >
             {safePercent}{`% ${t('text.complete')}`}
@@ -167,11 +167,11 @@ const ExportLoadingScreen = ({
         <div
           className="text-[350px] font-black leading-none"
           style={{
-            color: "rgba(var(--primary-color-rgb), 0.15)",
+            color: "rgba(var(--theme-accent-rgb),0.15)",
             textShadow: `
-              0 0 20px rgba(var(--primary-color-rgb),0.3),
-              0 0 40px rgba(var(--primary-color-rgb),0.2),
-              0 0 80px rgba(var(--primary-color-rgb),0.15)
+              0 0 20px rgba(var(--theme-accent-rgb),0.3),
+              0 0 40px rgba(var(--theme-accent-rgb),0.2),
+              0 0 80px rgba(var(--theme-accent-rgb),0.15)
             `,
           }}
         >
@@ -188,7 +188,7 @@ const ExportLoadingScreen = ({
           aria-label={text}
           className="h-3 rounded-full overflow-hidden"
           style={{
-            backgroundColor: "rgba(var(--secondary-color-rgb),0.1)",
+            backgroundColor: "rgba(var(--theme-accent-soft-rgb),0.1)",
           }}
         >
           <motion.div
@@ -201,7 +201,7 @@ const ExportLoadingScreen = ({
             className="h-full rounded-full"
             style={{
               background:
-                "linear-gradient(90deg,var(--primary-color),#DBD65A)",
+                "linear-gradient(90deg,var(--theme-accent),#DBD65A)",
               boxShadow:
                 "0 0 10px #DBD65A, 0 0 20px #DBD65A, 0 0 40px #DBD65A",
             }}

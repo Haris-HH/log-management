@@ -959,12 +959,12 @@ const StatisticSearchLogPlate = () => {
       }
       {/* Main Title */}
       <MainTitle title={t("pages.statistic-search-log-plate")} />
-      <div className='p-4 bg-(--main-bg-color) flex flex-1 flex-col gap-4 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-y-auto'>
+      <div className='p-4 bg-(--theme-bg-body) flex flex-1 flex-col gap-4 min-h-0 w-full rounded-lg border border-(--theme-accent) overflow-y-auto'>
         {/* Search Filters */}
         <Box 
-          className="flex border border-(--primary-color) rounded-[10px] p-4 gap-2 bg-(--tertiary-color)"
+          className="flex border border-(--theme-accent) rounded-[10px] p-4 gap-2 bg-(--theme-border-input)"
           sx={{
-            boxShadow: "0px 2px 8px rgba(var(--tertiary-color-rgb),0.1)"
+            boxShadow: "0px 2px 8px rgba(var(--theme-panel-rgb),0.1)"
           }}
         >
           <Box
@@ -1154,15 +1154,15 @@ const StatisticSearchLogPlate = () => {
             <Box className="flex gap-2 items-end">
               <Button 
                 variant="contained" 
-                startIcon={<ClearIcon className="h-6 w-6" style={{ color: "var(--tertiary-color)" }} />}  
+                startIcon={<ClearIcon className="h-6 w-6" style={{ color: "var(--theme-border-input)" }} />}  
                 sx={{ 
-                  backgroundColor: "var(--primary-color)", 
-                  color: "var(--tertiary-color)",
+                  backgroundColor: "var(--theme-accent)", 
+                  color: "var(--theme-border-input)",
                   fontSize: "14px", 
                   width: t('button.clear-width'),
                   height: "40px",
                   ":hover": {
-                    backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
+                    backgroundColor: "rgba(var(--theme-accent-rgb),0.5)",
                   },
                   textTransform: "capitalize",
                 }}
@@ -1194,18 +1194,18 @@ const StatisticSearchLogPlate = () => {
           <TableContainer
             component={Paper}
             sx={{
-              backgroundColor: "var(--tertiary-color)",
+              backgroundColor: "var(--theme-border-input)",
             }}
           >
             <Table
-              sx={{ minWidth: 650, backgroundColor: "var(--tertiary-color)", border: "1px solid var(--primary-color)"}}
+              sx={{ minWidth: 650, backgroundColor: "var(--theme-border-input)", border: "1px solid var(--theme-accent)"}}
               stickyHeader
             >
               <TableHead
                 sx={{
                   "& .MuiTableCell-head": {
-                    color: "var(--tertiary-color)",
-                    backgroundColor: "var(--primary-color)",
+                    color: "var(--theme-border-input)",
+                    backgroundColor: "var(--theme-accent)",
                     textAlign: "center",
                   },
                 }}
@@ -1273,7 +1273,7 @@ const StatisticSearchLogPlate = () => {
                   </TableCell>
                 </TableRow>
               </TableHead>
-              <TableBody sx={{ backgroundColor: "var(--tertiary-color)" }}>
+              <TableBody sx={{ backgroundColor: "var(--theme-border-input)" }}>
                 {rows.map((data, index) => (
                   <TableRow
                     key={index}
@@ -1281,19 +1281,19 @@ const StatisticSearchLogPlate = () => {
                     sx={{
                       cursor: "pointer",
                       "& .MuiTableCell-root": {
-                        backgroundColor: "var(--tertiary-color)",
-                        color: "var(--secondary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
+                        backgroundColor: "var(--theme-border-input)",
+                        color: "var(--theme-accent-soft)",
+                        borderBottom: "1px solid var(--theme-accent)",
                         transition: transitionOf(["background-color"], "fast"),
                         py: 1,
                         px: 1,
                       },
                       "&:hover .MuiTableCell-root": {
-                        backgroundColor: "rgba(var(--primary-color-rgb), 0.15)",
+                        backgroundColor: "rgba(var(--theme-accent-rgb),0.15)",
                       },
                       "&:hover": {
                         "& .MuiTableCell-root": {
-                          color: "var(--secondary-color)",
+                          color: "var(--theme-accent-soft)",
                         },
                       },
                     }}
@@ -1360,9 +1360,9 @@ const StatisticSearchLogPlate = () => {
                   <TableRow
                     sx={{
                       "& .MuiTableCell-root": {
-                        backgroundColor: "var(--tertiary-color)",
-                        color: "var(--secondary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
+                        backgroundColor: "var(--theme-border-input)",
+                        color: "var(--theme-accent-soft)",
+                        borderBottom: "1px solid var(--theme-accent)",
                       },
                     }}
                   >

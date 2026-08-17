@@ -78,7 +78,7 @@ const TextBox: React.FC<TextBoxProps> = ({
 
   return (
     <div className="flex flex-col w-full">
-      <Typography sx={{ fontSize: labelFontSize || undefined, color:'var(--primary-color)' }} variant='subtitle1'>
+      <Typography sx={{ fontSize: labelFontSize || undefined, color:'var(--theme-accent)' }} variant='subtitle1'>
         {`${label}`}
         {
           required && <span className="text-red-500"> *</span>
@@ -104,19 +104,19 @@ const TextBox: React.FC<TextBoxProps> = ({
           backgroundColor: "transparent",
 
           "& .MuiOutlinedInput-root": {
-            backgroundColor: "var(--tertiary-color)",
+            backgroundColor: "var(--theme-border-input)",
             borderRadius: "5px",
 
             "& fieldset": {
-              borderColor: "var(--primary-color)",
+              borderColor: "var(--theme-accent)",
             },
 
             "&:hover fieldset": {
-              borderColor: "var(--primary-color)",
+              borderColor: "var(--theme-accent)",
             },
 
             "&.Mui-focused fieldset": {
-              borderColor: "var(--primary-color)",
+              borderColor: "var(--theme-accent)",
             },
           },
 
@@ -124,41 +124,41 @@ const TextBox: React.FC<TextBoxProps> = ({
             minHeight: minHeight,
             padding: "2px 8px",
             fontSize: labelFontSize,
-            color: "var(--primary-color)",
+            color: "var(--theme-accent)",
           },
 
           "& .MuiInputBase-input": {
             height: "25px",
             padding: "0 !important",
-            color: "var(--primary-color)",
+            color: "var(--theme-accent)",
             backgroundColor: "transparent !important",
 
             "&:-webkit-autofill": {
               WebkitBoxShadow:
-                "0 0 0 1000px var(--tertiary-color) inset !important",
+                "0 0 0 1000px var(--theme-border-input) inset !important",
               WebkitTextFillColor:
-                "var(--primary-color) !important",
-              caretColor: "var(--primary-color)",
+                "var(--theme-accent) !important",
+              caretColor: "var(--theme-accent)",
               transition: "background-color 5000s ease-in-out 0s",
             },
 
             "&:-webkit-autofill:hover": {
               WebkitBoxShadow:
-                "0 0 0 1000px var(--tertiary-color) inset !important",
+                "0 0 0 1000px var(--theme-border-input) inset !important",
               WebkitTextFillColor:
-                "var(--primary-color) !important",
+                "var(--theme-accent) !important",
             },
 
             "&:-webkit-autofill:focus": {
               WebkitBoxShadow:
-                "0 0 0 1000px var(--tertiary-color) inset !important",
+                "0 0 0 1000px var(--theme-border-input) inset !important",
               WebkitTextFillColor:
-                "var(--primary-color) !important",
+                "var(--theme-accent) !important",
             },
           },
 
           "& .Mui-disabled": {
-            backgroundColor: "rgba(var(--tertiary-color-rgb), 0.5)",
+            backgroundColor: "rgba(var(--theme-panel-rgb),0.5)",
           },
 
           ...sx,
@@ -176,7 +176,7 @@ const TextBox: React.FC<TextBoxProps> = ({
                   onClick={handleTogglePasswordVisibility} 
                   edge="end"
                 >
-                  {showPassword ? <VisibilityOff sx={{ color:"var(--primary-color)" }} /> : <Visibility sx={{ color:"var(--primary-color)" }} />}
+                  {showPassword ? <VisibilityOff sx={{ color:"var(--theme-accent)" }} /> : <Visibility sx={{ color:"var(--theme-accent)" }} />}
                 </IconButton>
               </InputAdornment>
             ) : undefined

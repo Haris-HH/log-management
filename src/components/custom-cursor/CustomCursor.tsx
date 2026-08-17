@@ -68,14 +68,14 @@ const CustomCursor = () => {
     default: {
       scale: 1,
       opacity: 1,
-      backgroundColor: "var(--primary-color)",
+      backgroundColor: "var(--theme-accent)",
       border: "0px solid transparent",
     },
     pointer: {
       scale: 2,
       opacity: 0.9,
-      backgroundColor: "rgba(var(--primary-color-rgb), 0.15)",
-      border: "2px solid rgba(var(--primary-color-rgb), 1)",
+      backgroundColor: "rgba(var(--theme-accent-rgb),0.15)",
+      border: "2px solid rgba(var(--theme-accent-rgb),1)",
     },
   }
 
@@ -85,12 +85,12 @@ const CustomCursor = () => {
       style={{
         width: "10px",
         height: "10px",
-        background: "var(--primary-color)",
+        background: "var(--theme-accent)",
         backdropFilter: "blur(8px)",
         boxShadow:
           cursorVariant === "pointer"
-            ? "0 0 18px rgba(var(--primary-color-rgb), 0.8)"
-            : "0 0 8px rgba(var(--tertiary-color-rgb),0.8)",
+            ? "0 0 18px rgba(var(--theme-accent-rgb),0.8)"
+            : "0 0 8px rgba(var(--theme-panel-rgb),0.8)",
         x: springX,
         y: springY,
       }}

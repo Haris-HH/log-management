@@ -86,8 +86,8 @@ const Home = () => {
                 rounded-2xl border p-6 min-h-70
               "
               style={{
-                borderColor: "var(--primary-color)",
-                backgroundColor: "rgba(var(--tertiary-color-rgb), 0.8)",
+                borderColor: "var(--theme-accent)",
+                backgroundColor: "rgba(var(--theme-panel-rgb),0.8)",
               }}
             >
               {/*
@@ -101,7 +101,7 @@ const Home = () => {
                 aria-hidden="true"
                 className="menu-fill absolute inset-0 z-0"
                 style={{
-                  background: "rgba(var(--secondary-color-rgb), 0.1)",
+                  background: "rgba(var(--theme-accent-soft-rgb),0.1)",
                 }}
               />
 
@@ -119,7 +119,7 @@ const Home = () => {
                 <motion.h3
                   className="
                     menu-title relative
-                    font-bold text-(--primary-color)
+                    font-bold text-(--theme-accent)
                     text-2xl md:text-4xl
                     pb-2
                   "
@@ -156,12 +156,12 @@ const Home = () => {
                           delay: prefersReducedMotion ? 0 : subIndex * 0.08,
                         }}
                         className="
-                          rounded-xl border border-(--primary-color)
+                          rounded-xl border border-(--theme-accent)
                           bg-(--tertiary-bg-color)/10 px-4 py-3
                           backdrop-blur-sm
-                          text-(--secondary-color)
-                          hover:bg-(--primary-color)
-                          hover:text-(--tertiary-color)
+                          text-(--theme-accent-soft)
+                          hover:bg-(--theme-accent)
+                          hover:text-(--theme-border-input)
                           transition-colors duration-150
                         "
                         onClick={() => navigate(sub.path)}

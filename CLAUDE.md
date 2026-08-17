@@ -125,7 +125,7 @@ Fonts are not bundled either — Sarabun TTFs are fetched from `/public/fonts` a
 1. `src/hooks/useTheme.tsx` — the real one. `ThemeProvider` wraps the app in `main.tsx`, ~18 named palettes built by `buildTheme(name, bg, primary, secondary, tertiary, isDark)`, persisted under `localStorage["wd2-theme"]`, applied by writing CSS custom properties onto `document.documentElement` plus a `data-theme` attribute.
 2. `src/constants/themes.tsx` — a legacy 5-entry `THEMES` list read from `localStorage["theme"]` in `App.tsx`, which also writes `--theme-accent` / `--primary-color-rgb`.
 
-Components style against the CSS variables (`var(--primary-color)`, `rgba(var(--primary-color-rgb), .5)`, `var(--tertiary-color-rgb)`, chart status colors), declared in `src/index.css`. Prefer these over Tailwind color classes so theme switching keeps working.
+Components style against the CSS variables `useTheme.tsx` writes onto `document.documentElement` — semantic tokens like `var(--theme-accent)`, `var(--theme-bg-panel)`, `var(--theme-text-muted)`, plus raw channel triplets (`--theme-accent-rgb`, `--theme-accent-soft-rgb`, `--theme-panel-rgb`, `--theme-text-rgb`) for one-off opacities via `rgba(var(--theme-accent-rgb), .42)`, and chart status colors — declared with fallback values in `src/index.css`. Prefer these over Tailwind color classes so theme switching keeps working.
 
 ### i18n and Thai dates
 

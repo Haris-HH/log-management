@@ -905,12 +905,12 @@ const StatisticUsagePerson = () => {
       }
       {/* Main Title */}
       <MainTitle title={t("pages.statistic-usage-person")} />
-      <div className='p-4 bg-(--main-bg-color) flex flex-1 flex-col gap-4 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-y-auto'>
+      <div className='p-4 bg-(--theme-bg-body) flex flex-1 flex-col gap-4 min-h-0 w-full rounded-lg border border-(--theme-accent) overflow-y-auto'>
         {/* Search Filters */}
         <Box 
-          className="border border-(--primary-color) rounded-[10px] p-4 bg-(--tertiary-color)"
+          className="border border-(--theme-accent) rounded-[10px] p-4 bg-(--theme-border-input)"
           sx={{
-            boxShadow: "0px 2px 8px rgba(var(--tertiary-color-rgb),0.1)",
+            boxShadow: "0px 2px 8px rgba(var(--theme-panel-rgb),0.1)",
             display: "grid",
             gap: 2,
             gridTemplateColumns: {
@@ -1077,15 +1077,15 @@ const StatisticUsagePerson = () => {
           <Box className="flex gap-2 items-end">
             <Button 
               variant="contained" 
-              startIcon={<ClearIcon className="h-6 w-6" style={{ color: "var(--tertiary-color)" }} />} 
+              startIcon={<ClearIcon className="h-6 w-6" style={{ color: "var(--theme-border-input)" }} />} 
               sx={{ 
-                backgroundColor: "var(--primary-color)", 
-                color: "var(--tertiary-color)", 
+                backgroundColor: "var(--theme-accent)", 
+                color: "var(--theme-border-input)", 
                 fontSize: "14px", 
                 width: t('button.clear-width'),
                 height: "40px",
                 ":hover": {
-                  backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
+                  backgroundColor: "rgba(var(--theme-accent-rgb),0.5)",
                 },
                 textTransform: "capitalize",
               }}
@@ -1117,14 +1117,14 @@ const StatisticUsagePerson = () => {
             component={Paper}
           >
             <Table
-              sx={{ minWidth: 650, backgroundColor: "var(--tertiary-color)", border: "1px solid var(--primary-color)"}}
+              sx={{ minWidth: 650, backgroundColor: "var(--theme-border-input)", border: "1px solid var(--theme-accent)"}}
               stickyHeader
             >
               <TableHead
                 sx={{
                   "& .MuiTableCell-head": {
-                    color: "var(--tertiary-color)",
-                    backgroundColor: "var(--primary-color)",
+                    color: "var(--theme-border-input)",
+                    backgroundColor: "var(--theme-accent)",
                     textAlign: "center",
                   },
                 }}
@@ -1172,7 +1172,7 @@ const StatisticUsagePerson = () => {
                   </TableCell>
                 </TableRow>
               </TableHead>
-              <TableBody sx={{ backgroundColor: "var(--tertiary-color)" }}>
+              <TableBody sx={{ backgroundColor: "var(--theme-border-input)" }}>
                 {rows.map((data, index) => (
                   <TableRow
                     key={index}
@@ -1184,18 +1184,18 @@ const StatisticUsagePerson = () => {
                       "& .MuiTableCell-root": {
                         backgroundColor:
                           selectedData?.log_id === data.log_id
-                            ? "rgba(var(--primary-color-rgb), 0.3)"
-                            : "var(--tertiary-color)",
-                        color: "var(--secondary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
+                            ? "rgba(var(--theme-accent-rgb),0.3)"
+                            : "var(--theme-border-input)",
+                        color: "var(--theme-accent-soft)",
+                        borderBottom: "1px solid var(--theme-accent)",
                         transition: transitionOf(["background-color"], "fast"),
                       },
                       "&:hover .MuiTableCell-root": {
-                        backgroundColor: "rgba(var(--primary-color-rgb), 0.15)",
+                        backgroundColor: "rgba(var(--theme-accent-rgb),0.15)",
                       },
                       "&:hover": {
                         "& .MuiTableCell-root": {
-                          color: "var(--secondary-color)",
+                          color: "var(--theme-accent-soft)",
                         },
                       },
                     }}
@@ -1238,9 +1238,9 @@ const StatisticUsagePerson = () => {
                   <TableRow
                     sx={{
                       "& .MuiTableCell-root": {
-                        backgroundColor: "var(--tertiary-color)",
-                        color: "var(--secondary-color)",
-                        borderBottom: "1px solid var(--primary-color)",
+                        backgroundColor: "var(--theme-border-input)",
+                        color: "var(--theme-accent-soft)",
+                        borderBottom: "1px solid var(--theme-accent)",
                       },
                     }}
                   >
@@ -1263,7 +1263,7 @@ const StatisticUsagePerson = () => {
               >
                 <Box className="flex flex-col gap-3 items-center px-4 pt-4">
                   <img src={InformationIcon} alt="Information" className="h-15 w-15" />
-                  <Box className="w-full text-(--primary-color) grid grid-cols-[110px_10px_1fr]">
+                  <Box className="w-full text-(--theme-accent) grid grid-cols-[110px_10px_1fr]">
                     <p>{`${t('text.count')} (${t('text.time')})`}</p>
                     <p>:</p>
                     <p>{(selectedData?.total || 0).toLocaleString()}</p>
@@ -1291,7 +1291,7 @@ const StatisticUsagePerson = () => {
                   <Button
                     variant="contained"
                     sx={{ 
-                      backgroundColor: "var(--primary-color)", 
+                      backgroundColor: "var(--theme-accent)", 
                       fontSize: "13px", 
                       width: "120px", 
                       py: 0.35, 

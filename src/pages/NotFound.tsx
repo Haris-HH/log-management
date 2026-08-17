@@ -59,14 +59,14 @@ const NotFound = () => {
         className="w-full max-w-150"
       >
         <Box
-          className="flex flex-col items-center gap-4 rounded-lg border border-(--primary-color) p-10 text-center"
+          className="flex flex-col items-center gap-4 rounded-lg border border-(--theme-accent) p-10 text-center"
           sx={{
-            backgroundColor: "rgba(var(--tertiary-color-rgb), 0.8)",
-            boxShadow: "0 4px 15px rgba(var(--secondary-color-rgb), 0.25)",
+            backgroundColor: "rgba(var(--theme-panel-rgb),0.8)",
+            boxShadow: "0 4px 15px rgba(var(--theme-accent-soft-rgb),0.25)",
           }}
         >
           <SearchOffIcon
-            sx={{ fontSize: 64, color: "var(--primary-color)", opacity: 0.8 }}
+            sx={{ fontSize: 64, color: "var(--theme-accent)", opacity: 0.8 }}
           />
 
           <Typography
@@ -75,8 +75,8 @@ const NotFound = () => {
               fontSize: "4rem",
               fontWeight: "bold",
               lineHeight: 1,
-              color: "var(--primary-color)",
-              textShadow: "5px 3px 5px var(--tertiary-color)",
+              color: "var(--theme-accent)",
+              textShadow: "5px 3px 5px var(--theme-border-input)",
             }}
           >
             404
@@ -87,7 +87,7 @@ const NotFound = () => {
             sx={{
               fontSize: "1.4rem",
               fontWeight: "bold",
-              color: "var(--primary-color)",
+              color: "var(--theme-accent)",
             }}
           >
             {t("pages.not-found")}
@@ -96,7 +96,7 @@ const NotFound = () => {
           <Typography
             sx={{
               fontSize: "0.95rem",
-              color: "var(--secondary-color)",
+              color: "var(--theme-accent-soft)",
               opacity: 0.9,
             }}
           >
@@ -109,7 +109,7 @@ const NotFound = () => {
             component="code"
             sx={{
               fontSize: "0.8rem",
-              color: "var(--secondary-color)",
+              color: "var(--theme-accent-soft)",
               opacity: 0.7,
               wordBreak: "break-all",
             }}
@@ -124,11 +124,11 @@ const NotFound = () => {
               onClick={() => navigate("/", { replace: true })}
               sx={{
                 ...buttonSx,
-                backgroundColor: "var(--primary-color)",
-                color: "var(--tertiary-color)",
+                backgroundColor: "var(--theme-accent)",
+                color: "var(--theme-border-input)",
                 boxShadow: "none",
                 "&:hover": {
-                  backgroundColor: "rgba(var(--primary-color-rgb), 0.8)",
+                  backgroundColor: "rgba(var(--theme-accent-rgb),0.8)",
                   boxShadow: "none",
                 },
               }}
@@ -143,11 +143,11 @@ const NotFound = () => {
                 onClick={() => navigate(-1)}
                 sx={{
                   ...buttonSx,
-                  border: "1px solid var(--primary-color)",
-                  color: "var(--primary-color)",
+                  border: "1px solid var(--theme-accent)",
+                  color: "var(--theme-accent)",
                   "&:hover": {
-                    border: "1px solid var(--primary-color)",
-                    backgroundColor: "rgba(var(--primary-color-rgb), 0.1)",
+                    border: "1px solid var(--theme-accent)",
+                    backgroundColor: "rgba(var(--theme-accent-rgb),0.1)",
                   },
                 }}
               >

@@ -40,7 +40,7 @@ const PaginationBelowTableComponent: React.FC<PaginationProps> = ({
   return (
     <div className='flex [@media(max-width:1500px)]:flex-col items-center justify-between w-full'>
       <div className="flex items-center gap-4">
-        <p className="text-(--primary-color) text-[16px]">{t("text.rows-per-page")}</p>
+        <p className="text-(--theme-accent) text-[16px]">{t("text.rows-per-page")}</p>
         <Select
           id="row-per-page-select"
           value={rowsPerPage.toString()}
@@ -48,35 +48,35 @@ const PaginationBelowTableComponent: React.FC<PaginationProps> = ({
           className="h-8 min-w-25 w-25"
           size="medium"
           sx={{
-            color: "var(--primary-color)",
-            border: "1px solid var(--primary-color)",
+            color: "var(--theme-accent)",
+            border: "1px solid var(--theme-accent)",
             "& .MuiSvgIcon-root": {
-              color: "var(--primary-color)",
+              color: "var(--theme-accent)",
             }
           }}
           MenuProps={{
             slotProps: {
               paper: {
                 sx: {
-                  backgroundColor: "var(--tertiary-color)",
-                  border: "1px solid var(--primary-color)",
+                  backgroundColor: "var(--theme-border-input)",
+                  border: "1px solid var(--theme-accent)",
 
                   "& .MuiMenuItem-root": {
-                    color: "var(--primary-color)",
-                    backgroundColor: "var(--tertiary-color)",
+                    color: "var(--theme-accent)",
+                    backgroundColor: "var(--theme-border-input)",
 
                     "&:hover": {
-                      backgroundColor: "rgba(var(--primary-color-rgb), 0.15)",
+                      backgroundColor: "rgba(var(--theme-accent-rgb),0.15)",
                     },
 
                     "&.Mui-selected": {
-                      color: "var(--tertiary-color)",
-                      backgroundColor: "var(--primary-color) !important",
+                      color: "var(--theme-border-input)",
+                      backgroundColor: "var(--theme-accent) !important",
                     },
 
                     "&.Mui-selected:hover": {
                       backgroundColor:
-                        "rgba(var(--primary-color-rgb), 0.8) !important",
+                        "rgba(var(--theme-accent-rgb),0.8) !important",
                     },
                   },
                 },
@@ -98,24 +98,24 @@ const PaginationBelowTableComponent: React.FC<PaginationProps> = ({
               display: 'flex',
               justifyContent: 'end',
               "& .MuiPaginationItem-page": {
-                color: "var(--secondary-color)",
-                backgroundColor: "rgba(var(--primary-color-rgb), 0.4)",
+                color: "var(--theme-accent-soft)",
+                backgroundColor: "rgba(var(--theme-accent-rgb),0.4)",
               },
               "& .MuiPaginationItem-page:hover": {
-                backgroundColor: "rgba(var(--primary-color-rgb), 0.7)",
-                color: "var(--tertiary-color)",
+                backgroundColor: "rgba(var(--theme-accent-rgb),0.7)",
+                color: "var(--theme-border-input)",
               },
               "& .MuiPaginationItem-previousNext": {
-                color: "var(--tertiary-color)",
-                backgroundColor: "rgba(var(--primary-color-rgb), 0.7)",
-                border: "1px solid var(--primary-color)",
+                color: "var(--theme-border-input)",
+                backgroundColor: "rgba(var(--theme-accent-rgb),0.7)",
+                border: "1px solid var(--theme-accent)",
               },
               "& .MuiPaginationItem-ellipsis": {
-                color: "var(--tertiary-color)",
+                color: "var(--theme-border-input)",
               },
               "& .MuiPaginationItem-page.Mui-selected": {
-                backgroundColor: "var(--primary-color)",
-                color: "var(--tertiary-color)",
+                backgroundColor: "var(--theme-accent)",
+                color: "var(--theme-border-input)",
               },
             }}
             count={totalPages}
@@ -126,7 +126,7 @@ const PaginationBelowTableComponent: React.FC<PaginationProps> = ({
           />
         </Stack>
         <div className="flex items-center gap-x-2 ml-3">
-          <p className="text-(--primary-color) text-[16px]">
+          <p className="text-(--theme-accent) text-[16px]">
             {t("text.page")}
           </p>
           <TextBox

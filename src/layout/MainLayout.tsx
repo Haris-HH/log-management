@@ -88,7 +88,7 @@ const MainLayout = () => {
         style={{
           position: "fixed",
           inset: 0,
-          backgroundColor: "rgba(var(--tertiary-color-rgb),0.85)",
+          backgroundColor: "rgba(var(--theme-panel-rgb),0.85)",
           zIndex: -1,
         }}
       />

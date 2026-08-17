@@ -65,7 +65,7 @@ const PieChartComponent = ({ data }: Props) => {
                         style={{
                           fontSize: 52,
                           fontWeight: 600,
-                          fill: "var(--primary-color)",
+                          fill: "var(--theme-accent)",
                         }}
                       >
                         {total.toLocaleString()}
@@ -76,7 +76,7 @@ const PieChartComponent = ({ data }: Props) => {
                         x2={cx + 120}
                         y1={cy + 30}
                         y2={cy + 30}
-                        stroke="rgba(var(--secondary-color-rgb), 0.5)"
+                        stroke="rgba(var(--theme-accent-soft-rgb),0.5)"
                         strokeWidth={1}
                       />
 
@@ -94,7 +94,7 @@ const PieChartComponent = ({ data }: Props) => {
                         dominantBaseline="middle"
                         style={{
                           fontSize: 18,
-                          fill: "rgba(var(--primary-color-rgb), 0.8)",
+                          fill: "rgba(var(--theme-accent-rgb),0.8)",
                         }}
                       >
                         {t("text.all-checkpoint")}
@@ -111,16 +111,16 @@ const PieChartComponent = ({ data }: Props) => {
             sx={{
               width: "100%",
               minHeight: "43vh",
-              border: "1px dashed var(--primary-color)",
+              border: "1px dashed var(--theme-accent)",
               borderRadius: "8px",
-              backgroundColor: "rgba(var(--secondary-color-rgb), 0.03)",
+              backgroundColor: "rgba(var(--theme-accent-soft-rgb),0.03)",
             }}
           >
             <Typography
               sx={{
                 fontSize: 18,
                 fontWeight: 500,
-                color: "var(--primary-color)",
+                color: "var(--theme-accent)",
               }}
             >
               {t("text.data-not-found")}
@@ -130,7 +130,7 @@ const PieChartComponent = ({ data }: Props) => {
       }
 
       <Box
-        className="border border-(--primary-color) w-full overflow-hidden rounded-sm"
+        className="border border-(--theme-accent) w-full overflow-hidden rounded-sm"
         sx={{
           display: "grid",
           gridTemplateColumns: {
@@ -147,10 +147,10 @@ const PieChartComponent = ({ data }: Props) => {
               py: 1.5,
               borderLeft: {
                 xs: "none",
-                xl: index === 0 ? "none" : "1px solid var(--primary-color)",
+                xl: index === 0 ? "none" : "1px solid var(--theme-accent)",
               },
               borderTop: {
-                xs: index === 0 ? "none" : "1px solid var(--primary-color)",
+                xs: index === 0 ? "none" : "1px solid var(--theme-accent)",
                 xl: "none",
               },
             }}
@@ -160,7 +160,7 @@ const PieChartComponent = ({ data }: Props) => {
                 sx={{
                   fontSize: { xs: 28, md: 34, xl: 38 },
                   fontWeight: 500,
-                  color: "var(--primary-color)",
+                  color: "var(--theme-accent)",
                 }}
                 variant="subtitle1"
               >
@@ -172,7 +172,7 @@ const PieChartComponent = ({ data }: Props) => {
                   fontSize: 14,
                   fontWeight: 400,
                   mt: { xs: -1.8, xl: -2.6 },
-                  color: "var(--secondary-color)",
+                  color: "var(--theme-accent-soft)",
                 }}
                 variant="subtitle1"
               >
@@ -193,7 +193,7 @@ const PieChartComponent = ({ data }: Props) => {
                 sx={{
                   fontSize: { xs: 14, xl: 16 },
                   fontWeight: 400,
-                  color: "var(--primary-color)",
+                  color: "var(--theme-accent)",
                 }}
                 variant="subtitle1"
               >

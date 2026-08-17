@@ -583,13 +583,13 @@ const OverallReport = () => {
         variant="body2"
         sx={{
           fontSize: "16px",
-          color: "var(--primary-color)",
+          color: "var(--theme-accent)",
           p: 0,
         }}
       >
         {(value ?? 0).toLocaleString()}
         {percent !== undefined && (
-          <span className={`${isTotal ? "text-(--tertiary-color)" : "text-(--secondary-color)"} text-[12px] ml-1`}>
+          <span className={`${isTotal ? "text-(--theme-border-input)" : "text-(--theme-accent-soft)"} text-[12px] ml-1`}>
             ({percent.toFixed(1)}%)
           </span>
         )}
@@ -603,8 +603,8 @@ const OverallReport = () => {
 
       <MainTitle title={t("pages.overall-report")} />
 
-      <div className="p-4 bg-(--main-bg-color) flex flex-1 flex-col gap-4 min-h-0 w-full rounded-lg border border-(--primary-color) overflow-y-auto">
-        <Box className="flex flex-col gap-4 bg-(--tertiary-color) p-4">
+      <div className="p-4 bg-(--theme-bg-body) flex flex-1 flex-col gap-4 min-h-0 w-full rounded-lg border border-(--theme-accent) overflow-y-auto">
+        <Box className="flex flex-col gap-4 bg-(--theme-border-input) p-4">
           <Box className="flex [@media(max-width:1500px)]:flex-col gap-4">
             {(["day", "week", "month"] as ReportRange[]).map((range) => (
               <Button
@@ -615,21 +615,21 @@ const OverallReport = () => {
                   height: 38,
                   backgroundColor:
                     reportRange === range
-                      ? "var(--primary-color)"
-                      : "var(--tertiary-color)",
+                      ? "var(--theme-accent)"
+                      : "var(--theme-border-input)",
                   color:
                     reportRange === range
-                      ? "var(--tertiary-color)"
-                      : "var(--primary-color)",
+                      ? "var(--theme-border-input)"
+                      : "var(--theme-accent)",
                   border:
                     reportRange === range
                       ? "none"
-                      : "1px solid var(--primary-color)",
+                      : "1px solid var(--theme-accent)",
                   "&:hover": {
                     backgroundColor:
                       reportRange === range
-                        ? "rgba(var(--primary-color-rgb), 0.5)"
-                        : "rgba(var(--primary-color-rgb), 0.2)",
+                        ? "rgba(var(--theme-accent-rgb),0.5)"
+                        : "rgba(var(--theme-accent-rgb),0.2)",
                   },
                   fontWeight: 700,
                   textTransform: "capitalize",
@@ -646,9 +646,9 @@ const OverallReport = () => {
           </Box>
 
           <Box
-            className="border border-(--primary-color) rounded-[10px] p-4 bg-(--tertiary-color)"
+            className="border border-(--theme-accent) rounded-[10px] p-4 bg-(--theme-border-input)"
             sx={{
-              boxShadow: "0px 2px 8px rgba(var(--tertiary-color-rgb),0.1)",
+              boxShadow: "0px 2px 8px rgba(var(--theme-panel-rgb),0.1)",
               "& h6": {
                 whiteSpace: "nowrap",
                 overflow: "hidden",
@@ -774,17 +774,17 @@ const OverallReport = () => {
                 startIcon={
                   <ClearIcon
                     className="h-6 w-6"
-                    style={{ color: "var(--tertiary-color)" }}
+                    style={{ color: "var(--theme-border-input)" }}
                   />
                 }
                 sx={{
-                  backgroundColor: "var(--primary-color)",
-                  color: "var(--tertiary-color)",
+                  backgroundColor: "var(--theme-accent)",
+                  color: "var(--theme-border-input)",
                   fontSize: "14px",
                   width: t("button.clear-width"),
                   height: "40px",
                   ":hover": {
-                    backgroundColor: "rgba(var(--primary-color-rgb), 0.8)",
+                    backgroundColor: "rgba(var(--theme-accent-rgb),0.8)",
                   },
                   textTransform: "capitalize",
                   "& .MuiButton-startIcon": {
@@ -809,19 +809,19 @@ const OverallReport = () => {
                 <>
                 <IconButton
                   sx={{
-                    border: "1px solid var(--primary-color)",
+                    border: "1px solid var(--theme-accent)",
                     width: "40px",
                     height: "40px",
                     borderRadius: "5px",
                     ":hover": {
-                      backgroundColor: "rgba(var(--primary-color-rgb), 0.2)",
+                      backgroundColor: "rgba(var(--theme-accent-rgb),0.2)",
                     },
                   }}
                   onClick={handleOpenMenu}
                 >
                   <DownloadIcon
                     className="h-5 w-5"
-                    style={{ color: "var(--primary-color)" }}
+                    style={{ color: "var(--theme-accent)" }}
                   />
                 </IconButton>
 
@@ -839,8 +839,8 @@ const OverallReport = () => {
                   }}
                   sx={{
                     "& .MuiPaper-root": {
-                      backgroundColor: "var(--tertiary-color)",
-                      border: "1px solid var(--primary-color)",
+                      backgroundColor: "var(--theme-border-input)",
+                      border: "1px solid var(--theme-accent)",
                       borderRadius: "8px",
                       overflow: "hidden",
                     },
@@ -851,16 +851,16 @@ const OverallReport = () => {
                       px: "20px",
                       py: "8px",
                       "&:not(:last-of-type)": {
-                        borderBottom: "1px solid var(--primary-color)",
+                        borderBottom: "1px solid var(--theme-accent)",
                       },
                       "&:hover": {
-                        backgroundColor: "rgba(var(--primary-color-rgb), 0.2)",
+                        backgroundColor: "rgba(var(--theme-accent-rgb),0.2)",
                       },
                     },
                     "& .MuiTypography-root": {
                       fontSize: "16px",
                       fontWeight: 600,
-                      color: "var(--primary-color)",
+                      color: "var(--theme-accent)",
                     },
                   }}
                 >
@@ -879,18 +879,18 @@ const OverallReport = () => {
         </Box>
 
         <Box className="grid grid-cols-2 [@media(max-width:1500px)]:grid-cols-1 gap-4 flex-1">
-          <Box className="flex flex-col gap-4 bg-(--tertiary-color) p-4">
+          <Box className="flex flex-col gap-4 bg-(--theme-border-input) p-4">
             <Box className="flex gap-2">
               <ChartIcon
                 className="w-6 h-6"
-                style={{ color: "var(--primary-color)" }}
+                style={{ color: "var(--theme-accent)" }}
               />
               <Typography
                 variant="body1"
                 sx={{
                   fontSize: "1.1rem",
                   fontWeight: 600,
-                  color: "var(--primary-color)",
+                  color: "var(--theme-accent)",
                 }}
               >
                 {reportRange === "day"
@@ -912,18 +912,18 @@ const OverallReport = () => {
             )}
           </Box>
 
-          <Box className="flex flex-col gap-4 bg-(--tertiary-color) p-4">
+          <Box className="flex flex-col gap-4 bg-(--theme-border-input) p-4">
             <Box className="flex gap-2">
               <TableIcon
                 className="w-6 h-6"
-                style={{ color: "var(--primary-color)" }}
+                style={{ color: "var(--theme-accent)" }}
               />
               <Typography
                 variant="body1"
                 sx={{
                   fontSize: "1.1rem",
                   fontWeight: 600,
-                  color: "var(--primary-color)",
+                  color: "var(--theme-accent)",
                 }}
               >
                 {reportRange === "day"
@@ -948,12 +948,12 @@ const OverallReport = () => {
                     sx={{
                       height: 50,
                       "& .MuiTableCell-head": {
-                        color: "var(--tertiary-color)",
-                        backgroundColor: "var(--primary-color)",
+                        color: "var(--theme-border-input)",
+                        backgroundColor: "var(--theme-accent)",
                       },
                       "& th": {
-                        color: "var(--tertiary-color)",
-                        border: "1px solid rgba(var(--secondary-color-rgb), 0.3)",
+                        color: "var(--theme-border-input)",
+                        border: "1px solid rgba(var(--theme-accent-soft-rgb),0.3)",
                         padding: "6px 8px",
                       },
                     }}
@@ -991,12 +991,12 @@ const OverallReport = () => {
                         key={`${data.police_region_id ?? index}`}
                         sx={{
                           "& td": {
-                            border: "1px solid rgba(var(--secondary-color-rgb), 0.3)",
+                            border: "1px solid rgba(var(--theme-accent-soft-rgb),0.3)",
                             padding: "8.5px 8px",
                             color: "var(--text-chart-table-color)",
                           },
                           "& .MuiTableCell-root": {
-                            color: "var(--primary-color) !important",
+                            color: "var(--theme-accent) !important",
                             fontSize: "16px",
                           },
                         }}
@@ -1048,14 +1048,14 @@ const OverallReport = () => {
                     <TableRow
                       sx={{
                         "& td": {
-                          border: "1px solid rgba(var(--secondary-color-rgb), 0.3)",
+                          border: "1px solid rgba(var(--theme-accent-soft-rgb),0.3)",
                           padding: "8.5px 8px",
                           color: "var(--text-chart-table-color)",
                           fontWeight: 700,
                           backgroundColor: "var(--total-bg-color)",
                         },
                         "& .MuiTableCell-root": {
-                          color: "var(--primary-color) !important",
+                          color: "var(--theme-accent) !important",
                           fontSize: "16px",
                         },
                       }}
@@ -1109,11 +1109,11 @@ const OverallReport = () => {
                       <TableRow
                         sx={{
                           "& td": {
-                            border: "1px solid rgba(var(--secondary-color-rgb), 0.1)",
+                            border: "1px solid rgba(var(--theme-accent-soft-rgb),0.1)",
                             padding: "8.5px 8px",
-                            color: "var(--tertiary-color)",
+                            color: "var(--theme-border-input)",
                             fontWeight: 700,
-                            backgroundColor: "var(--secondary-color)",
+                            backgroundColor: "var(--theme-accent-soft)",
                           },
                         }}
                       >

@@ -1,16 +1,47 @@
 @import "tailwindcss";
 
 :root {
-  --main-bg-color: #000000;
-  --primary-color: #388087;
-  --primary-color-rgb: 56, 128, 135;
-  --secondary-color: #000000;
-  --secondary-color-rgb: 0, 0, 0;
-  --tertiary-color: #FFFFFF;
-  --tertiary-color-rgb: 255, 255, 255;
-  --danger-color: #DB2740;
-  --danger-color-hover: #AF1F33;
-  --text-color: #1A2E35;
+  /* Fallback palette below matches the Arctic theme (useTheme.tsx) — the
+     values ThemeProvider writes onto :root once React mounts. Kept in sync
+     here only so the pre-hydration paint isn't unstyled; the source of
+     truth for every theme is useTheme.tsx. */
+  --theme-accent: #2A7580;
+  --theme-accent-rgb: 42, 117, 128;
+  --theme-accent-glow: rgba(42, 117, 128, 0.35);
+  --theme-accent-bg: rgba(42, 117, 128, 0.08);
+  --theme-accent-border: rgba(42, 117, 128, 0.25);
+  --theme-accent-fill: rgba(42, 117, 128, 0.55);
+  --theme-accent-soft: #144A52;
+  --theme-accent-soft-rgb: 20, 74, 82;
+
+  --theme-red: #db2740;
+
+  --theme-text-primary: #0C2028;
+  --theme-text-secondary: rgba(12, 32, 40, 0.85);
+  --theme-text-muted: rgba(12, 32, 40, 0.7);
+  --theme-text-rgb: 12, 32, 40;
+  --theme-text-on-accent: #ffffff;
+
+  --theme-bg-body: #F4F7F6;
+  --theme-bg-surface: rgba(255, 255, 255, 0.88);
+  --theme-bg-panel: rgba(181, 219, 223, 0.9);
+  --theme-bg-elevated: rgba(255, 255, 255, 0.95);
+  --theme-bg-input: #ffffff;
+  --theme-bg-overlay: rgba(12, 32, 40, 0.4);
+  --theme-panel-rgb: 181, 219, 223;
+
+  --theme-border-light: rgba(42, 117, 128, 0.15);
+  --theme-border-medium: rgba(42, 117, 128, 0.25);
+  --theme-border-input: #B5DBDF;
+
+  --theme-shadow-glow: 0 0 12px rgba(42, 117, 128, 0.2);
+
+  --theme-tab-bg: rgba(181, 219, 223, 0.3);
+  --theme-tab-active: rgba(42, 117, 128, 0.1);
+
+  --theme-card-bg: rgba(255, 255, 255, 0.9);
+  --theme-counter-bg: rgba(42, 117, 128, 0.04);
+
   --current-date-highlight-bg-color: #E9E9E9;
   --hyper-text-color: #9799CD;
   --has-filter-color: #FFF7ED;
@@ -31,7 +62,7 @@
 }
 
 * {
-  scrollbar-color: var(--primary-color) transparent;
+  scrollbar-color: var(--theme-accent) transparent;
   font-family: "Noto Sans Thai", sans-serif !important;
 }
 

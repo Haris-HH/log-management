@@ -139,8 +139,8 @@ const LocationUsage = ({
         },
         paper: {
           sx: {
-            backgroundColor: "var(--tertiary-color)",
-            border: "1px solid rgba(var(--primary-color-rgb), 0.35)",
+            backgroundColor: "var(--theme-border-input)",
+            border: "1px solid rgba(var(--theme-accent-rgb),0.35)",
             boxShadow: "2px 2px 2px rgba(0, 0, 0, 0.2)",
             borderRadius: "5px",
           },
@@ -149,21 +149,21 @@ const LocationUsage = ({
     >
       <DialogTitle
         sx={{
-          color: "var(--primary-color)",
+          color: "var(--theme-accent)",
           fontWeight: "bold",
         }}
       >
         <div className='flex flex-col'>
           <span className='text-xl'>{dialogTitle}</span>
-          <Divider orientation='horizontal' sx={{ width: "100%", borderColor: "rgba(var(--primary-color-rgb), 0.35)" }} />
+          <Divider orientation='horizontal' sx={{ width: "100%", borderColor: "rgba(var(--theme-accent-rgb),0.35)" }} />
         </div>
       </DialogTitle>
       <DialogContent>
         <Box className="flex flex-col gap-4">
           <Box 
-            className="grid grid-cols-[repeat(2,1fr)_200px] border border-(--primary-color) rounded-[10px] p-4 gap-2"
+            className="grid grid-cols-[repeat(2,1fr)_200px] border border-(--theme-accent) rounded-[10px] p-4 gap-2"
             sx={{
-              boxShadow: "0px 2px 8px rgba(var(--tertiary-color-rgb),0.1)"
+              boxShadow: "0px 2px 8px rgba(var(--theme-panel-rgb),0.1)"
             }}
           >
             <DatePickerBuddhist
@@ -213,16 +213,16 @@ const LocationUsage = ({
             <Box className="flex gap-2 items-end">
               <Button 
                 variant="contained" 
-                startIcon={<SearchIcon fill='var(--tertiary-color)' className="h-4 w-4" />} 
+                startIcon={<SearchIcon fill='var(--theme-border-input)' className="h-4 w-4" />} 
                 sx={{ 
-                  color: "var(--tertiary-color)",
-                  backgroundColor: "var(--primary-color)", 
+                  color: "var(--theme-border-input)",
+                  backgroundColor: "var(--theme-accent)", 
                   fontSize: "14px", 
                   width: "120px",
                   height: "40px",
                   textTransform: "capitalize",
                   "&:hover": {
-                    backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
+                    backgroundColor: "rgba(var(--theme-accent-rgb),0.5)",
                   },
                 }}
                 onClick={handleSearch}
@@ -231,11 +231,11 @@ const LocationUsage = ({
               </Button>
               <Button 
                 variant="outlined" 
-                startIcon={<ClearIcon className="flex h-5 w-5" style={{ color: "var(--primary-color)" }} />} 
+                startIcon={<ClearIcon className="flex h-5 w-5" style={{ color: "var(--theme-accent)" }} />} 
                 sx={{
-                  color: "var(--primary-color)",
-                  border: "1px solid var(--primary-color)",
-                  backgroundColor: "var(--tertiary-color)",
+                  color: "var(--theme-accent)",
+                  border: "1px solid var(--theme-accent)",
+                  backgroundColor: "var(--theme-border-input)",
                   fontSize: "14px",
                   width: "120px",
                   height: "40px",
@@ -258,7 +258,7 @@ const LocationUsage = ({
                   },
 
                   "&:hover": {
-                    backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
+                    backgroundColor: "rgba(var(--theme-accent-rgb),0.5)",
                   },
                 }}
                 onClick={handleClear}
@@ -267,7 +267,7 @@ const LocationUsage = ({
               </Button>
             </Box>
           </Box>
-          <Box className="relative h-[60vh] w-full border border-(--primary-color)">
+          <Box className="relative h-[60vh] w-full border border-(--theme-accent)">
             <BaseMap 
               onMapLoad={handleMapLoad}
             />
@@ -276,8 +276,8 @@ const LocationUsage = ({
             <Button
               variant="contained"
               sx={{
-                backgroundColor: "var(--primary-color)",
-                color: "var(--tertiary-color)",
+                backgroundColor: "var(--theme-accent)",
+                color: "var(--theme-border-input)",
               }}
               onClick={handleClose}
             >

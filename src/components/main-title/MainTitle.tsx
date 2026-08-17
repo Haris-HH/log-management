@@ -22,8 +22,8 @@ const MainTitle = ({ title }: Props) => {
         display: "inline-block",
         fontSize: "1.4rem",
         fontWeight: "bold",
-        color: "var(--primary-color)",
-        textShadow: `5px 3px 5px var(--tertiary-color)`,
+        color: "var(--theme-accent)",
+        textShadow: `5px 3px 5px var(--theme-border-input)`,
         overflow: "hidden",
         width: "fit-content",
       }}
@@ -39,11 +39,11 @@ const MainTitle = ({ title }: Props) => {
           bottom: "3px",
           height: "3px",
           width: "100%",
-          background: "var(--primary-color)",
-          border: "0.25px solid var(--tertiary-color)",
+          background: "var(--theme-accent)",
+          border: "0.25px solid var(--theme-border-input)",
           transformOrigin: "left",
           borderRadius: "999px",
-          boxShadow: "0 0 8px var(--primary-color)",
+          boxShadow: "0 0 8px var(--theme-accent)",
         }}
         /*
           เส้นใต้นี้วิ่งวนไม่รู้จบและอยู่บนจอทุกหน้า เมื่อผู้ใช้ขอลดการเคลื่อนไหว

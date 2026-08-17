@@ -68,35 +68,35 @@ const TopUsersDisplaySetting = ({ open, handleClose, dialogTitle, onSave }: Prop
           sx: {
             width: "400px",
             borderRadius: "8px",
-            backgroundColor: "var(--tertiary-color)",
-            border: "1px solid rgba(var(--primary-color-rgb), 0.35)",
+            backgroundColor: "var(--theme-border-input)",
+            border: "1px solid rgba(var(--theme-accent-rgb),0.35)",
           },
         }
       }}
     >
       <DialogTitle
         sx={{
-          color: "var(--primary-color)",
+          color: "var(--theme-accent)",
           py: 1,
           px: 2,
         }}
       >
         <Box className='flex flex-col items-center text-[1.2rem]'>
           <span>{dialogTitle}</span>
-          <Divider orientation='horizontal' sx={{ width: "100%", borderColor: "rgba(var(--primary-color-rgb), 0.35)" }} />
+          <Divider orientation='horizontal' sx={{ width: "100%", borderColor: "rgba(var(--theme-accent-rgb),0.35)" }} />
         </Box>
       </DialogTitle>
       <DialogContent
         sx={{
-          backgroundColor: "var(--tertiary-color)",
+          backgroundColor: "var(--theme-border-input)",
         }}
       >
         <Box className="flex flex-col gap-1 px-0.5 pt-3">
-          <Typography variant="h6" sx={{ fontSize: "1.2rem", fontWeight: "bold", color: "var(--primary-color)" }}>
+          <Typography variant="h6" sx={{ fontSize: "1.2rem", fontWeight: "bold", color: "var(--theme-accent)" }}>
             {t("text.internal-police")}
           </Typography>
           <Box className="grid grid-cols-[1fr_100px] items-center gap-2">
-            <Typography variant="subtitle1" sx={{ fontSize: "1rem", color: "var(--primary-color)" }}>
+            <Typography variant="subtitle1" sx={{ fontSize: "1rem", color: "var(--theme-accent)" }}>
               {`${t("text.usage-count-more-than")} (${t("text.time")})`}
             </Typography>
             <TextBox
@@ -119,11 +119,11 @@ const TopUsersDisplaySetting = ({ open, handleClose, dialogTitle, onSave }: Prop
               }}
             />
           </Box>
-          <Typography variant="h6" sx={{ fontSize: "1.2rem", fontWeight: "bold", color: "var(--primary-color)" }}>
+          <Typography variant="h6" sx={{ fontSize: "1.2rem", fontWeight: "bold", color: "var(--theme-accent)" }}>
             {t("text.external-police")}
           </Typography>
           <Box className="grid grid-cols-[1fr_100px] items-center gap-2">
-            <Typography variant="subtitle1" sx={{ fontSize: "1rem", color: "var(--primary-color)" }}>
+            <Typography variant="subtitle1" sx={{ fontSize: "1rem", color: "var(--theme-accent)" }}>
               {`${t("text.usage-count-more-than")} (${t("text.time")})`}
             </Typography>
             <TextBox
@@ -152,11 +152,11 @@ const TopUsersDisplaySetting = ({ open, handleClose, dialogTitle, onSave }: Prop
               sx={{
                 width: 90,
                 height: 40,
-                backgroundColor: "var(--tertiary-color)",
-                color: "var(--primary-color)",
-                border: "1px solid var(--primary-color)",
+                backgroundColor: "var(--theme-border-input)",
+                color: "var(--theme-accent)",
+                border: "1px solid var(--theme-accent)",
                 "&:hover": {
-                  backgroundColor: "rgba(var(--primary-color-rgb), 0.2)",
+                  backgroundColor: "rgba(var(--theme-accent-rgb),0.2)",
                 },
                 fontWeight: 700,
                 textTransform: "capitalize",
@@ -170,10 +170,10 @@ const TopUsersDisplaySetting = ({ open, handleClose, dialogTitle, onSave }: Prop
               sx={{
                 width: 90,
                 height: 40,
-                backgroundColor: "var(--primary-color)",
-                color: "var(--tertiary-color)",
+                backgroundColor: "var(--theme-accent)",
+                color: "var(--theme-border-input)",
                 "&:hover": {
-                  backgroundColor: "rgba(var(--primary-color-rgb), 0.8)",
+                  backgroundColor: "rgba(var(--theme-accent-rgb),0.8)",
                 },
                 fontWeight: 700,
                 textTransform: "capitalize",

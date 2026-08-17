@@ -58,7 +58,7 @@ const LineChartComponent = ({ data, isMonth = false }: Props) => {
                 backgroundColor: item.color,
               }}
             />
-            <span style={{ color: "var(--primary-color)" }}>
+            <span style={{ color: "var(--theme-accent)" }}>
               {item.name}
             </span>
           </div>
@@ -73,8 +73,8 @@ const LineChartComponent = ({ data, isMonth = false }: Props) => {
     return (
       <div
         style={{
-          background: "rgba(var(--tertiary-color-rgb), 0.8)",
-          border: "1px solid var(--primary-color)",
+          background: "rgba(var(--theme-panel-rgb),0.8)",
+          border: "1px solid var(--theme-accent)",
           borderRadius: "8px",
           padding: "10px 12px",
           minWidth: "180px",
@@ -86,7 +86,7 @@ const LineChartComponent = ({ data, isMonth = false }: Props) => {
             fontSize: "13px",
             marginBottom: "8px",
             fontWeight: 600,
-            color: "var(--primary-color)",
+            color: "var(--theme-accent)",
           }}
         >
           {dayjs(label).locale(i18n.language === "th" ? "th" : "en").format(i18n.language === "th" ? "dddd D MMMM BBBB" : "ddd D MMMM YYYY")}
@@ -116,10 +116,10 @@ const LineChartComponent = ({ data, isMonth = false }: Props) => {
                       backgroundColor: config?.color,
                     }}
                   />
-                  <span style={{ color: "var(--primary-color)" }}>{config?.name}</span>
+                  <span style={{ color: "var(--theme-accent)" }}>{config?.name}</span>
                 </div>
 
-                <span style={{ fontWeight: 700, color: "var(--primary-color)" }}>
+                <span style={{ fontWeight: 700, color: "var(--theme-accent)" }}>
                   {item.value?.toLocaleString()}
                 </span>
               </div>
@@ -145,10 +145,10 @@ const LineChartComponent = ({ data, isMonth = false }: Props) => {
               bottom: 5,
             }}
           >
-            <CartesianGrid stroke="rgba(var(--primary-color-rgb), 0.5)" horizontal vertical/>
+            <CartesianGrid stroke="rgba(var(--theme-accent-rgb),0.5)" horizontal vertical/>
             <XAxis 
               dataKey="date" 
-              stroke="var(--primary-color)" 
+              stroke="var(--theme-accent)" 
               strokeWidth={0}
               tick={{
                 fontSize: 14,
@@ -158,7 +158,7 @@ const LineChartComponent = ({ data, isMonth = false }: Props) => {
             />
             <YAxis 
               width="auto" 
-              stroke="var(--primary-color)" 
+              stroke="var(--theme-accent)" 
               strokeWidth={0} 
               tick={{
                 fontSize: 12,
@@ -187,16 +187,16 @@ const LineChartComponent = ({ data, isMonth = false }: Props) => {
             sx={{
               width: "100%",
               minHeight: "43vh",
-              border: "1px dashed var(--primary-color)",
+              border: "1px dashed var(--theme-accent)",
               borderRadius: "8px",
-              backgroundColor: "rgba(var(--secondary-color-rgb), 0.03)",
+              backgroundColor: "rgba(var(--theme-accent-soft-rgb),0.03)",
             }}
           >
             <Typography
               sx={{
                 fontSize: 18,
                 fontWeight: 500,
-                color: "var(--primary-color)",
+                color: "var(--theme-accent)",
               }}
             >
               {t("text.data-not-found")}

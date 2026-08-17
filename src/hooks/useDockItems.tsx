@@ -74,12 +74,12 @@ export const useDockItems = (): DockItem[] => {
   return useMemo(
     () => [
       {
-        icon: <HomeIcon sx={{ color: "var(--primary-color)" }} />,
+        icon: <HomeIcon sx={{ color: "var(--theme-accent)" }} />,
         label: t("dock.home"),
         path: "/",
       },
       {
-        icon: <AccountTreeIcon sx={{ color: "var(--primary-color)" }} />,
+        icon: <AccountTreeIcon sx={{ color: "var(--theme-accent)" }} />,
         label: t("dock.internal-chart"),
         subMenu: [
           { label: t("menu.chart-internal-police"), path: "/chart-internal-police" },
@@ -89,7 +89,7 @@ export const useDockItems = (): DockItem[] => {
         ],
       },
       {
-        icon: <AssessmentIcon sx={{ color: "var(--primary-color)" }} />,
+        icon: <AssessmentIcon sx={{ color: "var(--theme-accent)" }} />,
         label: t("dock.overview"),
         subMenu: [
           { label: t("menu.overall-checkpoints"), path: "/overall-checkpoints" },
@@ -98,7 +98,7 @@ export const useDockItems = (): DockItem[] => {
         ],
       },
       {
-        icon: <BarChartIcon sx={{ color: "var(--primary-color)" }} />,
+        icon: <BarChartIcon sx={{ color: "var(--theme-accent)" }} />,
         label: t("dock.access-statistics"),
         subMenu: [
           { label: t("menu.statistic-access-agency"), path: "/statistic-access-agency" },
@@ -107,7 +107,7 @@ export const useDockItems = (): DockItem[] => {
         ],
       },
       {
-        icon: <SearchIcon sx={{ color: "var(--primary-color)" }} />,
+        icon: <SearchIcon sx={{ color: "var(--theme-accent)" }} />,
         label: t("dock.search-statistics"),
         subMenu: [
           {
@@ -125,7 +125,7 @@ export const useDockItems = (): DockItem[] => {
         ],
       },
       {
-        icon: <BarChartIcon sx={{ color: "var(--primary-color)" }} />,
+        icon: <BarChartIcon sx={{ color: "var(--theme-accent)" }} />,
         label: t("dock.statistics"),
         subMenu: [
           { label: t("menu.statistic-usage-agency"), path: "/statistic-usage-agency" },

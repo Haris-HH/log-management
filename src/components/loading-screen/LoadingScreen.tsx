@@ -33,7 +33,7 @@ const LoadingScreen = () => {
       aria-label={t("text.loading")}
       className="fixed inset-0 z-99999 flex items-center justify-center overflow-hidden"
       style={{
-        backgroundColor: "rgba(var(--tertiary-color-rgb), 0.9)"
+        backgroundColor: "rgba(var(--theme-panel-rgb),0.9)"
       }}
     >
       <motion.div
@@ -46,7 +46,7 @@ const LoadingScreen = () => {
         }
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
         style={{
-          backgroundColor: "rgba(var(--primary-color-rgb), 0.5)"
+          backgroundColor: "rgba(var(--theme-accent-rgb),0.5)"
         }}
       />
 
@@ -85,7 +85,7 @@ const LoadingScreen = () => {
 
           <motion.path
             d={PATH_D}
-            stroke="var(--primary-color)"
+            stroke="var(--theme-accent)"
             strokeWidth="8"
             strokeLinecap="round"
             strokeLinejoin="round"

@@ -47,19 +47,38 @@ describe("ThemeProvider", () => {
 
   it("writes the palette to CSS custom properties on the root element", () => {
     renderProbe();
-    expect(cssVar("--main-bg-color")).toBe(
-      themes.arctic.colors["--main-bg-color"]
+    expect(cssVar("--theme-bg-body")).toBe(
+      themes.arctic.colors["--theme-bg-body"]
     );
-    expect(cssVar("--primary-color")).toBe(
-      themes.arctic.colors["--primary-color"]
-    );
-    expect(cssVar("--text-color")).toBe("black");
+    expect(cssVar("--theme-accent")).toBe(themes.arctic.colors["--theme-accent"]);
+    expect(cssVar("--theme-text-primary")).toBe("#0C2028");
   });
 
   it("derives the rgb triplet from the hex palette", () => {
     renderProbe();
-    // Arctic primary #2A7580
-    expect(cssVar("--primary-color-rgb")).toBe("42, 117, 128");
+    // Arctic accent #2A7580
+    expect(cssVar("--theme-accent-rgb")).toBe("42, 117, 128");
+  });
+
+  it("composes the named opacity tokens from the accent channel", () => {
+    renderProbe();
+    expect(cssVar("--theme-accent-glow")).toBe("rgba(42, 117, 128, 0.35)");
+    expect(cssVar("--theme-accent-border")).toBe("rgba(42, 117, 128, 0.25)");
+    expect(cssVar("--theme-accent-fill")).toBe("rgba(42, 117, 128, 0.55)");
+  });
+
+  it("exposes accentSoft distinct from accent", () => {
+    renderProbe();
+    expect(cssVar("--theme-accent-soft")).toBe(
+      themes.arctic.colors["--theme-accent-soft"]
+    );
+    expect(cssVar("--theme-accent-soft")).not.toBe(cssVar("--theme-accent"));
+  });
+
+  it("derives a theme's red from its customRed when set", () => {
+    localStorage.setItem("wd2-theme", "rosewood");
+    renderProbe();
+    expect(cssVar("--theme-red")).toBe("#F53163");
   });
 
   it("stamps data-theme for CSS selectors to hook onto", () => {
@@ -78,10 +97,12 @@ describe("ThemeProvider", () => {
     expect(screen.getByTestId("name")).toHaveTextContent("onyx");
     expect(localStorage.getItem("wd2-theme")).toBe("onyx");
     expect(document.documentElement.getAttribute("data-theme")).toBe("onyx");
-    expect(cssVar("--main-bg-color")).toBe(
-      themes.onyx.colors["--main-bg-color"]
+    expect(cssVar("--theme-bg-body")).toBe(
+      themes.onyx.colors["--theme-bg-body"]
     );
-    expect(cssVar("--text-color")).toBe("white");
+    expect(cssVar("--theme-text-on-accent")).toBe(
+      themes.onyx.colors["--theme-text-on-accent"]
+    );
   });
 
   it("marks light themes as not dark", () => {
@@ -91,8 +112,8 @@ describe("ThemeProvider", () => {
 
   it("exposes every palette variable for each theme", () => {
     for (const theme of Object.values(themes)) {
-      expect(theme.colors["--main-bg-color"]).toMatch(/^#[0-9A-Fa-f]{6}$/);
-      expect(theme.colors["--primary-color-rgb"]).toMatch(
+      expect(theme.colors["--theme-bg-body"]).toMatch(/^#[0-9A-Fa-f]{6}$/);
+      expect(theme.colors["--theme-accent-rgb"]).toMatch(
         /^\d{1,3}, \d{1,3}, \d{1,3}$/
       );
     }

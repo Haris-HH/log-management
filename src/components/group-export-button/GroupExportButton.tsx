@@ -32,12 +32,12 @@ const GroupExportButton = ({
     <>
       <IconButton 
         sx={{ 
-          border: "1px solid var(--primary-color)", 
+          border: "1px solid var(--theme-accent)", 
           width: "40px", 
           height: "40px", 
           borderRadius: "5px",
           "&:hover": {
-            backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
+            backgroundColor: "rgba(var(--theme-accent-rgb),0.5)",
           },
         }}
         onClick={handleExportPdf}
@@ -46,12 +46,12 @@ const GroupExportButton = ({
       </IconButton>
       <IconButton 
         sx={{ 
-          border: "1px solid var(--primary-color)", 
+          border: "1px solid var(--theme-accent)", 
           width: "40px", 
           height: "40px", 
           borderRadius: "5px",
           "&:hover": {
-            backgroundColor: "rgba(var(--primary-color-rgb), 0.5)",
+            backgroundColor: "rgba(var(--theme-accent-rgb),0.5)",
           },
         }}
         onClick={handleExportExcel}

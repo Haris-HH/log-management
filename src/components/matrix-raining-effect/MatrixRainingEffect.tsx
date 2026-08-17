@@ -51,10 +51,8 @@ const MatrixRainingCode = ({ className = "" }: MatrixRainingCodeProps) => {
     const readThemeColors = () => {
       const rootStyle = getComputedStyle(document.documentElement);
 
-      trailColor = `rgba(${rootStyle
-        .getPropertyValue("--tertiary-color-rgb")
-        .trim()}, 0.12)`;
-      textColor = rootStyle.getPropertyValue("--primary-color").trim();
+      trailColor = `rgba(${rootStyle.getPropertyValue("--theme-panel-rgb").trim()}, 0.12)`;
+      textColor = rootStyle.getPropertyValue("--theme-accent").trim();
     };
 
     readThemeColors();

@@ -89,7 +89,7 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
     if (isLocationWithLabel && Array.isArray(location)) {
       const [lat, lng] = location;
       htmlContent += `
-        <label style="position: absolute; bottom: -20px; left: 20px; color: white; background: black; padding: 5px 10px; border-radius: 5px; font-size: 14px; box-shadow: 0 2px 6px rgba(var(--secondary-color-rgb),0.3);">
+        <label style="position: absolute; bottom: -20px; left: 20px; color: white; background: black; padding: 5px 10px; border-radius: 5px; font-size: 14px; box-shadow: 0 2px 6px rgba(var(--theme-accent-soft-rgb),0.3);">
           ${lat.toFixed(5)}, ${lng.toFixed(5)}
         </label>
       `;
@@ -194,7 +194,7 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
             color: black;
             border-radius: 50%;
             border: 2px solid rgba(255, 255, 255,.2);
-            box-shadow: 0 0 5px var(--primary-color);
+            box-shadow: 0 0 5px var(--theme-accent);
           ">
             ${escapeHtml(loc.total ?? 0)}
           </div>
@@ -206,7 +206,7 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
             border-left: 6px solid transparent;
             border-right: 6px solid transparent;
             border-top: 6px solid ${color};
-            filter: drop-shadow(0 0px 5px rgba(var(--primary-color-rgb),.35));
+            filter: drop-shadow(0 0px 5px rgba(var(--theme-accent-rgb),0.35));
           "></div>
         </div>
       `;
@@ -272,11 +272,11 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
     );
 
     const cameraIconHtml = ReactDOMServer.renderToStaticMarkup(
-      <CameraIcon style={{ width: "20px", height: "15px", marginTop: "5px", color:'var(--primary-color)' }} />
+      <CameraIcon style={{ width: "20px", height: "15px", marginTop: "5px", color:'var(--theme-accent)' }} />
     );
 
     const rightArrowIconHtml = ReactDOMServer.renderToStaticMarkup(
-      <RightArrowIcon style={{ width: "12px", height: "12px", color:'var(--primary-color)' }} />
+      <RightArrowIcon style={{ width: "12px", height: "12px", color:'var(--theme-accent)' }} />
     );
 
     return marker.bindPopup(
@@ -285,13 +285,13 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
           <div style="display: flex; justify-content: start; align-items: start; gap: 10px">
             ${cameraIconHtml}
             <div style="display: flex; flex-direction: column; justify-content: center; align-items: start;">
-              <label style="font-weight: bold; font-size: 20px; color: var(--primary-color);">${t('text.camera-checkpoint')} : ${escapeHtml(detail.checkpoint_name ?? '-')}</label>
-              <p style="color: var(--primary-color); margin-top: 0px;">${t('text.total-2')} ${escapeHtml(cameraLength)} จุด</p>
+              <label style="font-weight: bold; font-size: 20px; color: var(--theme-accent);">${t('text.camera-checkpoint')} : ${escapeHtml(detail.checkpoint_name ?? '-')}</label>
+              <p style="color: var(--theme-accent); margin-top: 0px;">${t('text.total-2')} ${escapeHtml(cameraLength)} จุด</p>
             </div>
           </div>
           <div style="padding: 0px 5px; display: flex;">
-            <div style="flex: 1; padding: 10px 15px; background-color: var(--tertiary-color); border: 1px solid var(--primary-color); min-height: 80px;">
-              <label style="color: var(--primary-color); font-size: 12px;">${t('text.area-structure')}</label>
+            <div style="flex: 1; padding: 10px 15px; background-color: var(--theme-border-input); border: 1px solid var(--theme-accent); min-height: 80px;">
+              <label style="color: var(--theme-accent); font-size: 12px;">${t('text.area-structure')}</label>
 
               <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
                 ${[
@@ -305,7 +305,7 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
 
                     return `
                       <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="color: var(--primary-color); font-size: 20px; font-weight: 500;">
+                        <span style="color: var(--theme-accent); font-size: 20px; font-weight: 500;">
                           ${escapeHtml(item)}
                         </span>
 
@@ -322,8 +322,8 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
             </div>
           </div>
           <div style="padding: 0px 5px;">
-            <div style="padding: 10px 15px; background-color: var(--tertiary-color); border: 1px solid var(--primary-color); width: 100%; min-height: 80px;">
-              <label style="color: var(--primary-color); font-size: 12px; display: block;">
+            <div style="padding: 10px 15px; background-color: var(--theme-border-input); border: 1px solid var(--theme-accent); width: 100%; min-height: 80px;">
+              <label style="color: var(--theme-accent); font-size: 12px; display: block;">
                 ${t('text.status')}
               </label>
 
@@ -353,7 +353,7 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
                         <div style="display: flex; justify-content: start; align-items: center; gap: 10px; margin-top: 10px;">
                           <div style="width: 20px; height: 20px; background-color: ${cameraColor}; border-radius: 50%;"></div>
                           
-                          <label style="color: var(--primary-color); font-size: 20px; font-weight: 500;">
+                          <label style="color: var(--theme-accent); font-size: 20px; font-weight: 500;">
                             ${escapeHtml(item.status_name)}<span> : ${escapeHtml(item.count)}</span>
                           </label>
                         </div>
@@ -366,22 +366,22 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
           </div>
           <div style="padding: 0px 5px;">
             <div style="display: flex; flex-direction: column; gap: 5px; width: 100%;">
-              <label style="color: var(--primary-color); font-size: 16px;">${t('text.camera-checkpoint-list')} :</label>
+              <label style="color: var(--theme-accent); font-size: 16px;">${t('text.camera-checkpoint-list')} :</label>
               <div style="max-height: 200px; overflow-y: auto;">
                 <table style="width: 100%; border-collapse: collapse;">
                   
                   <thead>
-                    <tr style="background-color: var(--primary-color); color: white; font-size: 16px;">
-                      <th style="position: sticky; top: 0; background-color: var(--primary-color); text-align: center; width: 40%; height: 60px; z-index: 1;">
+                    <tr style="background-color: var(--theme-accent); color: white; font-size: 16px;">
+                      <th style="position: sticky; top: 0; background-color: var(--theme-accent); text-align: center; width: 40%; height: 60px; z-index: 1;">
                         ${t('table.header.camera-checkpoint')}
                       </th>
-                      <th style="position: sticky; top: 0; background-color: var(--primary-color); text-align: center; width: 30%; z-index: 1;">
+                      <th style="position: sticky; top: 0; background-color: var(--theme-accent); text-align: center; width: 30%; z-index: 1;">
                         ${t('table.header.status')}
                       </th>
-                      <th style="position: sticky; top: 0; background-color: var(--primary-color); text-align: center; width: 20%; z-index: 1;">
+                      <th style="position: sticky; top: 0; background-color: var(--theme-accent); text-align: center; width: 20%; z-index: 1;">
                         ${t('table.header.route')}
                       </th>
-                      <th style="position: sticky; top: 0; background-color: var(--primary-color); text-align: center; width: 10%; z-index: 1;">
+                      <th style="position: sticky; top: 0; background-color: var(--theme-accent); text-align: center; width: 10%; z-index: 1;">
                         ${t('table.header.lane')}
                       </th>
                     </tr>
@@ -394,7 +394,7 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
                           const cameraColor =
                             deviceStatusOptions.find((opt) => opt.id === Number(item.device_status_id))?.color ?? "#FFFFFF";
                           return `
-                            <tr key="${escapeHtml(item.device_name)}_${index}" style="border-bottom: 1px solid rgba(var(--primary-color-rgb), 0.1); font-size: 16px; color: var(--primary-color); height: 50px;">
+                            <tr key="${escapeHtml(item.device_name)}_${index}" style="border-bottom: 1px solid rgba(var(--theme-accent-rgb),0.1); font-size: 16px; color: var(--theme-accent); height: 50px;">
                               <td style="padding: 0px 10px;">${escapeHtml(item.device_name)}</td>
 
                               <td style="padding: 0px 10px; vertical-align: middle;">

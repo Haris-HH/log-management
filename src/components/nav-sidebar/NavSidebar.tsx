@@ -43,18 +43,18 @@ const rowSx = (active: boolean) => ({
   py: 1.2,
   borderRadius: "12px",
   cursor: "pointer",
-  color: "var(--primary-color)",
+  color: "var(--theme-accent)",
   opacity: active ? 1 : 0.75,
   backgroundColor: active
-    ? "rgba(var(--primary-color-rgb), 0.12)"
+    ? "rgba(var(--theme-accent-rgb),0.12)"
     : "transparent",
   border: active
-    ? "1px solid rgba(var(--primary-color-rgb), 0.35)"
+    ? "1px solid rgba(var(--theme-accent-rgb),0.35)"
     : "1px solid transparent",
   transition: "background-color 0.2s, opacity 0.2s",
   "&:hover": {
     opacity: 1,
-    backgroundColor: "rgba(var(--primary-color-rgb), 0.08)",
+    backgroundColor: "rgba(var(--theme-accent-rgb),0.08)",
   },
 });
 
@@ -140,12 +140,12 @@ const NavSidebar = () => {
             height: "100%",
             backgroundImage: "none",
             background:
-              "linear-gradient(180deg, rgba(var(--tertiary-color-rgb),1), rgba(var(--tertiary-color-rgb),0.92))",
+              "linear-gradient(180deg, rgba(var(--theme-panel-rgb),1), rgba(var(--theme-panel-rgb),0.92))",
             backdropFilter: "blur(20px)",
             WebkitBackdropFilter: "blur(20px)",
             border: "none",
             [anchor === "left" ? "borderRight" : "borderLeft"]:
-              "1px solid rgba(var(--primary-color-rgb), 0.18)",
+              "1px solid rgba(var(--theme-accent-rgb),0.18)",
             overflowX: "hidden",
           },
         },
@@ -169,7 +169,7 @@ const NavSidebar = () => {
             size="small"
             onClick={handleClose}
             aria-label={t("nav.close")}
-            sx={{ color: "var(--primary-color)" }}
+            sx={{ color: "var(--theme-accent)" }}
           >
             <CloseIcon fontSize="small" />
           </IconButton>

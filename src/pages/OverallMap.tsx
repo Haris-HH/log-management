@@ -346,10 +346,10 @@ const OverallMap = () => {
               className="absolute top-0 left-0 z-1000"
             >
               <Box
-                className="flex flex-col gap-2 relative border border-(--primary-color)"
+                className="flex flex-col gap-2 relative border border-(--theme-accent)"
                 sx={{
                   zIndex: 1000,
-                  backgroundColor: "rgba(var(--tertiary-color-rgb), 0.8)",
+                  backgroundColor: "rgba(var(--theme-panel-rgb),0.8)",
                   borderRadius: 2,
                   padding: "25px 15px 15px 15px",
                   boxShadow: 3,
@@ -359,7 +359,7 @@ const OverallMap = () => {
               >
                 <Box className="absolute top-2 right-2 flex justify-end items-center w-full">
                   <X 
-                    color="var(--primary-color)" 
+                    color="var(--theme-accent)" 
                     className="w-4 h-4 cursor-pointer" 
                     onClick={() => setShowFilter(false)}
                   />
@@ -414,18 +414,18 @@ const OverallMap = () => {
 
                   <IconButton
                     sx={{
-                      backgroundColor: "var(--primary-color)",
+                      backgroundColor: "var(--theme-accent)",
                       borderRadius: "5px",
                       width: "40px",
                       height: "40px",
                       ":hover": {
-                        backgroundColor: "rgba(var(--primary-color-rgb), 0.8)",
+                        backgroundColor: "rgba(var(--theme-accent-rgb),0.8)",
                       },
                       textTransform: "capitalize",
                     }}
                     onClick={handleClear}
                   >
-                    <ClearIcon className="h-6 w-6" style={{ color: "var(--tertiary-color)" }} />
+                    <ClearIcon className="h-6 w-6" style={{ color: "var(--theme-border-input)" }} />
                   </IconButton>
                 </Box>
               </Box>

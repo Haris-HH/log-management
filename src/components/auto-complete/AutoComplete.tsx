@@ -177,7 +177,7 @@ const AutoComplete: React.FC<AutoCompleteProps> = ({
       <Typography
         sx={{
           fontSize: labelFontSize,
-          color: "var(--primary-color)",
+          color: "var(--theme-accent)",
         }}
         variant="subtitle1"
       >
@@ -241,61 +241,61 @@ const AutoComplete: React.FC<AutoCompleteProps> = ({
                 borderRadius: "5px",
 
                 "& fieldset": {
-                  borderColor: "var(--primary-color)",
+                  borderColor: "var(--theme-accent)",
                 },
 
                 "&.Mui-error fieldset": {
-                  borderColor: "var(--danger-color)",
+                  borderColor: "var(--theme-red)",
                   borderWidth: "2px",
                 },
 
                 "&:hover fieldset": {
-                  borderColor: "var(--primary-color)",
+                  borderColor: "var(--theme-accent)",
                 },
 
                 "&.Mui-focused fieldset": {
-                  borderColor: "var(--primary-color)",
+                  borderColor: "var(--theme-accent)",
                 },
               },
 
-              backgroundColor: "var(--tertiary-color)",
+              backgroundColor: "var(--theme-border-input)",
 
               "& .MuiInputBase-root": {
                 minHeight: "30px",
                 padding: "2px 8px",
                 fontSize: labelFontSize,
-                color: "var(--primary-color)",
+                color: "var(--theme-accent)",
               },
 
               "& .MuiInputBase-input": {
                 height: "25px",
                 padding: "0 !important",
-                backgroundColor: "var(--tertiary-color) !important",
-                color: "var(--primary-color)",
+                backgroundColor: "var(--theme-border-input) !important",
+                color: "var(--theme-accent)",
               },
 
               "& .MuiSvgIcon-root": {
-                color: "var(--primary-color)",
+                color: "var(--theme-accent)",
               },
 
               "& .MuiOutlinedInput-root.Mui-disabled": {
-                backgroundColor: "rgba(var(--primary-color-rgb), 0.05) !important",
+                backgroundColor: "rgba(var(--theme-accent-rgb),0.05) !important",
                 cursor: "not-allowed",
 
                 "& fieldset": {
-                  borderColor: "rgba(var(--primary-color-rgb), 0.7) !important",
+                  borderColor: "rgba(var(--theme-accent-rgb),0.7) !important",
                 },
               },
 
               "& .MuiInputBase-input.Mui-disabled": {
-                color: "rgba(var(--primary-color-rgb), 0.7) !important",
-                WebkitTextFillColor: "rgba(var(--primary-color-rgb), 0.7) !important",
-                backgroundColor: "rgba(var(--primary-color-rgb), 0.05) !important",
+                color: "rgba(var(--theme-accent-rgb),0.7) !important",
+                WebkitTextFillColor: "rgba(var(--theme-accent-rgb),0.7) !important",
+                backgroundColor: "rgba(var(--theme-accent-rgb),0.05) !important",
                 cursor: "not-allowed",
               },
 
               "& .MuiInputBase-root.Mui-disabled": {
-                color: "var(--primary-color) !important",
+                color: "var(--theme-accent) !important",
               },
 
               ...sx,
@@ -320,12 +320,12 @@ const AutoComplete: React.FC<AutoCompleteProps> = ({
             slotProps={{
               paper: {
                 sx: {
-                  backgroundColor: "var(--tertiary-color) !important",
-                  color: "var(--primary-color) !important",
-                  border: "1px solid var(--primary-color)",
+                  backgroundColor: "var(--theme-border-input) !important",
+                  color: "var(--theme-accent) !important",
+                  border: "1px solid var(--theme-accent)",
                   
                   "& .MuiOutlinedInput-root": {
-                    border: "1px solid var(--primary-color)",
+                    border: "1px solid var(--theme-accent)",
                     borderRadius: "5px",
                   },
 
@@ -334,28 +334,28 @@ const AutoComplete: React.FC<AutoCompleteProps> = ({
                   },
 
                   "& .MuiAutocomplete-listbox": {
-                    backgroundColor: "var(--tertiary-color) !important",
+                    backgroundColor: "var(--theme-border-input) !important",
                     padding: 0,
                   },
 
                   "& .MuiAutocomplete-option": {
-                    color: "var(--primary-color) !important",
-                    backgroundColor: "var(--tertiary-color) !important",
+                    color: "var(--theme-accent) !important",
+                    backgroundColor: "var(--theme-border-input) !important",
                   },
 
                   "& .MuiAutocomplete-option:hover, & .Mui-focused": {
                     backgroundColor:
-                      "rgba(var(--primary-color-rgb), 0.2) !important",
+                      "rgba(var(--theme-accent-rgb),0.2) !important",
                   },
 
                   "& .MuiAutocomplete-option[aria-selected='true']": {
-                    backgroundColor: "var(--primary-color) !important",
-                    color: "var(--tertiary-color) !important",
+                    backgroundColor: "var(--theme-accent) !important",
+                    color: "var(--theme-border-input) !important",
                   },
 
                   "& .MuiAutocomplete-noOptions": {
-                    color: "var(--primary-color) !important",
-                    backgroundColor: "var(--tertiary-color) !important",
+                    color: "var(--theme-accent) !important",
+                    backgroundColor: "var(--theme-border-input) !important",
                   },
                 },
               },
@@ -387,7 +387,7 @@ const AutoComplete: React.FC<AutoCompleteProps> = ({
                 borderRadius: "5px",
 
                 "& fieldset": {
-                  borderColor: "var(--primary-color)",
+                  borderColor: "var(--theme-accent)",
                 },
 
                 "&.Mui-error fieldset": {
@@ -396,52 +396,52 @@ const AutoComplete: React.FC<AutoCompleteProps> = ({
                 },
 
                 "&:hover fieldset": {
-                  borderColor: "var(--primary-color)",
+                  borderColor: "var(--theme-accent)",
                 },
 
                 "&.Mui-focused fieldset": {
-                  borderColor: "var(--primary-color)",
+                  borderColor: "var(--theme-accent)",
                 },
               },
 
-              backgroundColor: "var(--tertiary-color)",
+              backgroundColor: "var(--theme-border-input)",
 
               "& .MuiInputBase-root": {
                 minHeight: "30px",
                 padding: "2px 8px",
                 fontSize: labelFontSize,
-                color: "var(--primary-color)",
+                color: "var(--theme-accent)",
               },
 
               "& .MuiInputBase-input": {
                 height: "25px",
                 padding: "0 !important",
-                backgroundColor: "var(--tertiary-color) !important",
-                color: "var(--primary-color)",
+                backgroundColor: "var(--theme-border-input) !important",
+                color: "var(--theme-accent)",
               },
 
               "& .MuiSvgIcon-root": {
-                color: "var(--primary-color)",
+                color: "var(--theme-accent)",
               },
 
               "& .MuiOutlinedInput-root.Mui-disabled": {
-                backgroundColor: "rgba(var(--primary-color-rgb), 0.05) !important",
+                backgroundColor: "rgba(var(--theme-accent-rgb),0.05) !important",
                 cursor: "not-allowed",
 
                 "& fieldset": {
-                  borderColor: "rgba(var(--primary-color-rgb), 0.7) !important",
+                  borderColor: "rgba(var(--theme-accent-rgb),0.7) !important",
                 },
               },
 
               "& .MuiInputBase-input.Mui-disabled": {
-                color: "rgba(var(--primary-color-rgb), 0.7) !important",
-                WebkitTextFillColor: "rgba(var(--primary-color-rgb), 0.7) !important",
-                backgroundColor: "rgba(var(--primary-color-rgb), 0.05) !important",
+                color: "rgba(var(--theme-accent-rgb),0.7) !important",
+                WebkitTextFillColor: "rgba(var(--theme-accent-rgb),0.7) !important",
+                backgroundColor: "rgba(var(--theme-accent-rgb),0.05) !important",
                 cursor: "not-allowed",
               },
 
               "& .MuiInputBase-root.Mui-disabled": {
-                color: "var(--primary-color) !important",
+                color: "var(--theme-accent) !important",
               },
 
               ...sx,
@@ -466,33 +466,33 @@ const AutoComplete: React.FC<AutoCompleteProps> = ({
             slotProps={{
               paper: {
                 sx: {
-                  backgroundColor: "var(--tertiary-color) !important",
-                  color: "var(--primary-color) !important",
-                  border: "1px solid var(--primary-color)",
+                  backgroundColor: "var(--theme-border-input) !important",
+                  color: "var(--theme-accent) !important",
+                  border: "1px solid var(--theme-accent)",
 
                   "& .MuiAutocomplete-listbox": {
-                    backgroundColor: "var(--tertiary-color) !important",
+                    backgroundColor: "var(--theme-border-input) !important",
                     padding: 0,
                   },
 
                   "& .MuiAutocomplete-option": {
-                    color: "var(--primary-color) !important",
-                    backgroundColor: "var(--tertiary-color) !important",
+                    color: "var(--theme-accent) !important",
+                    backgroundColor: "var(--theme-border-input) !important",
                   },
 
                   "& .MuiAutocomplete-option:hover, & .Mui-focused": {
                     backgroundColor:
-                      "rgba(var(--primary-color-rgb), 0.2) !important",
+                      "rgba(var(--theme-accent-rgb),0.2) !important",
                   },
 
                   "& .MuiAutocomplete-option[aria-selected='true']": {
-                    backgroundColor: "var(--primary-color) !important",
-                    color: "var(--tertiary-color) !important",
+                    backgroundColor: "var(--theme-accent) !important",
+                    color: "var(--theme-border-input) !important",
                   },
 
                   "& .MuiAutocomplete-noOptions": {
-                    color: "var(--primary-color) !important",
-                    backgroundColor: "var(--tertiary-color) !important",
+                    color: "var(--theme-accent) !important",
+                    backgroundColor: "var(--theme-border-input) !important",
                   },
                 },
               },

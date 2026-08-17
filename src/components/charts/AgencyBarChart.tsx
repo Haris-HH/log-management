@@ -79,21 +79,21 @@ const AgencyBarChart = ({ data, columns, selectedMonthYear }: Props) => {
     const total = months.length;
 
     if (total === 1) {
-      return "var(--primary-color)";
+      return "var(--theme-accent)";
     }
 
     if (total === 2) {
       const isNewest = index === total - 1;
-      return isNewest ? "var(--primary-color)" : "rgba(var(--primary-color-rgb), 0.6)";
+      return isNewest ? "var(--theme-accent)" : "rgba(var(--theme-accent-rgb),0.6)";
     }
 
     const COLORS = [
-      "rgba(var(--primary-color-rgb), 0.2)", // oldest
-      "rgba(var(--primary-color-rgb), 0.65)",
-      "var(--primary-color)", // newest
+      "rgba(var(--theme-accent-rgb),0.2)", // oldest
+      "rgba(var(--theme-accent-rgb),0.65)",
+      "var(--theme-accent)", // newest
     ];
 
-    return COLORS[index] ?? "var(--primary-color)";
+    return COLORS[index] ?? "var(--theme-accent)";
   };
 
   const checkSameMonthYear = (a: string, b: string) => {
@@ -123,8 +123,8 @@ const AgencyBarChart = ({ data, columns, selectedMonthYear }: Props) => {
             barGap={4}
             style={{ pointerEvents: "none" }}
           >
-            <CartesianGrid stroke="var(--primary-color)" horizontal vertical={false} />
-            <CartesianGrid stroke="var(--primary-color)" vertical horizontal={false} />
+            <CartesianGrid stroke="var(--theme-accent)" horizontal vertical={false} />
+            <CartesianGrid stroke="var(--theme-accent)" vertical horizontal={false} />
 
             {/* X = Agency */}
             <XAxis dataKey="key" hide />
@@ -132,7 +132,7 @@ const AgencyBarChart = ({ data, columns, selectedMonthYear }: Props) => {
             <YAxis
               domain={[0, "auto"]}
               tickCount={10}
-              tick={{ fill: "var(--primary-color)" }}
+              tick={{ fill: "var(--theme-accent)" }}
               strokeWidth={0}
             />
 
@@ -150,14 +150,14 @@ const AgencyBarChart = ({ data, columns, selectedMonthYear }: Props) => {
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <div className="w-full border border-[rgba(var(--secondary-color-rgb),0.5)] overflow-hidden">
+          <div className="w-full border border-[rgba(var(--theme-accent-soft-rgb),0.5)] overflow-hidden">
 
             {/* Header */}
             <div
-              className="grid text-sm border-b border-[rgba(var(--secondary-color-rgb),0.5)] bg-(--primary-color) text-(--tertiary-color)"
+              className="grid text-sm border-b border-[rgba(var(--theme-accent-soft-rgb),0.5)] bg-(--theme-accent) text-(--theme-border-input)"
               style={{ gridTemplateColumns: gridCols }}
             >
-              <div className="p-2 text-center border-r border-[rgba(var(--secondary-color-rgb),0.5)]">
+              <div className="p-2 text-center border-r border-[rgba(var(--theme-accent-soft-rgb),0.5)]">
                 {t("text.month")}
               </div>
 
@@ -165,7 +165,7 @@ const AgencyBarChart = ({ data, columns, selectedMonthYear }: Props) => {
                 <div
                   key={item.key}
                   className={`p-2 min-w-[0.5vw] text-center whitespace-normal wrap-break-word ${
-                    idx !== columns.length - 1 ? "border-r border-[rgba(var(--secondary-color-rgb),0.5)]" : ""
+                    idx !== columns.length - 1 ? "border-r border-[rgba(var(--theme-accent-soft-rgb),0.5)]" : ""
                   }`}
                 >
                   {item.label}
@@ -182,16 +182,16 @@ const AgencyBarChart = ({ data, columns, selectedMonthYear }: Props) => {
                 return (
                   <div
                     key={group.month}
-                    className="grid text-sm border-b border-[rgba(var(--secondary-color-rgb),0.5)]"
+                    className="grid text-sm border-b border-[rgba(var(--theme-accent-soft-rgb),0.5)]"
                     style={{ gridTemplateColumns: gridCols }}
                   >
                     <div
-                      className="flex items-center min-w-36 gap-2 px-2 border-r border-[rgba(var(--secondary-color-rgb),0.5)]"
+                      className="flex items-center min-w-36 gap-2 px-2 border-r border-[rgba(var(--theme-accent-soft-rgb),0.5)]"
                       style={{
                         backgroundColor: isSameMonthYear
                           ? "white"
                           : "",
-                        color: "var(--primary-color)",
+                        color: "var(--theme-accent)",
                         fontWeight: isSameMonthYear ? "700" : "400",
                       }}
                     >
@@ -218,14 +218,14 @@ const AgencyBarChart = ({ data, columns, selectedMonthYear }: Props) => {
                           key={column.key}
                           className={`p-2 min-w-[0.5vw] text-center whitespace-normal wrap-break-word ${
                             idx !== columns.length - 1
-                              ? "border-r border-[rgba(var(--secondary-color-rgb),0.5)]"
+                              ? "border-r border-[rgba(var(--theme-accent-soft-rgb),0.5)]"
                               : ""
                           }`}
                           style={{
                             backgroundColor: isSameMonthYear
                               ? "white"
                               : "",
-                            color: "var(--primary-color)",
+                            color: "var(--theme-accent)",
                             fontWeight: isSameMonthYear ? "700" : "500",
                           }}
                         >
@@ -238,7 +238,7 @@ const AgencyBarChart = ({ data, columns, selectedMonthYear }: Props) => {
               })}
             {
               [...normalizedData].length === 0 && (
-                <div className="flex justify-center items-center w-full text-(--secondary-color) text-sm py-2">
+                <div className="flex justify-center items-center w-full text-(--theme-accent-soft) text-sm py-2">
                   {t('text.no-data')}
                 </div>
               )
