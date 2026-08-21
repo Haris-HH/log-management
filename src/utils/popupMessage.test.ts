@@ -1,50 +1,43 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
-const fire = vi.fn();
-vi.mock("sweetalert2", () => ({
-  default: { fire: (...args: unknown[]) => fire(...args) },
-}));
+import { describe, it, expect } from "vitest";
 
 import { PopupMessage, PopupMessageWithCancel } from "./popupMessage";
-
-beforeEach(() => {
-  vi.clearAllMocks();
-  fire.mockResolvedValue({ isConfirmed: true });
-});
+import {
+  getActiveDialog,
+  resolveActiveDialog,
+} from "../components/confirmation-dialog/confirmationDialogStore";
 
 describe("PopupMessage", () => {
-  it("passes title, text and icon through", async () => {
-    await PopupMessage("popup.fetch-error", "details", "error");
+  it("opens an alert dialog with title, text and icon", async () => {
+    const pending = PopupMessage("popup.fetch-error", "details", "error");
 
-    expect(fire).toHaveBeenCalledWith(
+    const active = getActiveDialog();
+    expect(active?.config).toEqual(
       expect.objectContaining({
+        kind: "alert",
         title: "popup.fetch-error",
         text: "details",
         icon: "error",
-        showConfirmButton: false,
-        showCloseButton: true,
       })
     );
-  });
 
-  it("keeps the project popup class so styling is unchanged", async () => {
-    await PopupMessage("t", "x", "info");
-    expect(fire.mock.calls[0][0].customClass).toEqual({
-      popup: "custom-swal-popup",
-    });
+    resolveActiveDialog(true);
+    await expect(pending).resolves.toBe(true);
   });
 
   it("resolves the confirmation result", async () => {
-    await expect(PopupMessage("t", "x", "info")).resolves.toBe(true);
+    const pending = PopupMessage("t", "x", "info");
+    resolveActiveDialog(true);
+    await expect(pending).resolves.toBe(true);
 
-    fire.mockResolvedValue({ isConfirmed: false });
-    await expect(PopupMessage("t", "x", "info")).resolves.toBe(false);
+    const pending2 = PopupMessage("t", "x", "info");
+    resolveActiveDialog(false);
+    await expect(pending2).resolves.toBe(false);
   });
 });
 
 describe("PopupMessageWithCancel", () => {
-  it("wires up both buttons", async () => {
-    await PopupMessageWithCancel(
+  it("opens a confirm dialog with both buttons' labels", async () => {
+    const pending = PopupMessageWithCancel(
       "popup.confirm-title",
       "popup.confirm-text",
       "button.ok",
@@ -52,37 +45,41 @@ describe("PopupMessageWithCancel", () => {
       "warning"
     );
 
-    expect(fire).toHaveBeenCalledWith(
+    const active = getActiveDialog();
+    expect(active?.config).toEqual(
       expect.objectContaining({
-        showCancelButton: true,
-        confirmButtonText: "button.ok",
-        cancelButtonText: "button.cancel",
+        kind: "confirm",
+        confirmText: "button.ok",
+        cancelText: "button.cancel",
         icon: "warning",
       })
     );
+
+    resolveActiveDialog(true);
+    await expect(pending).resolves.toBe(true);
   });
 
-  it("defaults iconColor to empty when not supplied", async () => {
-    await PopupMessageWithCancel("t", "x", "ok", "cancel", "warning");
-    expect(fire.mock.calls[0][0].iconColor).toBe("");
+  it("leaves iconColor undefined when not supplied", async () => {
+    const pending = PopupMessageWithCancel("t", "x", "ok", "cancel", "warning");
+    const active = getActiveDialog();
+    expect(active?.config.iconColor).toBeUndefined();
+
+    resolveActiveDialog(true);
+    await pending;
   });
 
   it("forwards a custom icon colour", async () => {
-    await PopupMessageWithCancel(
-      "t",
-      "x",
-      "ok",
-      "cancel",
-      "warning",
-      "#DB2740"
-    );
-    expect(fire.mock.calls[0][0].iconColor).toBe("#DB2740");
+    const pending = PopupMessageWithCancel("t", "x", "ok", "cancel", "warning", "#DB2740");
+    const active = getActiveDialog();
+    expect(active?.config.iconColor).toBe("#DB2740");
+
+    resolveActiveDialog(true);
+    await pending;
   });
 
   it("resolves false when the user cancels", async () => {
-    fire.mockResolvedValue({ isConfirmed: false, isDismissed: true });
-    await expect(
-      PopupMessageWithCancel("t", "x", "ok", "cancel", "warning")
-    ).resolves.toBe(false);
+    const pending = PopupMessageWithCancel("t", "x", "ok", "cancel", "warning");
+    resolveActiveDialog(false);
+    await expect(pending).resolves.toBe(false);
   });
 });

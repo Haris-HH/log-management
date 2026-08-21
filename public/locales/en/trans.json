@@ -86,6 +86,7 @@
     "title": "Please select title"
   },
   "button": {
+    "close": "Close",
     "1-month": "1 Month",
     "1-month-width": "100px",
     "3-month": "3 Month",

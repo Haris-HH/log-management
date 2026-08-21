@@ -1,15 +1,3 @@
-body .swal2-container {
-  z-index: 99999 !important;
-}
-
-body .swal2-popup {
-  z-index: 99999 !important;
-}
-
-body .swal2-backdrop-show {
-  z-index: 99998 !important;
-}
-
 /*
   วงกลมที่แผ่จากจุดที่เมาส์เข้ามาในการ์ดเมนู (หน้า Home)
 
@@ -253,45 +241,6 @@ body .swal2-backdrop-show {
   color: var(--theme-accent) !important;
   font-size: 20px !important;
   padding: 2px !important;
-}
-
-.custom-swal-popup {
-  border: 1px solid var(--theme-accent);
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(var(--theme-panel-rgb),0.25);
-  background-color: var(--theme-border-input);
-  color: var(--theme-accent);
-}
-
-.custom-swal-popup .swal2-close {
-  color: var(--theme-accent) !important;
-}
-
-.custom-swal-popup .swal2-close:hover {
-  color: rgba(var(--theme-accent-rgb),0.7) !important;
-}
-
-.custom-swal-popup .swal2-close:focus {
-  box-shadow: none !important;
-}
-
-.custom-confirm-button {
-  color: var(--theme-border-input);
-  background-color: var(--theme-accent); 
-}
-
-.custom-cancel-button {
-  border: 1px solid var(--theme-accent);
-  color: var(--theme-accent); 
-  background-color: var(--theme-border-input);
-}
-
-.custom-confirm-button:hover {
-  background-color: rgba(var(--theme-accent-rgb),0.8);
-}
-
-.custom-cancel-button:hover {
-  background-color: rgba(var(--theme-panel-rgb),0.1);
 }
 
 .map-inner-shadow {
