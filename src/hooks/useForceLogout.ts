@@ -15,9 +15,10 @@ export const useForceLogout = () => {
         if (callApi) {
           await logoutApi();
         }
-      } 
-      catch {
-      } 
+      }
+      catch (error) {
+        console.error(error);
+      }
       finally {
         dispatch(clearAuthUser());
 

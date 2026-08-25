@@ -7,6 +7,7 @@ import Typography from "@mui/material/Typography";
 
 // Types
 import type { Series } from "../../types/common";
+import type { StatusOptions } from "../../hooks/useStatusOptions";
 
 // Hooks
 import { useStatusOptions } from '../../hooks/useStatusOptions';
@@ -19,6 +20,116 @@ type Props = {
   isMonth?: boolean;
 }
 
+type CustomLegendProps = {
+  statusOptions: StatusOptions[];
+};
+
+const CustomLegend = ({ statusOptions }: CustomLegendProps) => {
+  return (
+    <div style={{
+      display: "flex",
+      justifyContent: "center",
+      gap: "32px",
+      paddingTop: "12px",
+      fontSize: "16px",
+    }}>
+      {statusOptions.map((item) => (
+        <div
+          key={item.key}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
+          <div
+            style={{
+              width: 15,
+              height: 15,
+              borderRadius: "50%",
+              backgroundColor: item.color,
+            }}
+          />
+          <span style={{ color: "var(--theme-accent)" }}>
+            {item.name}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+type CustomTooltipProps = {
+  active?: boolean;
+  payload?: { dataKey: string; value?: number }[];
+  label?: string | number;
+  statusMap: Record<string, StatusOptions>;
+  language: string;
+};
+
+const CustomTooltip = ({ active, payload, label, statusMap, language }: CustomTooltipProps) => {
+  if (!active || !payload?.length) return null;
+
+  return (
+    <div
+      style={{
+        background: "rgba(var(--theme-panel-rgb),0.8)",
+        border: "1px solid var(--theme-accent)",
+        borderRadius: "8px",
+        padding: "10px 12px",
+        minWidth: "180px",
+      }}
+    >
+      {/* Date */}
+      <div
+        style={{
+          fontSize: "13px",
+          marginBottom: "8px",
+          fontWeight: 600,
+          color: "var(--theme-accent)",
+        }}
+      >
+        {dayjs(label).locale(language === "th" ? "th" : "en").format(language === "th" ? "dddd D MMMM BBBB" : "ddd D MMMM YYYY")}
+      </div>
+
+      {/* Data */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+        {payload.map((item) => {
+          const config = statusMap[item.dataKey];
+
+          return (
+            <div
+              key={item.dataKey}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                fontSize: "12px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <div
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: "50%",
+                    backgroundColor: config?.color,
+                  }}
+                />
+                <span style={{ color: "var(--theme-accent)" }}>{config?.name}</span>
+              </div>
+
+              <span style={{ fontWeight: 700, color: "var(--theme-accent)" }}>
+                {item.value?.toLocaleString()}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 const LineChartComponent = ({ data, isMonth = false }: Props) => {
   // i18n
   const { t, i18n } = useTranslation();
@@ -27,108 +138,10 @@ const LineChartComponent = ({ data, isMonth = false }: Props) => {
   const filterStatusOptions = statusOptions.filter((so) => so.key !== "suspended");
 
   const STATUS_MAP = Object.fromEntries(
-    statusOptions.filter((so) => so.key !== "suspended").map(item => [item.key, item])
+    filterStatusOptions.map(item => [item.key, item])
   );
 
   const hasData = data.length > 0;
-
-  const CustomLegend = () => {
-    return (
-      <div style={{
-        display: "flex",
-        justifyContent: "center",
-        gap: "32px",
-        paddingTop: "12px",
-        fontSize: "16px",
-      }}>
-        {filterStatusOptions.map((item) => (
-          <div
-            key={item.key}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-          >
-            <div
-              style={{
-                width: 15,
-                height: 15,
-                borderRadius: "50%",
-                backgroundColor: item.color,
-              }}
-            />
-            <span style={{ color: "var(--theme-accent)" }}>
-              {item.name}
-            </span>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (!active || !payload?.length) return null;
-
-    return (
-      <div
-        style={{
-          background: "rgba(var(--theme-panel-rgb),0.8)",
-          border: "1px solid var(--theme-accent)",
-          borderRadius: "8px",
-          padding: "10px 12px",
-          minWidth: "180px",
-        }}
-      >
-        {/* Date */}
-        <div
-          style={{
-            fontSize: "13px",
-            marginBottom: "8px",
-            fontWeight: 600,
-            color: "var(--theme-accent)",
-          }}
-        >
-          {dayjs(label).locale(i18n.language === "th" ? "th" : "en").format(i18n.language === "th" ? "dddd D MMMM BBBB" : "ddd D MMMM YYYY")}
-        </div>
-
-        {/* Data */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-          {payload.map((item: any) => {
-            const config = STATUS_MAP[item.dataKey];
-
-            return (
-              <div
-                key={item.dataKey}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  fontSize: "12px",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                  <div
-                    style={{
-                      width: 10,
-                      height: 10,
-                      borderRadius: "50%",
-                      backgroundColor: config?.color,
-                    }}
-                  />
-                  <span style={{ color: "var(--theme-accent)" }}>{config?.name}</span>
-                </div>
-
-                <span style={{ fontWeight: 700, color: "var(--theme-accent)" }}>
-                  {item.value?.toLocaleString()}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
 
   return (
     <Box className="flex justify-center items-center">
@@ -146,9 +159,9 @@ const LineChartComponent = ({ data, isMonth = false }: Props) => {
             }}
           >
             <CartesianGrid stroke="rgba(var(--theme-accent-rgb),0.5)" horizontal vertical/>
-            <XAxis 
-              dataKey="date" 
-              stroke="var(--theme-accent)" 
+            <XAxis
+              dataKey="date"
+              stroke="var(--theme-accent)"
               strokeWidth={0}
               tick={{
                 fontSize: 14,
@@ -156,10 +169,10 @@ const LineChartComponent = ({ data, isMonth = false }: Props) => {
               interval={0}
               tickFormatter={(value) => isMonth ? dayjs(value).locale(i18n.language === "th" ? "th" : "en").format("D") : dayjs(value).locale(i18n.language === "th" ? "th" : "en").format(i18n.language === "th" ? "ddDD/MM/BB" : "ddDD/MM/YY")}
             />
-            <YAxis 
-              width="auto" 
-              stroke="var(--theme-accent)" 
-              strokeWidth={0} 
+            <YAxis
+              width="auto"
+              stroke="var(--theme-accent)"
+              strokeWidth={0}
               tick={{
                 fontSize: 12,
                 fontWeight: 600,
@@ -167,9 +180,9 @@ const LineChartComponent = ({ data, isMonth = false }: Props) => {
             />
             <Tooltip
               cursor={{ stroke: "var(--color-border-2)" }}
-              content={<CustomTooltip />}
+              content={<CustomTooltip statusMap={STATUS_MAP} language={i18n.language} />}
             />
-            <Legend content={<CustomLegend />} />
+            <Legend content={<CustomLegend statusOptions={filterStatusOptions} />} />
             {filterStatusOptions.map((item) => (
               <Line
                 key={item.key}

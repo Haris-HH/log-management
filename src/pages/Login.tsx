@@ -346,7 +346,7 @@ const Login = () => {
               }
               register={register("username", { required: true })}
               helperText={
-                !!errors.username
+                errors.username
                   ? t("helperText.please-input-pid")
                   : ""
               }
@@ -368,7 +368,7 @@ const Login = () => {
               }
               register={register("password", { required: true })}
               helperText={
-                !!errors.password
+                errors.password
                   ? t("helperText.please-input-password")
                   : ""
               }

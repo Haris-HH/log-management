@@ -100,7 +100,7 @@ const AutoComplete: React.FC<AutoCompleteProps> = ({
     event: React.SyntheticEvent<Element, Event>,
     newValue: AutoCompleteValue
   ) => {
-    let formattedValue: OptionType | null = null;
+    let formattedValue: OptionType | null;
 
     if (typeof newValue === "string") {
       formattedValue = {

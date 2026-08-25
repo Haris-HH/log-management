@@ -124,7 +124,7 @@ export const useMarkerManager = (map: LeafletMap | null) =>{
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#000000" stroke-width="1" stroke-linecap="round" stroke-linejoin="miter"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M12,2a8,8,0,0,0-8,8c0,8,8,12,8,12s8-4,8-12A8,8,0,0,0,12,2Zm0,11a3,3,0,1,1,3-3A3,3,0,0,1,12,13Z" fill="${i === 0 ? "#FF0000" : color}" opacity="1" stroke-width="0"></path><path d="M20,10c0,8-8,12-8,12S4,18,4,10a8,8,0,0,1,16,0Z"></path><circle cx="12" cy="10" r="3"></circle></g></svg>
       `;
 
-      let htmlContent = `
+      const htmlContent = `
         <div style="position: relative; display: flex; align-items: center; justify-content: center;">
           ${iconSVG}
         </div>

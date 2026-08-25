@@ -14,6 +14,7 @@ type Particle = {
   y: number;
   dx: number;
   dy: number;
+  rotate: number;
 };
 
 
@@ -51,6 +52,7 @@ const LetterChargeEffect = () => {
         y: clickY + Math.sin(angle) * distance,
         dx: clickX,
         dy: clickY,
+        rotate: Math.random() * 360,
       };
     });
 
@@ -77,7 +79,7 @@ const LetterChargeEffect = () => {
               y: particle.y,
               opacity: 0,
               scale: 1.8,
-              rotate: Math.random() * 360,
+              rotate: particle.rotate,
             }}
             animate={{
               x: particle.dx,

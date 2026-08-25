@@ -27,6 +27,7 @@ import type { RootState } from "../store/store";
 
 // Utils
 import { buildOptions } from "../utils/commonFunctions";
+import { PopupMessage } from "../utils/popupMessage";
 
 // i18n
 import { useTranslation } from 'react-i18next';
@@ -202,9 +203,13 @@ const OverallMap = () => {
           })
         );
         setCameraInCheckpoints(resDevice);
-      } 
+      }
       catch (error) {
-      } 
+        console.error(error);
+        await PopupMessage(t("popup.fetch-error"), "", "error");
+
+        setCameraInCheckpoints([]);
+      }
       finally {
         setIsLoading(false);
       }

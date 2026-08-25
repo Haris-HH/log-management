@@ -135,7 +135,7 @@ const DockDrawer = ({ open, setOpen }: DockDrawerProps) => {
             onClick={() => {
               if (item?.subMenu?.length) return;
 
-              item?.path && navigate(item?.path);
+              if (item?.path) navigate(item.path);
               handleCloseDock();
             }}
             sx={{
