@@ -210,13 +210,11 @@ const OverallCheckpoints = () => {
       const updated = await mapCameraRows(cameras);
 
       setRows(updated);
-      setTotalItems(updated.length);
+      setTotalItems(res.pagination?.countAll ?? 0);
       setTotalData(res.pagination?.countAll ?? 0);
-      setTotalUsage(updated.length);
-      setTotalPages(
-        Math.ceil(updated.length / rowsPerPage)
-      );
-    } 
+      setTotalUsage(res.pagination?.countAll ?? 0);
+      setTotalPages(res.pagination?.maxPage ?? 1);
+    }
     catch (error) {
       await PopupMessage(
         t("popup.fetch-error"),
@@ -253,175 +251,51 @@ const OverallCheckpoints = () => {
     formData.area_id,
   ]);
 
-  const filteredRows = useMemo(() => {
-    return rows.filter((item) => {
-      const keyword =
-        formData.search.toLowerCase();
-
-      const matchesSearch =
-        !keyword ||
-        [
-          item.camera_name,
-          item.project_name,
-          item.province_name,
-          item.district_name,
-          item.subdistrict_name,
-          item.police_station_name,
-          item.checkpoint_name,
-        ]
-          .join(" ")
-          .toLowerCase()
-          .includes(keyword);
-
-      const matchesArea =
-        !formData.area_id ||
-        String(item.police_region_id) ===
-          formData.area_id;
-
-      const matchesProvince =
-        formData.province_id === "0" ||
-        item.province_code ===
-          formData.province_id;
-
-      const matchesProject =
-        formData.project_id === "0" ||
-        String(item.project_id) ===
-          formData.project_id;
-
-      return (
-        matchesSearch &&
-        matchesArea &&
-        matchesProvince &&
-        matchesProject
-      );
-    });
-  }, [rows, formData]);
-
-  const paginatedRows = useMemo(() => {
-    const start =
-      (page - 1) * rowsPerPage;
-
-    return filteredRows.slice(
-      start,
-      start + rowsPerPage
-    );
-  }, [filteredRows, page, rowsPerPage]);
-
-  useEffect(() => {
-    setPage(1);
-
-    setTotalItems(filteredRows.length);
-    setTotalUsage(filteredRows.length);
-    setTotalPages(
-      Math.max(
-        1,
-        Math.ceil(
-          filteredRows.length / rowsPerPage
-        )
-      )
-    );
-  }, [filteredRows, rowsPerPage]);
-
   const mapCameraRows = useCallback(
     async (cameras: Camera[]) => {
-      const districtCache = new Map<string, any>();
-      const subdistrictCache = new Map<string, any>();
-      const stationCache = new Map<string, any>();
-      const projectCache = new Map<string, any>();
-      const checkpointCache = new Map<string, any>();
+      if (cameras.length === 0) return cameras;
 
-      await Promise.all(
-        cameras.map(async (item) => {
-          const districtKey =
-            `${item.province_code}_${item.district_code}`;
+      const districtCodes = [...new Set(cameras.map((item) => item.district_code))];
+      const subdistrictCodes = [...new Set(cameras.map((item) => item.subdistrict_code))];
+      const stationIds = [...new Set(cameras.map((item) => String(item.police_station_id)))];
+      const projectIds = [...new Set(cameras.map((item) => String(item.project_id)))];
+      const checkpointIds = [...new Set(cameras.map((item) => String(item.checkpoint_id)))];
 
-          const subdistrictKey =
-            `${item.province_code}_${item.district_code}_${item.subdistrict_code}`;
+      const [districtRes, subdistrictRes, stationRes, projectRes, checkpointRes] =
+        await Promise.all([
+          getDistrict({ filter: `district_code=${districtCodes.join("|")}` }),
+          getSubdistrict({ filter: `subdistrict_code=${subdistrictCodes.join("|")}` }),
+          getPoliceStation({ filter: `id=${stationIds.join("|")}` }),
+          getProject({ filter: `project_id=${projectIds.join("|")}` }),
+          getCheckpoints({ filter: `checkpoint_id=${checkpointIds.join("|")}` }),
+        ]);
 
-          const stationKey = String(item.police_station_id);
-          const projectKey = String(item.project_id);
-          const checkpointKey = String(item.checkpoint_id);
+      const districtCache = new Map(
+        districtRes.data?.map((item) => [item.district_code, item]) ?? []
+      );
 
-          const requests: Promise<void>[] = [];
+      const subdistrictCache = new Map(
+        subdistrictRes.data?.map((item) => [item.subdistrict_code, item]) ?? []
+      );
 
-          if (!districtCache.has(districtKey)) {
-            requests.push(
-              getDistrict({
-                filter:
-                  `province_code=${item.province_code},district_code=${item.district_code}`,
-              }).then((res) => {
-                districtCache.set(districtKey, res.data?.[0]);
-              })
-            );
-          }
+      const stationCache = new Map(
+        stationRes.data?.map((item) => [String(item.id), item]) ?? []
+      );
 
-          if (!subdistrictCache.has(subdistrictKey)) {
-            requests.push(
-              getSubdistrict({
-                filter:
-                  `province_code=${item.province_code},district_code=${item.district_code},subdistrict_code=${item.subdistrict_code}`,
-              }).then((res) => {
-                subdistrictCache.set(
-                  subdistrictKey,
-                  res.data?.[0]
-                );
-              })
-            );
-          }
+      const projectCache = new Map(
+        projectRes.data?.map((item) => [item.project_id, item]) ?? []
+      );
 
-          if (!stationCache.has(stationKey)) {
-            requests.push(
-              getPoliceStation({
-                filter: `id=${item.police_station_id}`,
-              }).then((res) => {
-                stationCache.set(
-                  stationKey,
-                  res.data?.[0]
-                );
-              })
-            );
-          }
-
-          if (!projectCache.has(projectKey)) {
-            requests.push(
-              getProject({
-                filter: `project_id=${item.project_id}`,
-              }).then((res) => {
-                projectCache.set(
-                  projectKey,
-                  res.data?.[0]
-                );
-              })
-            );
-          }
-
-          if (!checkpointCache.has(checkpointKey)) {
-            requests.push(
-              getCheckpoints({
-                filter: `checkpoint_id=${item.checkpoint_id}`,
-              }).then((res) => {
-                checkpointCache.set(
-                  checkpointKey,
-                  res.data?.[0]
-                );
-              })
-            );
-          }
-
-          await Promise.all(requests);
-        })
+      const checkpointCache = new Map(
+        checkpointRes.data?.map((item) => [item.checkpoint_id, item]) ?? []
       );
 
       const updated = cameras.map((item) => {
         const district =
-          districtCache.get(
-            `${item.province_code}_${item.district_code}`
-          );
+          districtCache.get(item.district_code);
 
         const subdistrict =
-          subdistrictCache.get(
-            `${item.province_code}_${item.district_code}_${item.subdistrict_code}`
-          );
+          subdistrictCache.get(item.subdistrict_code);
 
         const station =
           stationCache.get(
@@ -1096,7 +970,7 @@ const OverallCheckpoints = () => {
                 </TableRow>
               </TableHead>
               <TableBody sx={{ backgroundColor: "var(--theme-border-input)" }}>
-                {paginatedRows.map((data, index) => (
+                {rows.map((data, index) => (
                   <TableRow
                     key={index}
                     sx={{
@@ -1154,7 +1028,7 @@ const OverallCheckpoints = () => {
                     })}
                   </TableRow>
                 ))}
-                {paginatedRows.length === 0 && (
+                {rows.length === 0 && (
                   <TableRow
                     sx={{
                       "& .MuiTableCell-root": {

@@ -111,7 +111,7 @@ const PaginationBelowTableComponent: React.FC<PaginationProps> = ({
                 border: "1px solid var(--theme-accent)",
               },
               "& .MuiPaginationItem-ellipsis": {
-                color: "var(--theme-border-input)",
+                color: "var(--theme-accent)",
               },
               "& .MuiPaginationItem-page.Mui-selected": {
                 backgroundColor: "var(--theme-accent)",
