@@ -1,11 +1,12 @@
 import { useEffect, useRef } from "react";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 
+// Utils
+import { getAccessToken } from "./tokenStore";
+
 // Env
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const SERVICE_CHANNEL = import.meta.env.VITE_API_SERVICE_CHANNEL;
-
-const ACCESS_TOKEN_KEY = "accessToken";
 
 /*
   A dropped stream is ordinary - a proxy timeout, a sleeping laptop, a service
@@ -75,7 +76,7 @@ export function useSse(
       reconnecting with the stale one would keep failing.
     */
     const headers: Record<string, string> = {
-      Authorization: `Bearer ${localStorage.getItem(ACCESS_TOKEN_KEY)}`,
+      Authorization: `Bearer ${getAccessToken()}`,
       "x-service-channel": SERVICE_CHANNEL,
     };
 
@@ -139,7 +140,7 @@ export function useSse(
           throw err;
         }
 
-        headers.Authorization = `Bearer ${localStorage.getItem(ACCESS_TOKEN_KEY)}`;
+        headers.Authorization = `Bearer ${getAccessToken()}`;
 
         const delay = Math.min(RETRY_BASE_MS * 2 ** attempt, RETRY_MAX_MS);
 

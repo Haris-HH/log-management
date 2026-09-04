@@ -1,3 +1,5 @@
+import { getAccessToken, setAccessToken, clearAccessToken } from "../utils/tokenStore";
+
 export interface FetchOptions extends RequestInit {
   queryParams?: Record<string, string>;
   skipAuth?: boolean;
@@ -10,7 +12,6 @@ export interface FetchOptions extends RequestInit {
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const SERVICE_CHANNEL = import.meta.env.VITE_API_SERVICE_CHANNEL;
 
-const ACCESS_TOKEN_KEY = "accessToken";
 const REFRESH_TOKEN_KEY = "refreshToken";
 const USER_UID_KEY = "userUid";
 const PERSIST_ROOT_KEY = "persist:root";
@@ -23,7 +24,7 @@ let failedQueue: Array<{
 }> = [];
 
 const clearAuthStorage = () => {
-  localStorage.removeItem(ACCESS_TOKEN_KEY);
+  clearAccessToken();
   localStorage.removeItem(REFRESH_TOKEN_KEY);
   localStorage.removeItem(USER_UID_KEY);
   // redux-persist keeps the authenticated user (name, hash_id, agency) here.
@@ -174,18 +175,35 @@ const handleAuthError = async (): Promise<string> => {
 
     const newAccessToken = result.accessToken;
 
-    localStorage.setItem(ACCESS_TOKEN_KEY, newAccessToken);
+    setAccessToken(newAccessToken);
 
     processQueue(null, newAccessToken);
 
     return newAccessToken;
-  } 
+  }
   catch (error) {
     processQueue(error);
     throw error;
-  } 
+  }
   finally {
     isRefreshing = false;
+  }
+};
+
+/*
+  Re-mints an access token from the httpOnly refresh cookie on app load. The
+  token store is memory-only and does not survive a reload, so without this
+  every reload would look like a logged-out session even though the server
+  still recognizes the refresh cookie. Reuses handleAuthError's single-flight
+  guard so this coalesces with any refresh a concurrent 401 triggers.
+*/
+export const restoreSession = async (): Promise<boolean> => {
+  try {
+    await handleAuthError();
+    return true;
+  }
+  catch {
+    return false;
   }
 };
 
@@ -242,7 +260,7 @@ export const fetchClient = async <T>(
     catch (error) {
       console.error("Network error:", error);
 
-      if (!skipAuth && localStorage.getItem(ACCESS_TOKEN_KEY)) {
+      if (!skipAuth && getAccessToken()) {
         redirectToLogin();
       }
 
@@ -289,8 +307,7 @@ export const fetchClient = async <T>(
     return response.json();
   };
 
-  const accessToken =
-    localStorage.getItem(ACCESS_TOKEN_KEY) || undefined;
+  const accessToken = getAccessToken() || undefined;
 
   return makeRequest(accessToken);
 };

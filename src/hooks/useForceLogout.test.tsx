@@ -19,16 +19,17 @@ vi.mock("../store/hooks", () => ({
 
 import { useForceLogout } from "./useForceLogout";
 import { clearAuthUser } from "../features/auth-user/api/AuthUserSlice";
+import { setAccessToken, getAccessToken } from "../utils/tokenStore";
 
 const seedSession = () => {
-  localStorage.setItem("accessToken", "tok");
+  setAccessToken("tok");
   localStorage.setItem("refreshToken", "rtok");
   localStorage.setItem("userUid", "uid");
   localStorage.setItem("persist:root", '{"authUser":"{\\"user\\":{}}"}');
 };
 
 const expectSessionCleared = () => {
-  expect(localStorage.getItem("accessToken")).toBeNull();
+  expect(getAccessToken()).toBeNull();
   expect(localStorage.getItem("refreshToken")).toBeNull();
   expect(localStorage.getItem("userUid")).toBeNull();
   expect(localStorage.getItem("persist:root")).toBeNull();

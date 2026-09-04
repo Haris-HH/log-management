@@ -7,6 +7,7 @@ vi.mock("@microsoft/fetch-event-source", () => ({
 }));
 
 import { useSse } from "./useSse";
+import { setAccessToken } from "./tokenStore";
 
 type Handlers = {
   onopen: (r: Response) => Promise<void>;
@@ -24,6 +25,9 @@ beforeEach(() => {
   fetchEventSource.mockResolvedValue(undefined);
   vi.spyOn(console, "log").mockImplementation(() => {});
   vi.spyOn(console, "error").mockImplementation(() => {});
+  // tokenStore is a module-level singleton shared across every test in this
+  // file (unlike fetchClient.test.ts, this file never resets modules).
+  setAccessToken(null);
 });
 
 describe("useSse - connection", () => {
@@ -38,7 +42,7 @@ describe("useSse - connection", () => {
   });
 
   it("connects to the events endpoint with the bearer token", () => {
-    localStorage.setItem("accessToken", "tok-123");
+    setAccessToken("tok-123");
     renderHook(() => useSse("force-logout", vi.fn(), true));
 
     expect(fetchEventSource).toHaveBeenCalledTimes(1);
@@ -91,7 +95,7 @@ describe("useSse - connection", () => {
   });
 
   it("re-reads the access token before each reconnect", () => {
-    localStorage.setItem("accessToken", "stale");
+    setAccessToken("stale");
     renderHook(() => useSse("force-logout", vi.fn(), true));
 
     const options = lastOptions() as unknown as {
@@ -101,7 +105,7 @@ describe("useSse - connection", () => {
     expect(options.headers.Authorization).toBe("Bearer stale");
 
     // fetchClient refreshes the token between the drop and the retry.
-    localStorage.setItem("accessToken", "fresh");
+    setAccessToken("fresh");
     options.onerror(new Error("dropped"));
 
     expect(options.headers.Authorization).toBe("Bearer fresh");

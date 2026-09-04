@@ -30,6 +30,7 @@ import { getTitle, getAgency } from "../features/dropdown/api/DropdownApi";
 import { PopupMessage } from "../utils/popupMessage";
 import { consumeLogoutReason } from "../utils/logoutReason";
 import type { LogoutReason } from "../utils/logoutReason";
+import { setAccessToken, clearAccessToken } from "../utils/tokenStore";
 
 // Store
 import { useAppDispatch } from "../store/hooks";
@@ -147,7 +148,7 @@ const Login = () => {
         password: data.password,
       });
 
-      localStorage.setItem("accessToken", result.accessToken);
+      setAccessToken(result.accessToken);
 
       if (result.userId) {
         const userResponse = await getUserApi({ filter: `user_id=${result.userId}` });
@@ -162,7 +163,7 @@ const Login = () => {
         const isServiceEnabled = userResponse.data[0]?.permissions?.ui?.[LOG_MANAGEMENT_UI_KEY]?.enabled === true;
 
         if (!isServiceEnabled) {
-          localStorage.removeItem("accessToken");
+          clearAccessToken();
           await PopupMessage(t("popup.login-access-denied-title"), t("popup.login-access-denied-message"), "warning");
           return;
         }

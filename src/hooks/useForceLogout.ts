@@ -4,6 +4,7 @@ import { useAppDispatch } from "../store/hooks";
 import { clearAuthUser } from "../features/auth-user/api/AuthUserSlice";
 import { logoutApi } from "../features/login/api/LoginApi";
 import { clearLocationCache } from "../api/fetchClient";
+import { clearAccessToken } from "../utils/tokenStore";
 
 export const useForceLogout = () => {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ export const useForceLogout = () => {
       finally {
         dispatch(clearAuthUser());
 
-        localStorage.removeItem("accessToken");
+        clearAccessToken();
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("userUid");
         localStorage.removeItem("persist:root");

@@ -45,19 +45,24 @@ React 19 + TypeScript + Vite 8. MUI v9 for components, Tailwind v4 (via `@tailwi
 
 Every network call goes through `fetchClient<T>(endpoint, options)`. It is the only place that knows about auth:
 
-- Reads `accessToken` from `localStorage`, sends `Authorization: Bearer`, `x-service-channel`, and `x-latitude`/`x-longitude` from `navigator.geolocation` (5s timeout, failures are non-fatal). The position is cached for `LOCATION_TTL_MS` (30s) and concurrent callers share one acquisition — do not reintroduce a per-request fix. Call `clearLocationCache()` on logout.
+- Reads `accessToken` from the in-memory `src/utils/tokenStore.ts` (not `localStorage`), sends `Authorization: Bearer`, `x-service-channel`, and `x-latitude`/`x-longitude` from `navigator.geolocation` (5s timeout, failures are non-fatal). The position is cached for `LOCATION_TTL_MS` (30s) and concurrent callers share one acquisition — do not reintroduce a per-request fix. Call `clearLocationCache()` on logout.
 - On 401/403 it runs a single-flight refresh against `/user-management/users/refresh` (concurrent callers queue in `failedQueue`) and retries once. A second failure dispatches a `window` `"force-logout"` event.
 - Options: `skipAuth`, `isFormData`, `isStream`, `queryParams`, `retryCount`.
+- Exports `restoreSession()`, which re-mints an access token from the httpOnly refresh cookie by reusing the same single-flight refresh path. `App.tsx` calls this once on mount — see Auth flow below.
 
 ### Auth flow
 
-`Login.tsx` → `loginApi` → tokens into `localStorage` (`accessToken`, `refreshToken`, `userUid`) + user into the `authUser` slice (the only persisted slice, key `persist:root`). Three independent paths trigger logout, all funnelling into `useForceLogout`:
+`Login.tsx` → `loginApi` → access token into the in-memory `tokenStore` (`src/utils/tokenStore.ts`, module-scoped, not `localStorage`) + user into the `authUser` slice (the only persisted slice, key `persist:root`). The refresh token itself is never held in JS — the server sets it as an httpOnly cookie, sent automatically via `credentials: "include"`.
+
+Because the access token lives only in memory, it does **not** survive a page reload — `App.tsx` calls `restoreSession()` once on mount to re-mint one from the refresh cookie before its route guard decides whether to log the user out; the guard holds off (`authChecked`) until that resolves, so a reload of a still-valid session does not bounce the user to `/login`. `localStorage["refreshToken"]` / `localStorage["userUid"]` keys are cleared on logout for legacy cleanup but are not otherwise written by this app.
+
+Three independent paths trigger logout, all funnelling into `useForceLogout`:
 
 1. `fetchClient` dispatching the `"force-logout"` window event (listened to in `App.tsx`)
-2. `App.tsx` route guard — no token and not on `/login`
+2. `App.tsx` route guard — no token (after `restoreSession()` resolves) and not on `/login`
 3. Server-pushed SSE `force-logout` event via `useSse`
 
-`useSse` (`src/utils/useSse.tsx`) uses `@microsoft/fetch-event-source` against `${VITE_API_BASE_URL}/events`, sending the bearer token and `x-service-channel`. It ignores messages naming a `serviceChannel` other than `VITE_API_SERVICE_CHANNEL`, but **acts on one that names no channel at all** — the stream is already user-scoped, so dropping an untagged event would leave the tab running against a session the server has discarded. `onerror` returns a capped backoff delay (2s → 30s, reset on open) instead of throwing, so a proxy timeout doesn't end force-logout coverage for the session; only a 404 (`FatalSseError`, route not deployed) stops it for good. The access token is re-read from `localStorage` before each retry, since `fetchClient` may have refreshed it. Pass `{ closeOnEvent: true }` for one-shot streams like `force-logout`.
+`useSse` (`src/utils/useSse.tsx`) uses `@microsoft/fetch-event-source` against `${VITE_API_BASE_URL}/events`, sending the bearer token and `x-service-channel`. It ignores messages naming a `serviceChannel` other than `VITE_API_SERVICE_CHANNEL`, but **acts on one that names no channel at all** — the stream is already user-scoped, so dropping an untagged event would leave the tab running against a session the server has discarded. `onerror` returns a capped backoff delay (2s → 30s, reset on open) instead of throwing, so a proxy timeout doesn't end force-logout coverage for the session; only a 404 (`FatalSseError`, route not deployed) stops it for good. The access token is re-read from `tokenStore` before each retry, since `fetchClient` may have refreshed it. Pass `{ closeOnEvent: true }` for one-shot streams like `force-logout`.
 
 The SSE logout records `setLogoutReason("signed-in-elsewhere")` (`src/utils/logoutReason.ts` — module scope, cleared on read) so `Login.tsx` can explain the eviction instead of leaving it looking like an ordinary session timeout, and calls `forceLogout(false)`: the server has already discarded the session, so the logout API call would only fail.
 
@@ -149,5 +154,5 @@ Thai UI shows Buddhist-era years: `dayjs` + the `buddhistEra` plugin with `BBBB`
 ## Gotchas
 
 - Backend field names are inconsistent (`ou`/`agency`, `bh`/`bk`/`org` codes vs ids, `latitude`/`longitude` vs `lat`/`lng` — the latter was recently normalized to `latitude`/`longitude`). Check `src/types/` before assuming.
-- Access tokens live in `localStorage`, so any XSS is a full session compromise — this is why the popup-escaping rule above is not optional.
+- The access token lives in memory only (`src/utils/tokenStore.ts`), not `localStorage`, so it cannot be read out of storage after the fact, from another tab, or after the browser is reopened. It is still readable by any JS running on the page while the token is set, so a same-origin XSS is still a live session compromise for as long as the tab stays open — this is why the popup-escaping rule above is not optional.
 - Forced logout must clear `persist:root` alongside the token keys, or the previous user's name/agency stays visible in the navbar and watermark. `clearAuthStorage()` and `useForceLogout` both do this; keep them in step.

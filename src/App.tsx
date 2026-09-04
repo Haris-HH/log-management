@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import "./App.css";
 import { useSelector } from 'react-redux';
@@ -44,6 +44,7 @@ import {
   setAuthPermission,
   resolveAuthPermission,
 } from "./features/auth-user/api/AuthUserSlice";
+import { restoreSession } from "./api/fetchClient";
 
 // i18n
 import { useTranslation } from 'react-i18next';
@@ -54,6 +55,7 @@ import { useAppDispatch } from "./store/hooks";
 // Utils
 import { useSse } from "./utils/useSse";
 import { setLogoutReason } from "./utils/logoutReason";
+import { getAccessToken } from "./utils/tokenStore";
 
 // Store
 import type { RootState } from "./store/store";
@@ -157,13 +159,26 @@ function App() {
     };
   }, [userId, dispatch]);
 
-  useEffect(() => {
-    const token = localStorage.getItem("accessToken");
+  /*
+    The access token lives in memory only (src/utils/tokenStore.ts) and does
+    not survive a reload, so a hard refresh always starts with no token even
+    for a still-valid session. restoreSession() re-mints one from the httpOnly
+    refresh cookie before the guard below decides whether to log the user out
+    - without this every reload would bounce a logged-in user to /login.
+  */
+  const [authChecked, setAuthChecked] = useState(false);
 
-    if (!token && location.pathname !== "/login") {
+  useEffect(() => {
+    restoreSession().finally(() => setAuthChecked(true));
+  }, []);
+
+  useEffect(() => {
+    if (!authChecked) return;
+
+    if (!getAccessToken() && location.pathname !== "/login") {
       forceLogout(false);
     }
-  }, [location.pathname, forceLogout]);
+  }, [authChecked, location.pathname, forceLogout]);
 
   useEffect(() => {
     const handleForceLogout = () => {
@@ -177,7 +192,7 @@ function App() {
     };
   }, [forceLogout]);
 
-  const enabled = Boolean(localStorage.getItem("accessToken") ?? false);
+  const enabled = authChecked && Boolean(getAccessToken());
 
   /*
     The server has already discarded this session, so there is nothing left to

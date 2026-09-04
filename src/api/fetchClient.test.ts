@@ -1,13 +1,22 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 type FetchClientModule = typeof import("./fetchClient");
+type TokenStoreModule = typeof import("../utils/tokenStore");
 
 const BASE = "https://api.test/api/v0";
 
-/** Fresh module instance — fetchClient keeps module-level refresh/location state. */
-const loadModule = async (): Promise<FetchClientModule> => {
+/*
+  Fresh module instances — fetchClient keeps module-level refresh/location
+  state, and the access token lives in tokenStore's own module-level variable.
+  Both must be reset together, and tokenStore must be the same instance
+  fetchClient resolves internally, so it is imported in the same
+  resetModules() cycle rather than once at file scope.
+*/
+const loadModule = async (): Promise<FetchClientModule & TokenStoreModule> => {
   vi.resetModules();
-  return import("./fetchClient");
+  const tokenStore = await import("../utils/tokenStore");
+  const fetchClientModule = await import("./fetchClient");
+  return { ...tokenStore, ...fetchClientModule };
 };
 
 const jsonResponse = (body: unknown, status = 200) =>
@@ -87,11 +96,11 @@ describe("combineURL", () => {
 });
 
 describe("fetchClient - request shaping", () => {
-  it("sends the service channel and bearer token from localStorage", async () => {
-    localStorage.setItem("accessToken", "tok-123");
+  it("sends the service channel and bearer token from the in-memory token store", async () => {
     fetchMock.mockImplementation(async () => jsonResponse({ ok: true }));
 
-    const { fetchClient } = await loadModule();
+    const { fetchClient, setAccessToken } = await loadModule();
+    setAccessToken("tok-123");
     await fetchClient("/things");
 
     const headers = lastRequestHeaders(fetchMock);
@@ -105,10 +114,10 @@ describe("fetchClient - request shaping", () => {
   });
 
   it("omits Authorization when skipAuth is set", async () => {
-    localStorage.setItem("accessToken", "tok-123");
     fetchMock.mockImplementation(async () => jsonResponse({}));
 
-    const { fetchClient } = await loadModule();
+    const { fetchClient, setAccessToken } = await loadModule();
+    setAccessToken("tok-123");
     await fetchClient("/login", { skipAuth: true });
 
     expect(lastRequestHeaders(fetchMock).Authorization).toBeUndefined();
@@ -186,32 +195,30 @@ describe("fetchClient - response handling", () => {
 
 describe("fetchClient - token refresh", () => {
   it("refreshes once on 401 and retries with the new token", async () => {
-    localStorage.setItem("accessToken", "stale");
-
     fetchMock
       .mockResolvedValueOnce(new Response("nope", { status: 401 }))
       .mockResolvedValueOnce(jsonResponse({ accessToken: "fresh" }))
       .mockResolvedValueOnce(jsonResponse({ ok: true }));
 
-    const { fetchClient } = await loadModule();
+    const { fetchClient, setAccessToken, getAccessToken } = await loadModule();
+    setAccessToken("stale");
     await expect(fetchClient("/things")).resolves.toEqual({ ok: true });
 
     expect(fetchMock.mock.calls[1][0]).toBe(
       `${BASE}/user-management/users/refresh`
     );
-    expect(localStorage.getItem("accessToken")).toBe("fresh");
+    expect(getAccessToken()).toBe("fresh");
     expect(lastRequestHeaders(fetchMock, 2).Authorization).toBe("Bearer fresh");
   });
 
   it("treats 403 the same as 401", async () => {
-    localStorage.setItem("accessToken", "stale");
-
     fetchMock
       .mockResolvedValueOnce(new Response("nope", { status: 403 }))
       .mockResolvedValueOnce(jsonResponse({ accessToken: "fresh" }))
       .mockResolvedValueOnce(jsonResponse({ ok: true }));
 
-    const { fetchClient } = await loadModule();
+    const { fetchClient, setAccessToken } = await loadModule();
+    setAccessToken("stale");
     await expect(fetchClient("/things")).resolves.toEqual({ ok: true });
   });
 
@@ -227,8 +234,6 @@ describe("fetchClient - token refresh", () => {
   });
 
   it("shares a single refresh across concurrent 401s", async () => {
-    localStorage.setItem("accessToken", "stale");
-
     let refreshCalls = 0;
     fetchMock.mockImplementation(async (url: string, init: RequestInit) => {
       if (url.endsWith("/user-management/users/refresh")) {
@@ -240,7 +245,8 @@ describe("fetchClient - token refresh", () => {
       return new Response("nope", { status: 401 });
     });
 
-    const { fetchClient } = await loadModule();
+    const { fetchClient, setAccessToken } = await loadModule();
+    setAccessToken("stale");
     const results = await Promise.all([
       fetchClient("/a"),
       fetchClient("/b"),
@@ -252,7 +258,6 @@ describe("fetchClient - token refresh", () => {
   });
 
   it("dispatches force-logout when the refresh itself fails", async () => {
-    localStorage.setItem("accessToken", "stale");
     const onForceLogout = vi.fn();
     window.addEventListener("force-logout", onForceLogout);
 
@@ -260,7 +265,8 @@ describe("fetchClient - token refresh", () => {
       .mockResolvedValueOnce(new Response("nope", { status: 401 }))
       .mockResolvedValueOnce(new Response("expired", { status: 401 }));
 
-    const { fetchClient } = await loadModule();
+    const { fetchClient, setAccessToken } = await loadModule();
+    setAccessToken("stale");
     await expect(fetchClient("/things")).rejects.toBeDefined();
 
     expect(onForceLogout).toHaveBeenCalledTimes(1);
@@ -268,7 +274,6 @@ describe("fetchClient - token refresh", () => {
   });
 
   it("gives up after one retry instead of looping", async () => {
-    localStorage.setItem("accessToken", "stale");
     const onForceLogout = vi.fn();
     window.addEventListener("force-logout", onForceLogout);
 
@@ -279,7 +284,8 @@ describe("fetchClient - token refresh", () => {
       return new Response("nope", { status: 401 });
     });
 
-    const { fetchClient } = await loadModule();
+    const { fetchClient, setAccessToken } = await loadModule();
+    setAccessToken("stale");
     await expect(fetchClient("/things")).rejects.toThrow("Too many retries");
 
     expect(onForceLogout).toHaveBeenCalledTimes(1);
@@ -287,19 +293,42 @@ describe("fetchClient - token refresh", () => {
   });
 });
 
+describe("fetchClient - restoreSession", () => {
+  it("mints a token from the refresh cookie and stores it in memory", async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ accessToken: "fresh" }));
+
+    const { restoreSession, getAccessToken } = await loadModule();
+    await expect(restoreSession()).resolves.toBe(true);
+
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      `${BASE}/user-management/users/refresh`
+    );
+    expect(getAccessToken()).toBe("fresh");
+  });
+
+  it("resolves false and leaves the token store empty when there is no valid refresh cookie", async () => {
+    fetchMock.mockResolvedValue(new Response("nope", { status: 401 }));
+
+    const { restoreSession, getAccessToken } = await loadModule();
+    await expect(restoreSession()).resolves.toBe(false);
+
+    expect(getAccessToken()).toBeNull();
+  });
+});
+
 describe("fetchClient - network failure", () => {
   it("clears every auth artefact and redirects to login", async () => {
-    localStorage.setItem("accessToken", "tok");
     localStorage.setItem("refreshToken", "rtok");
     localStorage.setItem("userUid", "uid");
     localStorage.setItem("persist:root", '{"authUser":"{}"}');
 
     fetchMock.mockRejectedValue(new TypeError("Failed to fetch"));
 
-    const { fetchClient } = await loadModule();
+    const { fetchClient, setAccessToken, getAccessToken } = await loadModule();
+    setAccessToken("tok");
     await expect(fetchClient("/things")).rejects.toThrow("Failed to fetch");
 
-    expect(localStorage.getItem("accessToken")).toBeNull();
+    expect(getAccessToken()).toBeNull();
     expect(localStorage.getItem("refreshToken")).toBeNull();
     expect(localStorage.getItem("userUid")).toBeNull();
     // Regression: the persisted Redux user used to survive a forced logout.
@@ -308,11 +337,11 @@ describe("fetchClient - network failure", () => {
   });
 
   it("does not redirect when already on the login page", async () => {
-    localStorage.setItem("accessToken", "tok");
     (window.location as unknown as { pathname: string }).pathname = "/login";
     fetchMock.mockRejectedValue(new TypeError("Failed to fetch"));
 
-    const { fetchClient } = await loadModule();
+    const { fetchClient, setAccessToken } = await loadModule();
+    setAccessToken("tok");
     await expect(fetchClient("/things")).rejects.toThrow();
 
     expect(locationAssign).toEqual([]);
