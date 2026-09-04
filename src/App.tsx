@@ -175,10 +175,18 @@ function App() {
   useEffect(() => {
     if (!authChecked) return;
 
-    if (!getAccessToken() && location.pathname !== "/login") {
+    /*
+      No in-memory token here doesn't necessarily mean the session is dead -
+      restoreSession's one boot-time attempt can also fail on a transient
+      network hiccup. When redux-persist has already rehydrated a user, trust
+      it and let a real API call's own 401 -> refresh -> force-logout cycle
+      (fetchClient.ts) confirm the session is actually gone, instead of
+      speculatively wiping a still-good profile on a boot blip.
+    */
+    if (!getAccessToken() && !user && location.pathname !== "/login") {
       forceLogout(false);
     }
-  }, [authChecked, location.pathname, forceLogout]);
+  }, [authChecked, user, location.pathname, forceLogout]);
 
   useEffect(() => {
     const handleForceLogout = () => {
